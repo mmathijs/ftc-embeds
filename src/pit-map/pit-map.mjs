@@ -141,7 +141,7 @@ export const THEMES = {
     },
 };
 
-// FTCScout (ftcscout.org): reads the site's own CSS variables, so it follows its light/dark
+// FTCScout (ftcscout.mmathijs.nl): reads the site's own CSS variables, so it follows its light/dark
 // switch (body.dark) automatically. The fallbacks are FTCScout's light values.
 const ftcscout = (d) => ({
     ...BASE_STYLE,

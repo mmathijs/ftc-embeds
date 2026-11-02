@@ -8,8 +8,8 @@
 // per widget with the apiBase / graphqlUrl options (api-base / graphql-url attributes).
 
 const config = {
-    apiBase: null, // REST base URL, e.g. "https://api.ftcscout.org/rest/embeds/v1"
-    graphqlUrl: null, // fallback: GraphQL endpoint, e.g. "https://api.ftcscout.org/graphql"
+    apiBase: null, // REST base URL, e.g. "https://ftcscout-api.mmathijs.nl/rest/embeds/v1"
+    graphqlUrl: null, // fallback: GraphQL endpoint, e.g. "https://ftcscout-api.mmathijs.nl/graphql"
     fetch: null, // custom fetch (SSR, tests, auth headers); null = globalThis.fetch
 };
 

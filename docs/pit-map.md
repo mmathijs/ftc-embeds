@@ -46,7 +46,7 @@ Instead of passing `data`, give the widget an event and it fetches the pit map f
 ```js
 import { configure, PitMap } from "ftc-embeds/pit-map";
 
-configure({ apiBase: "https://…/rest/embeds/v1" }); // or { graphqlUrl: "https://api.ftcscout.org/graphql" }
+configure({ apiBase: "https://…/rest/embeds/v1" }); // or { graphqlUrl: "https://ftcscout-api.mmathijs.nl/graphql" }
 const map = new PitMap(el, { event: "2025/FPEEUR", highlight: "16236" });
 map.on("load", ({ updatedAt }) => …);
 map.on("error", ({ error }) => …);   // error.notFound: no such event / no pit map
@@ -258,7 +258,7 @@ new PitMap(el, {
     popup: (team, element, ctx) => {
         const box = ctx.defaultContent();
         const link = document.createElement("a");
-        link.href = `https://ftcscout.org/teams/${team.number}`;
+        link.href = `https://ftcscout.mmathijs.nl/teams/${team.number}`;
         link.textContent = "View on FTCScout →";
         box.append(link);
         return box;

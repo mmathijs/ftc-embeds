@@ -10,7 +10,7 @@ Widgets load their data from a small REST API. **Each endpoint is a preset of a 
 import { configure } from "ftc-embeds/pit-map";
 
 configure({ apiBase: "https://api.example.org/rest/embeds/v1" }); // REST presets (preferred)
-configure({ graphqlUrl: "https://api.ftcscout.org/graphql" });  // fallback: same query over GraphQL
+configure({ graphqlUrl: "https://ftcscout-api.mmathijs.nl/graphql" });  // fallback: same query over GraphQL
 ```
 
 Per widget: the `apiBase` / `graphqlUrl` options, or the `api-base` / `graphql-url` attributes on web components. When both are set, `apiBase` wins.
