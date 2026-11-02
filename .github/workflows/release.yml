@@ -36,6 +36,7 @@ jobs:
                       echo "dist_tag=latest" >> "$GITHUB_OUTPUT"
                       echo "prerelease=false" >> "$GITHUB_OUTPUT"
                   fi
+            - run: npm ci
             - run: npm run build
             - run: npm test
             - run: npm run typecheck

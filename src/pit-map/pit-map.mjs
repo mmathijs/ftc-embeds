@@ -1,5 +1,5 @@
 /*!
- * ftc-pit-map: render FTC pit maps (ApiV3PitMap JSON) as interactive SVG.
+ * ftc-embeds/pit-map: render FTC pit maps (ApiV3PitMap JSON) as interactive SVG.
  * Zero dependencies. Works with plain JS, React, Vue, Svelte, Angular, ...
  * Schema: https://github.com/maths22/ftc-api-v3-client-ruby/blob/master/docs/ApiV3PitMap.md
  * License: MIT

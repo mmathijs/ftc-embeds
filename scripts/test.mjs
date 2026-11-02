@@ -16,6 +16,8 @@ for (const [label, load] of [
     ["source", () => import(resolve(root, "src/pit-map/pit-map.mjs"))],
     ["dist ES module", () => import(resolve(root, "dist/pit-map.mjs"))],
     ["dist UMD", async () => require(resolve(root, "dist/pit-map.umd.js"))],
+    ["minified ES module", () => import(resolve(root, "dist/pit-map.min.mjs"))],
+    ["minified UMD", async () => require(resolve(root, "dist/pit-map.umd.min.js"))],
 ]) {
     test(`${label} loads without a DOM and has every export`, async () => {
         const m = await load();

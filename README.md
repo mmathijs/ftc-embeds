@@ -28,7 +28,8 @@ Or download the built files (`pit-map.mjs`, `pit-map.umd.js`, `pit-map-demo.html
 ## Development
 
 ```bash
-npm run build      # dist/<widget>.mjs, dist/<widget>.umd.js, dist/<widget>-demo.html
+npm ci             # installs esbuild (only used to minify the builds)
+npm run build      # dist/<widget>.mjs and .umd.js, minified .min.mjs and .umd.min.js, <widget>-demo.html
 npm test           # tests (after a build)
 npm run typecheck  # checks the .d.ts files
 ```
@@ -44,6 +45,8 @@ Open `dist/pit-map-demo.html` (self-contained) or `demo/pit-map/index.html` afte
 ## Website
 
 [ftc-embeds.com](https://ftc-embeds.com) hosts the configuration dashboard (`site/index.html`), the iframe embed pages (`site/embed/`), the library (`/lib/pit-map.umd.js`) and example data. `npm run build` builds it into `dist/site`; `scripts/deploy.sh [ssh host]` (default `ftc-embeds-server`) uploads it to `/opt/ftc-embeds` on the server, where the `ftc-embeds-web` container (`deploy/docker-compose.yml`, `deploy/Caddyfile`) serves it. The server's edge Caddy terminates TLS and forwards ftc-embeds.com to that container (`deploy/edge.Caddyfile`, added to it once by hand). Live events need the embeds API: set its URL in `site/config.js`.
+
+The site counts how often the embed is loaded per website, using the Referer header browsers send; it stores no IP addresses and sets no cookies. The numbers are public at [ftc-embeds.com/stats](https://ftc-embeds.com/stats).
 
 ## Layout
 

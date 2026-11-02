@@ -1,8 +1,10 @@
 // Builds every widget. No dependencies.
 //   dist/<widget>.mjs        single-file ES module (shared src/core code inlined)
 //   dist/<widget>.umd.js     UMD build for <script> tags / CommonJS (global name per widget)
+//   dist/<widget>.min.mjs, dist/<widget>.umd.min.js   minified versions (served on ftc-embeds.com)
 //   dist/<widget>-demo.html  self-contained demo (library + example data inlined)
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
+import { transformSync } from "esbuild";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -71,6 +73,11 @@ return { ${exported.join(", ")}${defaultExport ? `, default: ${defaultExport}` :
 `;
     writeFileSync(resolve(root, `dist/${name}.umd.js`), umd);
 
+    // Minified copies; the license banner (/*! ... */) is kept.
+    const minify = (code, format) => transformSync(code, { minify: true, format, target: "es2020", legalComments: "inline" }).code;
+    writeFileSync(resolve(root, `dist/${name}.min.mjs`), minify(esm, "esm"));
+    writeFileSync(resolve(root, `dist/${name}.umd.min.js`), minify(umd, undefined));
+
     // Single-file demo: library + example data inlined, opens from anywhere.
     const demoDir = resolve(root, `demo/${name}`);
     if (existsSync(resolve(demoDir, "index.html"))) {
@@ -80,11 +87,12 @@ return { ${exported.join(", ")}${defaultExport ? `, default: ${defaultExport}` :
             const code = readFileSync(file, "utf8").replace(/<\/script/gi, "<\\/script");
             page = page.replace(tag, () => `<script>\n${code}\n</script>`);
         };
-        inline(`<script src="../../dist/${name}.umd.js"></script>`, resolve(root, `dist/${name}.umd.js`));
+        inline(`<script src="../../dist/${name}.umd.js"></script>`, resolve(root, `dist/${name}.umd.min.js`));
         inline('<script src="data/events.js"></script>', resolve(demoDir, "data/events.js"));
         writeFileSync(resolve(root, `dist/${name}-demo.html`), page);
     }
-    console.log(`built ${name} (exports: ${exported.join(", ")})`);
+    const kb = (f) => (readFileSync(resolve(root, `dist/${f}`)).length / 1024).toFixed(1) + " KB";
+    console.log(`built ${name}: ${kb(`${name}.umd.js`)}, minified ${kb(`${name}.umd.min.js`)} (exports: ${exported.join(", ")})`);
 }
 
 // Website (ftc-embeds.com): dashboard, iframe embed pages, the library and the example events.
@@ -95,7 +103,9 @@ rmSync(site, { recursive: true, force: true });
 cpSync(resolve(root, "site"), site, { recursive: true });
 mkdirSync(resolve(site, "lib"), { recursive: true });
 for (const { name } of WIDGETS) {
-    for (const ext of [".mjs", ".umd.js"]) writeFileSync(resolve(site, `lib/${name}${ext}`), readFileSync(resolve(root, `dist/${name}${ext}`)));
+    // Same URLs as before, minified content.
+    writeFileSync(resolve(site, `lib/${name}.mjs`), readFileSync(resolve(root, `dist/${name}.min.mjs`)));
+    writeFileSync(resolve(site, `lib/${name}.umd.js`), readFileSync(resolve(root, `dist/${name}.umd.min.js`)));
 }
 const examples = resolve(root, "demo/pit-map/data");
 mkdirSync(resolve(site, "examples"), { recursive: true });

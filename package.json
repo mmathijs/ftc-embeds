@@ -17,7 +17,7 @@
             "import": "./src/pit-map/pit-map.mjs",
             "require": "./dist/pit-map.umd.js"
         },
-        "./pit-map/umd": "./dist/pit-map.umd.js",
+        "./pit-map/umd": "./dist/pit-map.umd.min.js",
         "./package.json": "./package.json"
     },
     "typesVersions": {
@@ -27,6 +27,8 @@
             ]
         }
     },
+    "unpkg": "./dist/pit-map.umd.min.js",
+    "jsdelivr": "./dist/pit-map.umd.min.js",
     "files": [
         "src",
         "dist/*.mjs",
@@ -49,6 +51,9 @@
         "test": "node --test scripts/test.mjs",
         "typecheck": "npx -y -p typescript@5.4.5 tsc --noEmit --strict --lib es2020,dom src/pit-map/pit-map.d.ts",
         "prepare": "node scripts/build.mjs"
+    },
+    "devDependencies": {
+        "esbuild": "0.25.9"
     },
     "keywords": [
         "ftc",
