@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Statistics · ftc-embeds</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%231c1b19'/%3E%3Crect x='3' y='3' width='4' height='4' fill='%23ff5a1f'/%3E%3Crect x='9' y='3' width='4' height='4' fill='%23f4f1ea'/%3E%3Crect x='3' y='9' width='4' height='4' fill='%23f4f1ea'/%3E%3Crect x='9' y='9' width='4' height='4' fill='%23f4f1ea'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+    :root {
+        --paper: #f4f1ea; --paper-2: #ebe6db; --ink: #1c1b19; --ink-2: #5d5a53; --rule: #cfc8b8;
+        --grid: rgba(28, 27, 25, 0.016); --accent: #ff5a1f; --field: #fbf9f4;
+        /* chart series, validated against --paper (light) and the dark paper (dark) */
+        --s-iframe: #2a78d6; --s-library: #eb6834; --gridline: #ddd6c7;
+        --sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+        --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+        color-scheme: light;
+    }
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --paper: #161512; --paper-2: #1f1e1a; --ink: #ece7dc; --ink-2: #a39d90; --rule: #3a3731;
+            --grid: rgba(236, 231, 220, 0.018); --field: #1b1a17;
+            --s-iframe: #3987e5; --s-library: #d95926; --gridline: #2c2a25;
+            color-scheme: dark;
+        }
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html { background: var(--paper); }
+    body {
+        margin: 0; color: var(--ink); font: 15px/1.5 var(--sans); background-color: var(--paper);
+        background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+        background-size: 32px 32px;
+    }
+    a { color: inherit; text-underline-offset: 3px; }
+    a:hover { color: var(--accent); }
+    .top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 14px 28px; border-bottom: 2px solid var(--ink); }
+    .wordmark { font: 500 17px var(--mono); text-decoration: none; letter-spacing: -0.02em; }
+    .wordmark b { font-weight: 500; color: var(--accent); }
+    .top nav { display: flex; gap: 20px; font: 13px var(--mono); }
+    .top nav a { text-decoration: none; color: var(--ink-2); }
+    .top nav a[aria-current] { color: var(--ink); }
+    main { padding: 30px 28px 40px; max-width: 1180px; }
+    h1 { margin: 0; font-size: 30px; line-height: 1.15; font-weight: 600; letter-spacing: -0.02em; }
+    .sub { margin: 8px 0 0; color: var(--ink-2); font-size: 14px; }
+    .controls { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin: 26px 0 18px; padding-bottom: 14px; border-bottom: 1px solid var(--rule); }
+    .seg { display: flex; border: 1px solid var(--ink); }
+    .seg button { border: 0; background: none; color: var(--ink); font: 13px var(--sans); padding: 6px 14px; cursor: pointer; }
+    .seg button + button { border-left: 1px solid var(--ink); }
+    .seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+    .updated { font: 12px var(--mono); color: var(--ink-2); }
+    .tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 2px solid var(--ink); margin-bottom: 26px; }
+    .tile { padding: 14px 18px; border-left: 1px solid var(--rule); }
+    .tile:first-child { border-left: 0; }
+    .tile .label { font-size: 13px; color: var(--ink-2); display: flex; align-items: center; gap: 7px; }
+    .tile .value { font: 500 32px/1.1 var(--mono); letter-spacing: -0.02em; margin-top: 6px; }
+    .key { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+    section { margin-bottom: 30px; }
+    .section-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+    h2 { margin: 0; font-size: 17px; font-weight: 600; }
+    .legend { display: flex; gap: 16px; font-size: 13px; color: var(--ink-2); align-items: center; }
+    .legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .link-btn { border: 0; background: none; padding: 0; font: 13px var(--sans); color: var(--ink-2); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+    .link-btn:hover { color: var(--accent); }
+    .chart { position: relative; }
+    .chart svg { display: block; width: 100%; height: 240px; overflow: visible; }
+    .chart .tick { font: 11px var(--mono); fill: var(--ink-2); }
+    .tip { position: absolute; z-index: 3; pointer-events: none; background: var(--ink); color: var(--paper); padding: 7px 10px; border-radius: 2px; font: 12px/1.5 var(--mono); white-space: nowrap; transform: translate(-50%, -100%); margin-top: -8px; }
+    .tip .key { margin-right: 6px; vertical-align: -1px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+    th { font-weight: 500; color: var(--ink-2); font-size: 13px; border-bottom: 1px solid var(--ink); }
+    td.n, th.n { text-align: right; font-family: var(--mono); white-space: nowrap; }
+    td.events { color: var(--ink-2); font-size: 13px; }
+    td.when { font: 12.5px var(--mono); color: var(--ink-2); white-space: nowrap; }
+    .table-wrap { overflow-x: auto; }
+    .empty { padding: 28px 0; color: var(--ink-2); }
+    .note { margin-top: 22px; font-size: 13px; color: var(--ink-2); max-width: 70ch; }
+    @media (max-width: 700px) {
+        .top, main { padding-left: 16px; padding-right: 16px; }
+        .tiles { grid-template-columns: 1fr; }
+        .tile { border-left: 0; border-top: 1px solid var(--rule); }
+        .tile:first-child { border-top: 0; }
+        h1 { font-size: 25px; }
+    }
+</style>
+</head>
+<body>
+<header class="top">
+    <a class="wordmark" href="/">ftc<b>-</b>embeds</a>
+    <nav>
+        <a href="/">dashboard</a>
+        <a href="/stats" aria-current="page">stats</a>
+    </nav>
+</header>
+
+<main>
+    <h1>Who embeds the pit map</h1>
+    <p class="sub">Loads of the iframe and of the script, per website that embeds them. Counted from the Referer header the browser sends; no IP addresses or cookies are stored.</p>
+
+    <div class="controls">
+        <div class="seg" role="group" aria-label="Time range">
+            <button type="button" data-range="7">7 days</button>
+            <button type="button" data-range="30" aria-pressed="true">30 days</button>
+            <button type="button" data-range="90">90 days</button>
+        </div>
+        <span class="updated" id="updated"></span>
+    </div>
+
+    <div class="tiles">
+        <div class="tile"><div class="label"><span class="key" style="background:var(--s-iframe)"></span>iframe loads</div><div class="value" id="t-iframe">–</div></div>
+        <div class="tile"><div class="label"><span class="key" style="background:var(--s-library)"></span>script loads</div><div class="value" id="t-library">–</div></div>
+        <div class="tile"><div class="label">websites</div><div class="value" id="t-sites">–</div></div>
+    </div>
+
+    <section>
+        <div class="section-head">
+            <h2>Loads per day</h2>
+            <div class="legend">
+                <span><span class="key" style="background:var(--s-iframe)"></span>iframe</span>
+                <span><span class="key" style="background:var(--s-library)"></span>script</span>
+                <button type="button" class="link-btn" id="toggle-table">show as table</button>
+            </div>
+        </div>
+        <div class="chart" id="chart"></div>
+        <div class="table-wrap" id="day-table" hidden></div>
+    </section>
+
+    <section>
+        <div class="section-head"><h2>Websites</h2></div>
+        <div class="table-wrap" id="sites"></div>
+    </section>
+
+    <p class="note">Iframe loads are counted on every visit. Script loads are a lower bound: Cloudflare serves cached copies of the script without asking the server. Visits within 5 minutes of each other may count once. "(no referrer)" means the browser didn't say which site it came from, or the embed was opened directly.</p>
+</main>
+
+<script>
+(() => {
+    const $ = (id) => document.getElementById(id);
+    const NS = "http://www.w3.org/2000/svg";
+    let data = null;
+    let range = 30;
+    let showTable = false;
+
+    const fmt = (n) => n.toLocaleString("en-US");
+    const isoDay = (d) => d.toISOString().slice(0, 10);
+    function daysBack(n) {
+        let out = [];
+        let today = new Date();
+        for (let i = n - 1; i >= 0; i--) {
+            let d = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() - i));
+            out.push(isoDay(d));
+        }
+        return out;
+    }
+    const shortDate = (iso) => new Date(iso + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
+    const el = (tag, attrs = {}, text) => {
+        let n = document.createElement(tag);
+        for (let [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+        if (text != null) n.textContent = text;
+        return n;
+    };
+
+    function summarize() {
+        let days = daysBack(range);
+        let inRange = new Set(days);
+        let perDay = Object.fromEntries(days.map((d) => [d, { iframe: 0, library: 0 }]));
+        let sites = [];
+        for (let s of data.sites) {
+            let iframe = 0, library = 0;
+            for (let [d, c] of Object.entries(s.perDay || {})) {
+                if (!inRange.has(d)) continue;
+                iframe += c.iframe;
+                library += c.library;
+                perDay[d].iframe += c.iframe;
+                perDay[d].library += c.library;
+            }
+            if (iframe + library > 0) sites.push({ ...s, iframe, library });
+        }
+        sites.sort((a, b) => b.iframe + b.library - (a.iframe + a.library) || a.site.localeCompare(b.site));
+        return { days, perDay, sites };
+    }
+
+    // Whole-number axis: a step of 1, 2, 5, 10, 20, ... giving about four gridlines.
+    function axis(v) {
+        let step = 1;
+        for (let p = 1; ; p *= 10) {
+            let found = [1, 2, 5].map((m) => m * p).find((st) => st * 4 >= v);
+            if (found) {
+                step = found;
+                break;
+            }
+        }
+        return { step, max: Math.max(step, Math.ceil(v / step) * step) };
+    }
+
+    function drawChart({ days, perDay }) {
+        let box = $("chart");
+        box.replaceChildren();
+        let W = Math.max(320, box.clientWidth || 800);
+        let H = 240, padL = 34, padB = 26, padT = 8;
+        let { step, max } = axis(Math.max(0, ...days.map((d) => perDay[d].iframe + perDay[d].library)));
+        let svg = document.createElementNS(NS, "svg");
+        svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+        svg.setAttribute("role", "img");
+        svg.setAttribute("aria-label", `Embed loads per day, last ${range} days`);
+        let plotW = W - padL, plotH = H - padB - padT;
+        let y = (v) => padT + plotH - (v / max) * plotH;
+        let mk = (tag, attrs) => {
+            let n = document.createElementNS(NS, tag);
+            for (let [k, v] of Object.entries(attrs)) n.setAttribute(k, v);
+            svg.appendChild(n);
+            return n;
+        };
+        for (let v = 0; v <= max; v += step) {
+            mk("line", { x1: padL, x2: W, y1: y(v), y2: y(v), stroke: "var(--gridline)", "stroke-width": 1 });
+            mk("text", { x: padL - 8, y: y(v) + 4, "text-anchor": "end", class: "tick" }).textContent = fmt(v);
+        }
+        let slot = plotW / days.length;
+        let bw = Math.max(2, Math.min(28, slot * 0.62));
+        let labelEvery = Math.ceil(days.length / Math.max(2, Math.floor(plotW / 64)));
+        let tip = el("div", { class: "tip", hidden: "" });
+        days.forEach((d, i) => {
+            let cx = padL + slot * i + slot / 2;
+            let { iframe, library } = perDay[d];
+            let x = cx - bw / 2;
+            let r = Math.min(4, bw / 2);
+            // iframe at the baseline, script stacked on top, 2px paper gap between them
+            let hI = iframe ? Math.max(2, y(0) - y(iframe)) : 0;
+            let hL = library ? Math.max(2, y(0) - y(library)) : 0;
+            let topI = y(0) - hI;
+            if (hI) mk("path", { d: roundTop(x, topI, bw, hI, hL ? 0 : r), fill: "var(--s-iframe)" });
+            if (hL) mk("path", { d: roundTop(x, topI - (hI ? 2 : 0) - hL, bw, hL, r), fill: "var(--s-library)" });
+            // Count back from today, so the most recent day always has a label.
+            if ((days.length - 1 - i) % labelEvery == 0) {
+                mk("text", { x: cx, y: H - 6, "text-anchor": "middle", class: "tick" }).textContent = shortDate(d);
+            }
+            let hit = mk("rect", { x: padL + slot * i, y: padT, width: slot, height: plotH, fill: "transparent" });
+            let show = () => {
+                tip.hidden = false;
+                tip.replaceChildren();
+                tip.append(el("div", {}, shortDate(d)));
+                for (let [k, label, n] of [["iframe", "iframe", iframe], ["library", "script", library]]) {
+                    let row = el("div");
+                    row.append(el("span", { class: "key", style: `background:var(--s-${k})` }), `${label} ${fmt(n)}`);
+                    tip.append(row);
+                }
+                let bx = box.getBoundingClientRect(), sx = svg.getBoundingClientRect();
+                tip.style.left = `${(cx / W) * sx.width}px`;
+                tip.style.top = `${(Math.min(y(iframe + library), y(0) - 10) / H) * sx.height}px`;
+            };
+            hit.addEventListener("mouseenter", show);
+            hit.addEventListener("touchstart", show, { passive: true });
+            hit.addEventListener("mouseleave", () => (tip.hidden = true));
+        });
+        mk("line", { x1: padL, x2: W, y1: y(0), y2: y(0), stroke: "var(--ink-2)", "stroke-width": 1 });
+        box.append(svg, tip);
+    }
+
+    function roundTop(x, y, w, h, r) {
+        r = Math.min(r, h, w / 2);
+        return `M${x},${y + h}V${y + r}Q${x},${y} ${x + r},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h}Z`;
+    }
+
+    function dayTable({ days, perDay }) {
+        let t = el("table");
+        let head = el("tr");
+        head.append(el("th", {}, "day"), el("th", { class: "n" }, "iframe"), el("th", { class: "n" }, "script"));
+        t.append(head);
+        for (let d of [...days].reverse()) {
+            let r = el("tr");
+            r.append(el("td", {}, shortDate(d)), el("td", { class: "n" }, fmt(perDay[d].iframe)), el("td", { class: "n" }, fmt(perDay[d].library)));
+            t.append(r);
+        }
+        $("day-table").replaceChildren(t);
+    }
+
+    function sitesTable({ sites }) {
+        let box = $("sites");
+        if (!sites.length) {
+            box.replaceChildren(el("p", { class: "empty" }, `No embeds in the last ${range} days.`));
+            return;
+        }
+        let t = el("table");
+        let head = el("tr");
+        head.append(el("th", {}, "website"), el("th", { class: "n" }, "iframe"), el("th", { class: "n" }, "script"), el("th", {}, "events"), el("th", {}, "last seen"));
+        t.append(head);
+        for (let s of sites) {
+            let r = el("tr");
+            let name = el("td");
+            if (s.site.startsWith("(")) name.textContent = s.site;
+            else name.append(el("a", { href: `https://${s.site}`, target: "_blank", rel: "noopener noreferrer" }, s.site));
+            let events = Object.entries(s.events || {}).slice(0, 4).map(([e, n]) => `${e} (${fmt(n)})`).join(", ");
+            let last = s.lastSeen ? new Date(s.lastSeen).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "";
+            r.append(name, el("td", { class: "n" }, fmt(s.iframe)), el("td", { class: "n" }, fmt(s.library)), el("td", { class: "events" }, events || "–"), el("td", { class: "when" }, last));
+            t.append(r);
+        }
+        box.replaceChildren(t);
+    }
+
+    function render() {
+        let sum = summarize();
+        let iframe = sum.sites.reduce((n, s) => n + s.iframe, 0);
+        let library = sum.sites.reduce((n, s) => n + s.library, 0);
+        $("t-iframe").textContent = fmt(iframe);
+        $("t-library").textContent = fmt(library);
+        $("t-sites").textContent = fmt(sum.sites.length);
+        drawChart(sum);
+        dayTable(sum);
+        sitesTable(sum);
+        $("chart").hidden = showTable;
+        $("day-table").hidden = !showTable;
+        $("toggle-table").textContent = showTable ? "show as chart" : "show as table";
+        document.querySelectorAll("[data-range]").forEach((b) => b.setAttribute("aria-pressed", +b.dataset.range == range));
+    }
+
+    document.querySelectorAll("[data-range]").forEach((b) => (b.onclick = () => ((range = +b.dataset.range), render())));
+    $("toggle-table").onclick = () => ((showTable = !showTable), render());
+    let resizeTimer;
+    window.addEventListener("resize", () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => data && render(), 120);
+    });
+
+    fetch("/stats.json", { cache: "no-store" })
+        .then((r) => {
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            return r.json();
+        })
+        .then((json) => {
+            data = json;
+            let at = new Date(json.generatedAt);
+            $("updated").textContent = `updated ${at.toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })} · every 10 minutes`;
+            render();
+        })
+        .catch((e) => {
+            $("sites").replaceChildren(el("p", { class: "empty" }, `Couldn't load the statistics (${e.message}).`));
+            $("chart").replaceChildren();
+        });
+})();
+</script>
+</body>
+</html>

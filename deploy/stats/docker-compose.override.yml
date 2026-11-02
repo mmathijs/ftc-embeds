@@ -1,0 +1,6 @@
+# Additions to docker-compose.yml for the embed statistics (installed by scripts/stats.sh).
+services:
+    web:
+        volumes:
+            - ./extra:/etc/caddy/extra:ro
+            - ./logs:/logs

@@ -46,7 +46,7 @@ Open `dist/pit-map-demo.html` (self-contained) or `demo/pit-map/index.html` afte
 
 [ftc-embeds.com](https://ftc-embeds.com) hosts the configuration dashboard (`site/index.html`), the iframe embed pages (`site/embed/`), the library (`/lib/pit-map.umd.js`) and example data. `npm run build` builds it into `dist/site`; `scripts/deploy.sh [ssh host]` (default `ftc-embeds-server`) uploads it to `/opt/ftc-embeds` on the server, where the `ftc-embeds-web` container (`deploy/docker-compose.yml`, `deploy/Caddyfile`) serves it. The server's edge Caddy terminates TLS and forwards ftc-embeds.com to that container (`deploy/edge.Caddyfile`, added to it once by hand). Live events need the embeds API: set its URL in `site/config.js`.
 
-The site counts how often the embed is loaded per website, using the Referer header browsers send; it stores no IP addresses and sets no cookies. The numbers are public at [ftc-embeds.com/stats](https://ftc-embeds.com/stats).
+The site counts how often the embed is loaded per website, using the Referer header browsers send; it stores no IP addresses and sets no cookies. The numbers are public at [ftc-embeds.com/stats](https://ftc-embeds.com/stats). Caddy writes the log (`deploy/stats/stats.caddy`), `embed-stats.py` turns it into the `stats.json` behind the page every 10 minutes, and `scripts/stats.sh install` sets all of that up on the server. `scripts/stats.sh [--days N]` prints the numbers in your terminal.
 
 ## Layout
 
@@ -57,8 +57,10 @@ demo/<widget>/                demo pages and example data
 docs/<widget>.md              documentation
 site/                         ftc-embeds.com: dashboard, embed pages, config.js
 deploy/                       ftc-embeds-web container (compose + Caddyfile) and the edge Caddy site block
+deploy/stats/                 embed statistics: Caddy logging, embed-stats.py and the /stats page
 scripts/build.mjs             builds every widget and the site into dist/
 scripts/deploy.sh             uploads dist/site to the server
+scripts/stats.sh              installs the statistics on the server, or prints them
 ```
 
 ## License
