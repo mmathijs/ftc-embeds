@@ -1,0 +1,26 @@
+name: CI
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                node: [20, 22, 24]
+        steps:
+            - uses: actions/checkout@v4
+            - uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ matrix.node }}
+            - run: npm run build
+            - run: npm test
+            - run: npm run typecheck
+            - uses: actions/upload-artifact@v4
+              if: matrix.node == 22
+              with:
+                  name: dist
+                  path: dist/

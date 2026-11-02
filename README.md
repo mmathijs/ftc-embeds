@@ -17,11 +17,23 @@ new PitMap(document.getElementById("map"), { data, theme: "ftcscout", highlight:
 
 Without a bundler: `<script src="dist/pit-map.umd.js"></script>` (global `FtcPitMap`).
 
+## Install
+
+```bash
+npm install github:mmathijs/ftc-embeds#v0.1.0
+```
+
+Or download the built files (`pit-map.mjs`, `pit-map.umd.js`, `pit-map-demo.html`) from the [releases](https://github.com/mmathijs/ftc-embeds/releases).
+
 ## Development
 
 ```bash
-npm run build    # dist/<widget>.mjs, dist/<widget>.umd.js, dist/<widget>-demo.html
+npm run build      # dist/<widget>.mjs, dist/<widget>.umd.js, dist/<widget>-demo.html
+npm test           # tests (after a build)
+npm run typecheck  # checks the .d.ts files
 ```
+
+CI builds and tests every push and pull request. To release, bump `version` in `package.json`, then push a matching tag (`git tag v0.2.0 && git push origin v0.2.0`); the release workflow builds, tests and publishes a GitHub release with the built files.
 
 Open `dist/pit-map-demo.html` (self-contained) or `demo/pit-map/index.html` after building.
 

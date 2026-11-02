@@ -41,6 +41,8 @@
     ],
     "scripts": {
         "build": "node scripts/build.mjs",
+        "test": "node --test scripts/test.mjs",
+        "typecheck": "npx -y -p typescript@5.4.5 tsc --noEmit --strict --lib es2020,dom src/pit-map/pit-map.d.ts",
         "prepare": "node scripts/build.mjs"
     },
     "keywords": [
