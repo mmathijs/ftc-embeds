@@ -22,5 +22,5 @@
 	}
 
 	# Extra server-local config, if any
-	import extra/*
+	import extra/*.caddy
 }
