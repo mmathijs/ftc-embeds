@@ -29,7 +29,8 @@
     },
     "files": [
         "src",
-        "dist",
+        "dist/*.mjs",
+        "dist/*.js",
         "docs",
         "README.md",
         "LICENSE"
@@ -39,6 +40,10 @@
         "./dist/*.js",
         "./dist/*.mjs"
     ],
+    "publishConfig": {
+        "access": "public",
+        "provenance": true
+    },
     "scripts": {
         "build": "node scripts/build.mjs",
         "test": "node --test scripts/test.mjs",

@@ -20,7 +20,7 @@ Without a bundler: `<script src="dist/pit-map.umd.js"></script>` (global `FtcPit
 ## Install
 
 ```bash
-npm install github:mmathijs/ftc-embeds#v0.1.0
+npm install ftc-embeds
 ```
 
 Or download the built files (`pit-map.mjs`, `pit-map.umd.js`, `pit-map-demo.html`) from the [releases](https://github.com/mmathijs/ftc-embeds/releases).
@@ -33,7 +33,9 @@ npm test           # tests (after a build)
 npm run typecheck  # checks the .d.ts files
 ```
 
-CI builds and tests every push and pull request. To release, bump `version` in `package.json`, then push a matching tag (`git tag v0.2.0 && git push origin v0.2.0`); the release workflow builds, tests and publishes a GitHub release with the built files.
+CI builds and tests every push and pull request. To release, bump `version` in `package.json`, then push a matching tag (`git tag v0.2.0 && git push origin v0.2.0`). The release workflow builds and tests, publishes the package to npm (with provenance) and creates a GitHub release with the built files.
+
+Publishing uses npm trusted publishing (no stored token): on npmjs.com, the `ftc-embeds` package's settings list this repository's `release.yml` workflow as a trusted publisher. Trusted publishing can only be set up once the package exists, so the first release uses an `NPM_TOKEN` repository secret instead.
 
 Open `dist/pit-map-demo.html` (self-contained) or `demo/pit-map/index.html` after building.
 
