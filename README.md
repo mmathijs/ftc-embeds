@@ -43,7 +43,7 @@ Open `dist/pit-map-demo.html` (self-contained) or `demo/pit-map/index.html` afte
 
 ## Website
 
-[ftc-embeds.com](https://ftc-embeds.com) hosts the configuration dashboard (`site/index.html`), the iframe embed pages (`site/embed/`), the library (`/lib/pit-map.umd.js`) and example data. `npm run build` builds it into `dist/site`; `scripts/deploy.sh [user@host]` uploads it and reloads Caddy (`deploy/Caddyfile`). Live events need the embeds API: set its URL in `site/config.js`.
+[ftc-embeds.com](https://ftc-embeds.com) hosts the configuration dashboard (`site/index.html`), the iframe embed pages (`site/embed/`), the library (`/lib/pit-map.umd.js`) and example data. `npm run build` builds it into `dist/site`; `scripts/deploy.sh [ssh host]` (default `ftc-embeds-server`) uploads it to `/opt/ftc-embeds` on the server, where the `ftc-embeds-web` container (`deploy/docker-compose.yml`, `deploy/Caddyfile`) serves it. The server's edge Caddy terminates TLS and forwards ftc-embeds.com to that container (`deploy/edge.Caddyfile`, added to it once by hand). Live events need the embeds API: set its URL in `site/config.js`.
 
 ## Layout
 
@@ -53,7 +53,7 @@ src/<widget>/<widget>.mjs     source (ES module) + <widget>.d.ts types
 demo/<widget>/                demo pages and example data
 docs/<widget>.md              documentation
 site/                         ftc-embeds.com: dashboard, embed pages, config.js
-deploy/Caddyfile              web server config for ftc-embeds.com
+deploy/                       ftc-embeds-web container (compose + Caddyfile) and the edge Caddy site block
 scripts/build.mjs             builds every widget and the site into dist/
 scripts/deploy.sh             uploads dist/site to the server
 ```

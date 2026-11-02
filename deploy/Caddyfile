@@ -1,6 +1,7 @@
-# ftc-embeds.com: static site from dist/site (scripts/deploy.sh uploads it to /srv/ftc-embeds/site).
-ftc-embeds.com {
-	root * /srv/ftc-embeds/site
+# Static site for ftc-embeds.com, served inside the ftc-embeds-web container on :80. TLS and the
+# public hostname are handled by the server's edge Caddy (see deploy/edge.Caddyfile).
+:80 {
+	root * /srv
 	encode zstd gzip
 
 	# Clean URLs: /embed/pit-map -> embed/pit-map.html
@@ -19,8 +20,4 @@ ftc-embeds.com {
 		X-Content-Type-Options "nosniff"
 		-Server
 	}
-}
-
-www.ftc-embeds.com {
-	redir https://ftc-embeds.com{uri} permanent
 }

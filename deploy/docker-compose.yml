@@ -1,0 +1,14 @@
+# Runs on the server in /opt/ftc-embeds next to site/ and Caddyfile (uploaded by scripts/deploy.sh).
+services:
+    web:
+        image: caddy:2
+        container_name: ftc-embeds-web
+        networks: [ftcscout-edge]
+        volumes:
+            - ./Caddyfile:/etc/caddy/Caddyfile:ro
+            - ./site:/srv:ro
+        restart: unless-stopped
+
+networks:
+    ftcscout-edge:
+        external: true

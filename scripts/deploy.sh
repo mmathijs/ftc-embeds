@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
-# Builds the site and uploads it to the server. Usage: scripts/deploy.sh [user@host]
+# Builds the site and uploads it to the server. Usage: scripts/deploy.sh [ssh host]
+# The default host is the "ftc-embeds-server" entry in ~/.ssh/config.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-HOST="${1:-${DEPLOY_HOST:-oci@150.136.44.26}}"
-# Keys live in the Bitwarden SSH agent when it's running.
-if [ -z "${SSH_AUTH_SOCK:-}" ] && [ -S "$HOME/.bitwarden-ssh-agent.sock" ]; then
-    export SSH_AUTH_SOCK="$HOME/.bitwarden-ssh-agent.sock"
-fi
+HOST="${1:-${DEPLOY_HOST:-ftc-embeds-server}}"
+DIR=/opt/ftc-embeds
 
 node scripts/build.mjs
 node --test scripts/test.mjs >/dev/null
 
-rsync -az --delete --chmod=D755,F644 dist/site/ "$HOST:/srv/ftc-embeds/site/"
-rsync -az deploy/Caddyfile "$HOST:/srv/ftc-embeds/Caddyfile"
-ssh "$HOST" 'sudo cp /srv/ftc-embeds/Caddyfile /etc/caddy/Caddyfile && sudo systemctl reload caddy'
-echo "Deployed to $HOST"
+rsync -az --delete --chmod=D755,F644 dist/site/ "$HOST:$DIR/site/"
+rsync -az --chmod=F644 deploy/Caddyfile deploy/docker-compose.yml "$HOST:$DIR/"
+# Starts the container the first time, recreates it if the compose file changed, and reloads
+# its config; the site files themselves are served live.
+ssh "$HOST" "cd $DIR && sudo docker compose up -d --quiet-pull && sudo docker exec ftc-embeds-web caddy reload --config /etc/caddy/Caddyfile"
+echo "Deployed to $HOST:$DIR"

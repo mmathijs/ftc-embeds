@@ -1,0 +1,15 @@
+# Site blocks for the server's edge Caddy (the one on ports 80/443), which forwards to the
+# ftc-embeds-web container on the shared ftcscout-edge network. Added once by hand to that
+# Caddy's Caddyfile; scripts/deploy.sh doesn't touch it.
+ftc-embeds.com {
+	log {
+		output file /var/log/caddy/access.log
+		format json
+	}
+
+	reverse_proxy ftc-embeds-web:80
+}
+
+www.ftc-embeds.com {
+	redir https://ftc-embeds.com{uri} permanent
+}
