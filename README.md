@@ -35,6 +35,8 @@ npm run typecheck  # checks the .d.ts files
 
 CI builds and tests every push and pull request. To release, bump `version` in `package.json`, then push a matching tag (`git tag v0.2.0 && git push origin v0.2.0`). The release workflow builds and tests, publishes the package to npm (with provenance) and creates a GitHub release with the built files.
 
+Pre-releases work the same way: version `0.2.0-beta.1` with tag `v0.2.0-beta.1` is published under the npm dist-tag `beta` (`npm install ftc-embeds@beta`) and marked as a pre-release on GitHub; `latest` keeps pointing at the last normal release. The dist-tag is the pre-release name (`beta`, `rc`, `alpha`, …), or `next` for numeric ones like `0.2.0-1`.
+
 Publishing uses npm trusted publishing (no stored token): on npmjs.com, the `ftc-embeds` package's settings list this repository's `release.yml` workflow as a trusted publisher.
 
 Open `dist/pit-map-demo.html` (self-contained) or `demo/pit-map/index.html` after building.
