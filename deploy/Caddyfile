@@ -20,4 +20,7 @@
 		X-Content-Type-Options "nosniff"
 		-Server
 	}
+
+	# Extra server-local config, if any
+	import extra/*
 }
