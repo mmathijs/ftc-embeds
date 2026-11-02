@@ -191,10 +191,10 @@
     }
 
     const HINTS = {
-        iframe: "Works everywhere, including Wix, Google Sites and Squarespace (use their “embed code” block).",
-        element: "For sites where you can add scripts. Style it with CSS like any element; listen for pitclick events.",
-        js: "For apps with a bundler (React, Vue, Svelte, Angular, …). See the docs for framework examples.",
-        url: "A direct link to the map, e.g. for a QR code at the event.",
+        iframe: "Paste it into any site, including Wix, Google Sites and Squarespace (use their embed block).",
+        element: "For sites where you can add a script tag. Listen for pitclick events if you want to react to clicks.",
+        js: "For apps built with a bundler, like React, Vue or Svelte. The docs have an example per framework.",
+        url: "A link to just the map, for example behind a QR code at the event.",
     };
 
     // ------------------------------------------------------------ preview
@@ -264,6 +264,7 @@
         updatePreview();
         syncControls();
         $("snippet").textContent = snippet();
+        $("tb-event").textContent = hasEvent() ? eventRef().replace("/", " · ") : "no event";
         $("tab-hint").textContent = HINTS[tab];
         document.querySelectorAll(".tabs button").forEach((b) => b.setAttribute("aria-selected", b.dataset.tab == tab));
         writeHash();
