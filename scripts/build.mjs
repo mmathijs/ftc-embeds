@@ -97,6 +97,7 @@ return { ${exported.join(", ")}${defaultExport ? `, default: ${defaultExport}` :
 
 // Website (ftc-embeds.com): dashboard, iframe embed pages, the library and the example events.
 import { cpSync, readdirSync, rmSync } from "node:fs";
+import { createHash } from "node:crypto";
 
 const site = resolve(root, "dist/site");
 rmSync(site, { recursive: true, force: true });
@@ -112,5 +113,18 @@ mkdirSync(resolve(site, "examples"), { recursive: true });
 writeFileSync(resolve(site, "examples/events.js"), readFileSync(resolve(examples, "events.js")));
 for (const file of readdirSync(examples).filter((f) => f.endsWith("_pitmap.json"))) {
     writeFileSync(resolve(site, `examples/${file.replace("_pitmap", "")}`), readFileSync(resolve(examples, file)));
+}
+// Give the pages' own scripts a content hash (dashboard.js?v=1a2b3c4d), so a deploy never pairs a
+// new page with an old script that the browser or Cloudflare still has cached.
+const pages = readdirSync(site, { recursive: true }).filter((f) => f.endsWith(".html"));
+for (const page of pages) {
+    const path = resolve(site, page);
+    const html = readFileSync(path, "utf8").replace(/(<script\b[^>]*\bsrc=")([^":?#]+\.m?js)"/g, (tag, start, src) => {
+        const target = resolve(dirname(path), src);
+        if (!existsSync(target)) throw new Error(`build: ${page} loads ${src}, which doesn't exist`);
+        const hash = createHash("sha256").update(readFileSync(target)).digest("hex").slice(0, 8);
+        return `${start}${src}?v=${hash}"`;
+    });
+    writeFileSync(path, html);
 }
 console.log("built site (dist/site)");
