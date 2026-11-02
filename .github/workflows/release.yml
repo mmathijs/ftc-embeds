@@ -31,15 +31,20 @@ jobs:
             - run: npm install -g npm@latest
             - name: Publish to npm
               env:
-                  # Only needed until trusted publishing is set up on npmjs.com (first release).
+                  # Only needed for the first release, before trusted publishing is set up.
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
               run: |
                   name=$(node -p "require('./package.json').name")
                   version=$(node -p "require('./package.json').version")
                   if npm view "$name@$version" version >/dev/null 2>&1; then
                       echo "$name@$version is already on npm, skipping"
-                  else
+                  elif npm view "$name" name >/dev/null 2>&1; then
                       npm publish
+                  else
+                      # A new package can only be created through staged publishing; a maintainer
+                      # then approves it with 2FA on npmjs.com (or npm stage approve).
+                      npm stage publish
+                      echo "::notice::$name@$version is staged: approve it on npmjs.com to make it installable"
                   fi
             - name: Create GitHub release
               env:

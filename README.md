@@ -35,7 +35,7 @@ npm run typecheck  # checks the .d.ts files
 
 CI builds and tests every push and pull request. To release, bump `version` in `package.json`, then push a matching tag (`git tag v0.2.0 && git push origin v0.2.0`). The release workflow builds and tests, publishes the package to npm (with provenance) and creates a GitHub release with the built files.
 
-Publishing uses npm trusted publishing (no stored token): on npmjs.com, the `ftc-embeds` package's settings list this repository's `release.yml` workflow as a trusted publisher. Trusted publishing can only be set up once the package exists, so the first release uses an `NPM_TOKEN` repository secret instead.
+Publishing uses npm trusted publishing (no stored token): on npmjs.com, the `ftc-embeds` package's settings list this repository's `release.yml` workflow as a trusted publisher. The very first release created the package with `npm stage publish` (using an `NPM_TOKEN` secret), approved by a maintainer with 2FA on npmjs.com, because trusted publishing can only be set up once the package exists.
 
 Open `dist/pit-map-demo.html` (self-contained) or `demo/pit-map/index.html` after building.
 
