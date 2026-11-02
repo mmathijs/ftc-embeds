@@ -333,6 +333,16 @@
     $("copy").onclick = () => copy($("snippet").textContent, $("copy"));
     $("share").onclick = () => copy(location.href, $("share"));
 
+    function download(blob, ext) {
+        let a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `${eventRef().replace("/", "-")}-pit-map.${ext}`;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    }
+    $("dl-png").onclick = async () => download(await map.toPNG(), "png");
+    $("dl-svg").onclick = () => download(new Blob([map.toSVGString()], { type: "image/svg+xml" }), "svg");
+
     if (!LIVE_API) state.source = "example";
     if (!EXAMPLES[state.example]) state.example = DEFAULTS.example;
     render();
