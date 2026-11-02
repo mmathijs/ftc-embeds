@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pit Map Element</title>
+<style>
+    :root { color-scheme: light dark; }
+    body { margin: 0; padding: 24px 16px; font: 15px/1.5 system-ui, sans-serif; background: Canvas; color: CanvasText; }
+    main { max-width: 960px; margin: 0 auto; display: grid; gap: 16px; }
+    ftc-pit-map { height: 560px; border: 1px solid color-mix(in srgb, CanvasText 12%, transparent); }
+    code { font-size: 13px; }
+    #log { color: GrayText; min-height: 1.5em; }
+</style>
+</head>
+<body>
+<main>
+    <h1 style="margin:0;font-size:20px">&lt;ftc-pit-map&gt; web component</h1>
+    <p style="margin:0">Same library, no JS API needed: set attributes, listen to events. In a real app use
+        <code>&lt;ftc-pit-map src="/pitmaps/FPEEUR.json"&gt;</code>; this page sets <code>.data</code> so it also works from <code>file://</code>.</p>
+    <ftc-pit-map id="pm" highlight="3954, 8626" highlight-color="#10b981" outline="21222" outline-color="#e11d48" scroll-zoom="true"></ftc-pit-map>
+    <div id="log">Click a pit…</div>
+</main>
+<script src="../../dist/pit-map.umd.js"></script>
+<script src="data/events.js"></script>
+<script>
+    const el = document.getElementById("pm");
+    el.data = window.PIT_MAPS.FPEEUR;
+    el.addEventListener("pitclick", (e) => {
+        const t = e.detail.team;
+        if (!t) return;
+        document.getElementById("log").textContent = `Clicked ${t.number} – ${t.name}. Outlining it.`;
+        el.setAttribute("outline", t.number);
+    });
+</script>
+</body>
+</html>

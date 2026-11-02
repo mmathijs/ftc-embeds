@@ -1,0 +1,2583 @@
+{
+  "minX": 0,
+  "minY": 0,
+  "width": 35,
+  "height": 36,
+  "showPitNumbers": true,
+  "showPitAddresses": false,
+  "elements": [
+    {
+      "type": "PIT",
+      "x": 3,
+      "y": 5,
+      "width": 2,
+      "height": 2,
+      "label": "1",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "8626",
+        "name": "The Prototypes",
+        "displayNumber": "8626"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 3,
+      "y": 7,
+      "width": 2,
+      "height": 2,
+      "label": "2",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "9121",
+        "name": "Falcon Force",
+        "displayNumber": "9121"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 3,
+      "y": 9,
+      "width": 2,
+      "height": 2,
+      "label": "3",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "10183",
+        "name": "F.R.O.G.  Frog Robots Of Germany",
+        "displayNumber": "10183"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 3,
+      "y": 11,
+      "width": 2,
+      "height": 2,
+      "label": "4",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "10939",
+        "name": "UK024 Lakenheath HS RoboLancers",
+        "displayNumber": "10939"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 3,
+      "y": 13,
+      "width": 2,
+      "height": 2,
+      "label": "5",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "10941",
+        "name": "SHAPE Robotics",
+        "displayNumber": "10941"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 3,
+      "y": 15,
+      "width": 2,
+      "height": 2,
+      "label": "6",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "3954",
+        "name": "Pink to the Future",
+        "displayNumber": "3954"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 3,
+      "y": 19,
+      "width": 2,
+      "height": 2,
+      "label": "7",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "11515",
+        "name": "RobotIGS",
+        "displayNumber": "11515"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 3,
+      "y": 21,
+      "width": 2,
+      "height": 2,
+      "label": "8",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "12475",
+        "name": "Chilling Chinchillas",
+        "displayNumber": "12475"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 3,
+      "y": 23,
+      "width": 2,
+      "height": 2,
+      "label": "9",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "12740",
+        "name": "Robo Next-Gen 12740",
+        "displayNumber": "12740"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 3,
+      "y": 25,
+      "width": 2,
+      "height": 2,
+      "label": "10",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "15469",
+        "name": "DAVE",
+        "displayNumber": "15469"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 3,
+      "y": 27,
+      "width": 2,
+      "height": 2,
+      "label": "11",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "18160",
+        "name": "4D-Robotics",
+        "displayNumber": "18160"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 3,
+      "y": 29,
+      "width": 2,
+      "height": 2,
+      "label": "12",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "18984",
+        "name": "OG Hurricanes",
+        "displayNumber": "18984"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 2,
+      "y": 3,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 2,
+      "y": 4,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 2,
+      "y": 5,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 2,
+      "y": 6,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 2,
+      "y": 7,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 2,
+      "y": 8,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 2,
+      "y": 9,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 2,
+      "y": 10,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 2,
+      "y": 11,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 2,
+      "y": 12,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 2,
+      "y": 13,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 2,
+      "y": 14,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 2,
+      "y": 15,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 2,
+      "y": 16,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 2,
+      "y": 17,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 2,
+      "y": 18,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 2,
+      "y": 19,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 2,
+      "y": 20,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 2,
+      "y": 21,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 2,
+      "y": 22,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 2,
+      "y": 23,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 2,
+      "y": 24,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 2,
+      "y": 25,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 2,
+      "y": 26,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 2,
+      "y": 27,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 2,
+      "y": 28,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 2,
+      "y": 29,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 2,
+      "y": 30,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 2,
+      "y": 31,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 2,
+      "y": 32,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 3,
+      "width": 2,
+      "height": 2,
+      "label": "13",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "11206",
+        "name": "Devildogs",
+        "displayNumber": "11206"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 5,
+      "width": 2,
+      "height": 2,
+      "label": "14",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "15989",
+        "name": "RoboTitans",
+        "displayNumber": "15989"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 7,
+      "width": 2,
+      "height": 2,
+      "label": "15",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "16058",
+        "name": "Rev Atom",
+        "displayNumber": "16058"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 9,
+      "width": 2,
+      "height": 2,
+      "label": "16",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "16785",
+        "name": "Team ProBotiX",
+        "displayNumber": "16785"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 11,
+      "width": 2,
+      "height": 2,
+      "label": "17",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "17884",
+        "name": "Ladybots - St. Hildas",
+        "displayNumber": "17884"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 13,
+      "width": 2,
+      "height": 2,
+      "label": "18",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "18735",
+        "name": "RinGoStar",
+        "displayNumber": "18735"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 15,
+      "width": 2,
+      "height": 2,
+      "label": "19",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19043",
+        "name": "CyLiis",
+        "displayNumber": "19043"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 19,
+      "width": 2,
+      "height": 2,
+      "label": "20",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19056",
+        "name": "PrimeTech",
+        "displayNumber": "19056"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 21,
+      "width": 2,
+      "height": 2,
+      "label": "21",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19112",
+        "name": "UNDEFINED",
+        "displayNumber": "19112"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 23,
+      "width": 2,
+      "height": 2,
+      "label": "22",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19234",
+        "name": "ByteForce",
+        "displayNumber": "19234"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 25,
+      "width": 2,
+      "height": 2,
+      "label": "23",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19256",
+        "name": "CyberMoon",
+        "displayNumber": "19256"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 27,
+      "width": 2,
+      "height": 2,
+      "label": "24",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19280",
+        "name": "Phoenix",
+        "displayNumber": "19280"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 29,
+      "width": 2,
+      "height": 2,
+      "label": "25",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19444",
+        "name": "Lorentz Engineering",
+        "displayNumber": "19444"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 31,
+      "width": 2,
+      "height": 2,
+      "label": "26",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19600",
+        "name": "Treeman 树人",
+        "displayNumber": "19600"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 10,
+      "y": 3,
+      "width": 2,
+      "height": 2,
+      "label": "27",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "18917",
+        "name": "thE Agent Group",
+        "displayNumber": "18917"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 10,
+      "y": 5,
+      "width": 2,
+      "height": 2,
+      "label": "28",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19091",
+        "name": "The Resistance",
+        "displayNumber": "19091"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 10,
+      "y": 7,
+      "width": 2,
+      "height": 2,
+      "label": "29",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "20157",
+        "name": "Perseverance",
+        "displayNumber": "20157"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 10,
+      "y": 9,
+      "width": 2,
+      "height": 2,
+      "label": "30",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "20267",
+        "name": "Gravity",
+        "displayNumber": "20267"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 10,
+      "y": 11,
+      "width": 2,
+      "height": 2,
+      "label": "31",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "21062",
+        "name": "QUANT",
+        "displayNumber": "21062"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 10,
+      "y": 13,
+      "width": 2,
+      "height": 2,
+      "label": "32",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "21085",
+        "name": "BRONTOBYTE",
+        "displayNumber": "21085"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 10,
+      "y": 15,
+      "width": 2,
+      "height": 2,
+      "label": "33",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "22404",
+        "name": "Delta",
+        "displayNumber": "22404"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 10,
+      "y": 19,
+      "width": 2,
+      "height": 2,
+      "label": "34",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "22590",
+        "name": "MechaByte",
+        "displayNumber": "22590"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 10,
+      "y": 21,
+      "width": 2,
+      "height": 2,
+      "label": "35",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "22903",
+        "name": "VegaMind",
+        "displayNumber": "22903"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 10,
+      "y": 23,
+      "width": 2,
+      "height": 2,
+      "label": "36",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23014",
+        "name": "The Flying Dutchman",
+        "displayNumber": "23014"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 10,
+      "y": 25,
+      "width": 2,
+      "height": 2,
+      "label": "37",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23133",
+        "name": "TO GET THERE",
+        "displayNumber": "23133"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 10,
+      "y": 27,
+      "width": 2,
+      "height": 2,
+      "label": "38",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23160",
+        "name": "Redshift",
+        "displayNumber": "23160"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 10,
+      "y": 29,
+      "width": 2,
+      "height": 2,
+      "label": "39",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23252",
+        "name": "FTC NEOBOTS",
+        "displayNumber": "23252"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 10,
+      "y": 31,
+      "width": 2,
+      "height": 2,
+      "label": "40",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23346",
+        "name": "Kalipso Robotics",
+        "displayNumber": "23346"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 3,
+      "width": 2,
+      "height": 2,
+      "label": "41",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "21094",
+        "name": "North Star",
+        "displayNumber": "21094"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 5,
+      "width": 2,
+      "height": 2,
+      "label": "42",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "21222",
+        "name": "Quimera",
+        "displayNumber": "21222"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 7,
+      "width": 2,
+      "height": 2,
+      "label": "43",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "22244",
+        "name": "Nebula",
+        "displayNumber": "22244"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 9,
+      "width": 2,
+      "height": 2,
+      "label": "44",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23069",
+        "name": "SESI SENAI SC TECHMAKER CHALLENGE",
+        "displayNumber": "23069"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 11,
+      "width": 2,
+      "height": 2,
+      "label": "45",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23422",
+        "name": "Shamir",
+        "displayNumber": "23422"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 13,
+      "width": 2,
+      "height": 2,
+      "label": "46",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23816",
+        "name": "OG Cyclones",
+        "displayNumber": "23816"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 15,
+      "width": 2,
+      "height": 2,
+      "label": "47",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23417",
+        "name": "The Energizers",
+        "displayNumber": "23417"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 19,
+      "width": 2,
+      "height": 2,
+      "label": "48",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23864",
+        "name": "CASABOTS",
+        "displayNumber": "23864"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 21,
+      "width": 2,
+      "height": 2,
+      "label": "49",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "24090",
+        "name": "Trojan Robotics",
+        "displayNumber": "24090"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 23,
+      "width": 2,
+      "height": 2,
+      "label": "50",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "24557",
+        "name": "UNIMATE - SESI SENAI SC",
+        "displayNumber": "24557"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 25,
+      "width": 2,
+      "height": 2,
+      "label": "51",
+      "labelOrientation": "HORIZONTAL",
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 27,
+      "width": 2,
+      "height": 2,
+      "label": "52",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "25429",
+        "name": "Ctrl Alt Defeat",
+        "displayNumber": "25429"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 29,
+      "width": 2,
+      "height": 2,
+      "label": "53",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "25473",
+        "name": "Cubic",
+        "displayNumber": "25473"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 31,
+      "width": 2,
+      "height": 2,
+      "label": "54",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "25482",
+        "name": "SIRIUS",
+        "displayNumber": "25482"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 16,
+      "y": 3,
+      "width": 2,
+      "height": 2,
+      "label": "55",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "24345",
+        "name": "SPARKTECH",
+        "displayNumber": "24345"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 16,
+      "y": 5,
+      "width": 2,
+      "height": 2,
+      "label": "56",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "24474",
+        "name": "Vilnius Lyceum Robotics",
+        "displayNumber": "24474"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 16,
+      "y": 7,
+      "width": 2,
+      "height": 2,
+      "label": "57",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "24500",
+        "name": "LITBOT",
+        "displayNumber": "24500"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 16,
+      "y": 9,
+      "width": 2,
+      "height": 2,
+      "label": "58",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "24639",
+        "name": "The Krakens",
+        "displayNumber": "24639"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 16,
+      "y": 11,
+      "width": 2,
+      "height": 2,
+      "label": "59",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "24695",
+        "name": "Strategic Robotics",
+        "displayNumber": "24695"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 16,
+      "y": 13,
+      "width": 2,
+      "height": 2,
+      "label": "60",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "25042",
+        "name": "DiniTech",
+        "displayNumber": "25042"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 16,
+      "y": 15,
+      "width": 2,
+      "height": 2,
+      "label": "61",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "25564",
+        "name": "Mid-CHAOTICS",
+        "displayNumber": "25564"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 16,
+      "y": 19,
+      "width": 2,
+      "height": 2,
+      "label": "62",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "25602",
+        "name": "DaçkaBots",
+        "displayNumber": "25602"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 16,
+      "y": 21,
+      "width": 2,
+      "height": 2,
+      "label": "63",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "26568",
+        "name": "CL-RoboCity",
+        "displayNumber": "26568"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 16,
+      "y": 23,
+      "width": 2,
+      "height": 2,
+      "label": "64",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "27624",
+        "name": "Tech4Peace Jr.",
+        "displayNumber": "27624"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 16,
+      "y": 25,
+      "width": 2,
+      "height": 2,
+      "label": "65",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "27883",
+        "name": "Wilsobotics",
+        "displayNumber": "27883"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 16,
+      "y": 27,
+      "width": 2,
+      "height": 2,
+      "label": "66",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "28223",
+        "name": "RoboTen",
+        "displayNumber": "28223"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 16,
+      "y": 29,
+      "width": 2,
+      "height": 2,
+      "label": "67",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "28321",
+        "name": "Orion Alpha X",
+        "displayNumber": "28321"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 16,
+      "y": 31,
+      "width": 2,
+      "height": 2,
+      "label": "68",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "28348",
+        "name": "Ferdibot",
+        "displayNumber": "28348"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 20,
+      "y": 3,
+      "width": 2,
+      "height": 2,
+      "label": "69",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "25273",
+        "name": "ISL Robotics Veterans",
+        "displayNumber": "25273"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 20,
+      "y": 5,
+      "width": 2,
+      "height": 2,
+      "label": "70",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "26122",
+        "name": "Moo Tech",
+        "displayNumber": "26122"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 20,
+      "y": 7,
+      "width": 2,
+      "height": 2,
+      "label": "71",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "27072",
+        "name": "Tech Outlaws",
+        "displayNumber": "27072"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 20,
+      "y": 9,
+      "width": 2,
+      "height": 2,
+      "label": "72",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "27628",
+        "name": "Beargineers",
+        "displayNumber": "27628"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 20,
+      "y": 11,
+      "width": 2,
+      "height": 2,
+      "label": "73",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "27891",
+        "name": "SPARKS",
+        "displayNumber": "27891"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 20,
+      "y": 13,
+      "width": 2,
+      "height": 2,
+      "label": "74",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "27904",
+        "name": "CamCare",
+        "displayNumber": "27904"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 20,
+      "y": 15,
+      "width": 2,
+      "height": 2,
+      "label": "75",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "27942",
+        "name": "Dream Machine",
+        "displayNumber": "27942"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 20,
+      "y": 19,
+      "width": 2,
+      "height": 2,
+      "label": "76",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "28366",
+        "name": "Neighbor",
+        "displayNumber": "28366"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 20,
+      "y": 21,
+      "width": 2,
+      "height": 2,
+      "label": "77",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "30317",
+        "name": "MORTEX",
+        "displayNumber": "30317"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 20,
+      "y": 23,
+      "width": 2,
+      "height": 2,
+      "label": "78",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "30324",
+        "name": "Aura",
+        "displayNumber": "30324"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 20,
+      "y": 25,
+      "width": 2,
+      "height": 2,
+      "label": "79",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "30630",
+        "name": "Mr. Krabs",
+        "displayNumber": "30630"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 20,
+      "y": 27,
+      "width": 2,
+      "height": 2,
+      "label": "80",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "30661",
+        "name": "Bluetooth Brothers",
+        "displayNumber": "30661"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 20,
+      "y": 29,
+      "width": 2,
+      "height": 2,
+      "label": "81",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "32635",
+        "name": "mooneye",
+        "displayNumber": "32635"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 20,
+      "y": 31,
+      "width": 2,
+      "height": 2,
+      "label": "82",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "33017",
+        "name": "ITKAN FITYA PIONEERS",
+        "displayNumber": "33017"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 22,
+      "y": 3,
+      "width": 2,
+      "height": 2,
+      "label": "83",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "28078",
+        "name": "Kryptonite",
+        "displayNumber": "28078"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 22,
+      "y": 5,
+      "width": 2,
+      "height": 2,
+      "label": "84",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "28129",
+        "name": "ENIGMA",
+        "displayNumber": "28129"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 22,
+      "y": 7,
+      "width": 2,
+      "height": 2,
+      "label": "85",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "28395",
+        "name": "Pixel Raptors",
+        "displayNumber": "28395"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 22,
+      "y": 9,
+      "width": 2,
+      "height": 2,
+      "label": "86",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "28683",
+        "name": "Rusty Boiler",
+        "displayNumber": "28683"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 22,
+      "y": 11,
+      "width": 2,
+      "height": 2,
+      "label": "87",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "28887",
+        "name": "R2D2UA",
+        "displayNumber": "28887"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 22,
+      "y": 13,
+      "width": 2,
+      "height": 2,
+      "label": "88",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "28903",
+        "name": "HungryBots",
+        "displayNumber": "28903"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 22,
+      "y": 15,
+      "width": 2,
+      "height": 2,
+      "label": "89",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "28909",
+        "name": "Oguzrobot",
+        "displayNumber": "28909"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 22,
+      "y": 19,
+      "width": 2,
+      "height": 2,
+      "label": "90",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "33044",
+        "name": "PetraTech Robotics",
+        "displayNumber": "33044"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 22,
+      "y": 21,
+      "width": 2,
+      "height": 2,
+      "label": "91",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "33398",
+        "name": "Code Brezel",
+        "displayNumber": "33398"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 22,
+      "y": 23,
+      "width": 2,
+      "height": 2,
+      "label": "92",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "33452",
+        "name": "BECQ DUNK",
+        "displayNumber": "33452"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 22,
+      "y": 25,
+      "width": 2,
+      "height": 2,
+      "label": "93",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "33524",
+        "name": "VIS Venus",
+        "displayNumber": "33524"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 22,
+      "y": 27,
+      "width": 2,
+      "height": 2,
+      "label": "94",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "33536",
+        "name": "Error 404: Team name not found",
+        "displayNumber": "33536"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 22,
+      "y": 29,
+      "width": 2,
+      "height": 2,
+      "label": "95",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "33784",
+        "name": "FRT",
+        "displayNumber": "33784"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 22,
+      "y": 31,
+      "width": 2,
+      "height": 2,
+      "label": "96",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "34045",
+        "name": "Syntax Terrors",
+        "displayNumber": "34045"
+      },
+      "color": "#007fff"
+    },
+    {
+      "type": "PIT",
+      "x": 26,
+      "y": 9,
+      "width": 2,
+      "height": 2,
+      "label": "97",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "28935",
+        "name": "befiring BST",
+        "displayNumber": "28935"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 26,
+      "y": 11,
+      "width": 2,
+      "height": 2,
+      "label": "98",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "30027",
+        "name": "STARSHIP",
+        "displayNumber": "30027"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 26,
+      "y": 13,
+      "width": 2,
+      "height": 2,
+      "label": "99",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "32878",
+        "name": "Technical Dynamics",
+        "displayNumber": "32878"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 26,
+      "y": 15,
+      "width": 2,
+      "height": 2,
+      "label": "100",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "32930",
+        "name": "C.L.ANKERS",
+        "displayNumber": "32930"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 28,
+      "y": 9,
+      "width": 2,
+      "height": 2,
+      "label": "101",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "33408",
+        "name": "CYCLOTECHS",
+        "displayNumber": "33408"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 28,
+      "y": 11,
+      "width": 2,
+      "height": 2,
+      "label": "102",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "33535",
+        "name": "Thunderstrike",
+        "displayNumber": "33535"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 28,
+      "y": 13,
+      "width": 2,
+      "height": 2,
+      "label": "103",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "34063",
+        "name": "Rust Bucket",
+        "displayNumber": "34063"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 28,
+      "y": 15,
+      "width": 2,
+      "height": 2,
+      "label": "104",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "34103",
+        "name": "Control C",
+        "displayNumber": "34103"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 32,
+      "y": 9,
+      "width": 2,
+      "height": 2,
+      "label": "105",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "34148",
+        "name": "CDC.zip",
+        "displayNumber": "34148"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "PIT",
+      "x": 32,
+      "y": 11,
+      "width": 2,
+      "height": 2,
+      "label": "106",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "34672",
+        "name": "Snack Time Engineers",
+        "displayNumber": "34672"
+      },
+      "color": "#ffa500"
+    },
+    {
+      "type": "OBJECT",
+      "x": 28,
+      "y": 7,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "OBJECT",
+      "x": 26,
+      "y": 8,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "OBJECT",
+      "x": 28,
+      "y": 4,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "OBJECT",
+      "x": 26,
+      "y": 1,
+      "width": 8,
+      "height": 8,
+      "label": "Jankshed",
+      "labelOrientation": "HORIZONTAL"
+    },
+    {
+      "type": "VERTICAL_FIELD",
+      "x": 31,
+      "y": 30,
+      "width": 3,
+      "height": 5
+    },
+    {
+      "type": "VERTICAL_FIELD",
+      "x": 28,
+      "y": 30,
+      "width": 3,
+      "height": 5
+    },
+    {
+      "type": "VERTICAL_FIELD",
+      "x": 31,
+      "y": 25,
+      "width": 3,
+      "height": 5
+    },
+    {
+      "type": "VERTICAL_FIELD",
+      "x": 28,
+      "y": 25,
+      "width": 3,
+      "height": 5
+    },
+    {
+      "type": "OBJECT",
+      "x": 30,
+      "y": 19,
+      "width": 4,
+      "height": 6,
+      "label": "Pit Admin",
+      "labelOrientation": "VERTICAL"
+    },
+    {
+      "type": "OBJECT",
+      "x": 28,
+      "y": 19,
+      "width": 2,
+      "height": 4
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 34,
+      "y": 19,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 34,
+      "y": 20,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 34,
+      "y": 21,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 34,
+      "y": 22,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 34,
+      "y": 23,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 34,
+      "y": 24,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 34,
+      "y": 25,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 34,
+      "y": 26,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 34,
+      "y": 27,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 34,
+      "y": 28,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 34,
+      "y": 29,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 34,
+      "y": 30,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 34,
+      "y": 31,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 34,
+      "y": 32,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 34,
+      "y": 33,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 34,
+      "y": 34,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 34,
+      "y": 35,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 33,
+      "y": 35,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 32,
+      "y": 35,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 29,
+      "y": 35,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 28,
+      "y": 35,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 30,
+      "y": 35,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 31,
+      "y": 35,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 27,
+      "y": 35,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 26,
+      "y": 35,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 25,
+      "y": 35,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 24,
+      "y": 35,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 22,
+      "y": 35,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 23,
+      "y": 35,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 21,
+      "y": 35,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 20,
+      "y": 35,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 19,
+      "y": 35,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 18,
+      "y": 35,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 16,
+      "y": 35,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 17,
+      "y": 35,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 15,
+      "y": 35,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 13,
+      "y": 35,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 14,
+      "y": 35,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 11,
+      "y": 35,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 12,
+      "y": 35,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 10,
+      "y": 35,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 9,
+      "y": 35,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 8,
+      "y": 35,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 7,
+      "y": 35,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 6,
+      "y": 35,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 5,
+      "y": 35,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 4,
+      "y": 35,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 3,
+      "y": 35,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 2,
+      "y": 35,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 2,
+      "y": 0,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 3,
+      "y": 0,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 4,
+      "y": 0,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 5,
+      "y": 0,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 7,
+      "y": 0,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 6,
+      "y": 0,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 8,
+      "y": 0,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 9,
+      "y": 0,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 11,
+      "y": 0,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 10,
+      "y": 0,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 12,
+      "y": 0,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 14,
+      "y": 0,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 13,
+      "y": 0,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 15,
+      "y": 0,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 17,
+      "y": 0,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 16,
+      "y": 0,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 18,
+      "y": 0,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 19,
+      "y": 0,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 20,
+      "y": 0,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 21,
+      "y": 0,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 22,
+      "y": 0,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 23,
+      "y": 0,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 24,
+      "y": 0,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 25,
+      "y": 0,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 26,
+      "y": 0,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 27,
+      "y": 0,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 28,
+      "y": 0,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 29,
+      "y": 0,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 30,
+      "y": 0,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 31,
+      "y": 0,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 32,
+      "y": 0,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 33,
+      "y": 0,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 34,
+      "y": 0,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 34,
+      "y": 1,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 34,
+      "y": 2,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 34,
+      "y": 3,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 34,
+      "y": 4,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 34,
+      "y": 5,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 34,
+      "y": 6,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 34,
+      "y": 7,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 34,
+      "y": 8,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 34,
+      "y": 9,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 34,
+      "y": 10,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 34,
+      "y": 11,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 34,
+      "y": 12,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 34,
+      "y": 13,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 34,
+      "y": 14,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 34,
+      "y": 15,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 34,
+      "y": 16,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "OBJECT",
+      "x": 0,
+      "y": 3,
+      "width": 2,
+      "height": 8,
+      "label": "Queueing",
+      "labelOrientation": "VERTICAL"
+    },
+    {
+      "type": "OBJECT",
+      "x": 0,
+      "y": 25,
+      "width": 2,
+      "height": 8,
+      "label": "Queueing",
+      "labelOrientation": "VERTICAL"
+    }
+  ]
+}

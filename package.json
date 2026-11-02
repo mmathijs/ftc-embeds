@@ -1,0 +1,54 @@
+{
+    "name": "ftc-embeds",
+    "version": "0.1.0",
+    "description": "Embeddable FIRST Tech Challenge widgets (pit maps, more to come). Zero dependencies; works with any framework.",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/mmathijs/ftc-embeds.git"
+    },
+    "homepage": "https://github.com/mmathijs/ftc-embeds#readme",
+    "bugs": {
+        "url": "https://github.com/mmathijs/ftc-embeds/issues"
+    },
+    "exports": {
+        "./pit-map": {
+            "types": "./src/pit-map/pit-map.d.ts",
+            "import": "./src/pit-map/pit-map.mjs",
+            "require": "./dist/pit-map.umd.js"
+        },
+        "./pit-map/umd": "./dist/pit-map.umd.js",
+        "./package.json": "./package.json"
+    },
+    "typesVersions": {
+        "*": {
+            "pit-map": [
+                "./src/pit-map/pit-map.d.ts"
+            ]
+        }
+    },
+    "files": [
+        "src",
+        "dist",
+        "docs",
+        "README.md",
+        "LICENSE"
+    ],
+    "sideEffects": [
+        "./src/pit-map/pit-map.mjs",
+        "./dist/*.js",
+        "./dist/*.mjs"
+    ],
+    "scripts": {
+        "build": "node scripts/build.mjs",
+        "prepare": "node scripts/build.mjs"
+    },
+    "keywords": [
+        "ftc",
+        "first",
+        "first-tech-challenge",
+        "pit-map",
+        "embed",
+        "web-component"
+    ]
+}

@@ -1,0 +1,88 @@
+// Builds every widget. No dependencies.
+//   dist/<widget>.mjs        single-file ES module (shared src/core code inlined)
+//   dist/<widget>.umd.js     UMD build for <script> tags / CommonJS (global name per widget)
+//   dist/<widget>-demo.html  self-contained demo (library + example data inlined)
+import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const WIDGETS = [{ name: "pit-map", global: "FtcPitMap" }];
+
+const IMPORT_RE = /^import\s*\{[^}]*\}\s*from\s*"(\.{1,2}\/[^"]+)";\s*$/gm;
+const REEXPORT_RE = /^export\s*\{([^}]*)\}\s*from\s*"(\.{1,2}\/[^"]+)";\s*$/gm;
+
+/**
+ * Inline the relative imports of `file` (recursively, once each) so the result is one module.
+ * Inlined modules lose their `export` keywords; re-exports become a local `export { … }`.
+ */
+function bundle(file, seen = new Set()) {
+    let src = readFileSync(file, "utf8");
+    let deps = [];
+    let reexports = [];
+    let take = (spec) => {
+        let dep = resolve(dirname(file), spec);
+        if (!seen.has(dep)) {
+            seen.add(dep);
+            deps.push(bundle(dep, seen).replace(/^\/\*![\s\S]*?\*\/\n/, "").replace(/^export (const|function|class|async function) /gm, "$1 "));
+        }
+    };
+    src = src.replace(REEXPORT_RE, (_, names, spec) => {
+        take(spec);
+        reexports.push(names.trim());
+        return "";
+    });
+    src = src.replace(IMPORT_RE, (_, spec) => {
+        take(spec);
+        return "";
+    });
+    let [banner, ...rest] = src.split(/(?<=\*\/)\n/);
+    let out = [banner, ...deps, rest.join("\n")].join("\n");
+    if (reexports.length) out += `\nexport { ${reexports.join(", ")} };\n`;
+    return out;
+}
+
+mkdirSync(resolve(root, "dist"), { recursive: true });
+
+for (const { name, global } of WIDGETS) {
+    const esm = bundle(resolve(root, `src/${name}/${name}.mjs`));
+    writeFileSync(resolve(root, `dist/${name}.mjs`), esm);
+
+    const exported = [
+        ...[...esm.matchAll(/^export (?:const|function|class|async function) (\w+)/gm)].map((m) => m[1]),
+        ...[...esm.matchAll(/^export \{([^}]*)\};\s*$/gm)].flatMap((m) => m[1].split(",").map((s) => s.trim())),
+    ].filter(Boolean);
+    const defaultExport = /^export default (\w+);\s*$/m.exec(esm)?.[1];
+    const body = esm
+        .replace(/^export default \w+;\s*$/m, "")
+        .replace(/^export \{[^}]*\};\s*$/gm, "")
+        .replace(/^export (const|function|class|async function) /gm, "$1 ");
+    const [banner, ...rest] = body.split(/(?<=\*\/)\n/);
+    const umd = `${banner}
+(function (global, factory) {
+    if (typeof exports === "object" && typeof module !== "undefined") module.exports = factory();
+    else if (typeof define === "function" && define.amd) define(factory);
+    else (global = typeof globalThis !== "undefined" ? globalThis : global || self).${global} = factory();
+})(this, function () {
+"use strict";
+${rest.join("\n")}
+return { ${exported.join(", ")}${defaultExport ? `, default: ${defaultExport}` : ""} };
+});
+`;
+    writeFileSync(resolve(root, `dist/${name}.umd.js`), umd);
+
+    // Single-file demo: library + example data inlined, opens from anywhere.
+    const demoDir = resolve(root, `demo/${name}`);
+    if (existsSync(resolve(demoDir, "index.html"))) {
+        let page = readFileSync(resolve(demoDir, "index.html"), "utf8");
+        const inline = (tag, file) => {
+            if (!page.includes(tag)) throw new Error(`build: ${tag} not found in demo/${name}/index.html`);
+            const code = readFileSync(file, "utf8").replace(/<\/script/gi, "<\\/script");
+            page = page.replace(tag, () => `<script>\n${code}\n</script>`);
+        };
+        inline(`<script src="../../dist/${name}.umd.js"></script>`, resolve(root, `dist/${name}.umd.js`));
+        inline('<script src="data/events.js"></script>', resolve(demoDir, "data/events.js"));
+        writeFileSync(resolve(root, `dist/${name}-demo.html`), page);
+    }
+    console.log(`built ${name} (exports: ${exported.join(", ")})`);
+}

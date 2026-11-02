@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FTC Pit Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap">
+<style>
+    :root {
+        --bg: #eef0f4; --panel: #ffffff; --text: #0f172a; --muted: #64748b; --line: #e2e6ec;
+        --accent: #2563eb; --chip: #f1f4f8; --chip-on: #0f172a; --chip-on-text: #fff;
+        color-scheme: light;
+    }
+    @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+            --bg: #08090c; --panel: #12151b; --text: #eef1f5; --muted: #8b95a5; --line: #222731;
+            --accent: #6d9bff; --chip: #1b1f27; --chip-on: #eef1f5; --chip-on-text: #0b0d12;
+            color-scheme: dark;
+        }
+    }
+    :root[data-theme="dark"] {
+        --bg: #08090c; --panel: #12151b; --text: #eef1f5; --muted: #8b95a5; --line: #222731;
+        --accent: #6d9bff; --chip: #1b1f27; --chip-on: #eef1f5; --chip-on-text: #0b0d12;
+        color-scheme: dark;
+    }
+    /* Page styling per preset. FTCScout: its real variable names (static/css/global.css),
+       toggled with body.dark exactly like the site; the map reads these variables itself. */
+    body.site-ftcscout {
+        --fg-color: #ffffff; --bg-color: #f2f2f2; --theme-color: rgb(44, 102, 110); --inline-theme-color: var(--theme-color);
+        --sep-color: lightgray; --sep-hover-color: rgb(200, 200, 200); --text-color: #000000; --secondary-text-color: #636466;
+        --form-bg-color: #efefef; --zebra-stripe-color: rgb(245, 245, 245); --inverse-bg-color: #212121;
+        --fade-shadow: rgba(0, 0, 0, 0.2); --red-team-color: rgb(244, 67, 54); --blue-team-color: rgb(33, 150, 243);
+        --font-family: "Inter", sans-serif;
+        --bg: var(--bg-color); --panel: var(--fg-color); --text: var(--text-color); --muted: var(--secondary-text-color);
+        --line: var(--sep-color); --accent: var(--inline-theme-color); --chip: var(--form-bg-color);
+        --chip-on: var(--theme-color); --chip-on-text: #ffffff;
+        font-family: var(--font-family);
+    }
+    body.site-ftcscout.dark {
+        --fg-color: rgb(45, 45, 45); --bg-color: #161616; --theme-color: rgb(31, 76, 82); --inline-theme-color: #39848e;
+        --sep-color: #4a4e51; --sep-hover-color: #595d61; --text-color: #dfe2e6; --secondary-text-color: #b7b7b8;
+        --form-bg-color: #191919; --zebra-stripe-color: #353535; --inverse-bg-color: #202020;
+        --fade-shadow: rgba(255, 255, 255, 0.15); --red-team-color: rgb(175, 29, 29); --blue-team-color: rgb(25, 103, 165);
+        color-scheme: dark;
+    }
+    body.site-ftcscout .brand { background: var(--theme-color); color: #fff; border-color: transparent; }
+    body.site-ftcscout .brand .sub { color: rgba(255, 255, 255, 0.8); }
+    body.site-ftcscout .card, body.site-ftcscout .map { border-radius: 8px; }
+    /* FTC-Events: Bootstrap-ish, Roboto, navy header */
+    body.site-ftc-events {
+        --bg: #ffffff; --panel: #ffffff; --text: #212529; --muted: #606060; --line: #dee2e6; --accent: #0066b3;
+        --chip: #eef1f4; --chip-on: #003974; --chip-on-text: #ffffff;
+        font-family: Roboto, "Helvetica Neue", Arial, sans-serif; color-scheme: light;
+    }
+    body.site-ftc-events .brand { background: #003974; color: #fff; border-color: #00468e; }
+    body.site-ftc-events .brand .sub { color: rgba(255, 255, 255, 0.75); }
+    body.site-ftc-events .card, body.site-ftc-events .map, body.site-ftc-events .chip, body.site-ftc-events .btn,
+    body.site-ftc-events input[type="text"], body.site-ftc-events select { border-radius: 4px; }
+    body.site-ftc-events .btn.primary { background: #0066b3; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.45 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    .app { display: grid; grid-template-columns: 320px 1fr; gap: 16px; padding: 16px; min-height: 100vh; }
+    aside { display: flex; flex-direction: column; gap: 12px; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
+    h1 { font-size: 18px; margin: 0; letter-spacing: -0.01em; }
+    h2 { font-size: 11px; margin: 0 0 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+    .sub { color: var(--muted); margin: 2px 0 0; font-size: 13px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip { border: 0; background: var(--chip); color: var(--text); padding: 6px 10px; border-radius: 999px; font: inherit; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+    .chip[aria-pressed="true"] { background: var(--chip-on); color: var(--chip-on-text); }
+    .chip.div { padding-left: 8px; }
+    .chip .sw { display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 6px; vertical-align: 0; }
+    label.field { display: grid; gap: 4px; font-size: 12.5px; color: var(--muted); font-weight: 600; }
+    .row { display: flex; gap: 8px; align-items: center; }
+    .row > * { min-width: 0; }
+    input[type="text"], select { width: 100%; font: inherit; color: var(--text); background: var(--chip); border: 1px solid transparent; border-radius: 9px; padding: 8px 10px; outline: none; }
+    input[type="text"]:focus, select:focus { border-color: var(--accent); }
+    input[type="range"] { width: 100%; accent-color: var(--accent); }
+    .pm-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .pm-actions button { font: inherit; font-size: 12px; font-weight: 600; border: 1px solid var(--ftcpm-tip-border); background: transparent; color: inherit; border-radius: 7px; padding: 5px 8px; cursor: pointer; }
+    .pm-actions button:hover { background: var(--ftcpm-tip-border); }
+    input[type="color"] { width: 38px; height: 36px; padding: 0; border: 0; background: none; cursor: pointer; flex: none; }
+    .stack { display: grid; gap: 10px; }
+    .toggle { display: flex; align-items: center; justify-content: space-between; font-size: 13px; }
+    .btn { font: inherit; font-weight: 600; font-size: 13px; border: 0; border-radius: 9px; padding: 8px 12px; cursor: pointer; background: var(--chip); color: var(--text); }
+    .btn.primary { background: var(--accent); color: #fff; }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
+    .result { font-size: 13px; color: var(--muted); min-height: 1.4em; }
+    .result b { color: var(--text); }
+    .stage { position: sticky; top: 16px; height: calc(100vh - 32px); display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+    .map { flex: 1; min-height: 0; border-radius: 16px; overflow: hidden; border: 1px solid var(--line); background: var(--panel); }
+    .bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .stats { display: flex; gap: 16px; color: var(--muted); font-size: 13px; }
+    .stats b { color: var(--text); font-variant-numeric: tabular-nums; }
+    .suggest { position: relative; }
+    .suggest ul { position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 5; list-style: none; margin: 0; padding: 4px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,.15); max-height: 260px; overflow: auto; }
+    .suggest li { padding: 6px 8px; border-radius: 7px; cursor: pointer; display: flex; gap: 8px; align-items: baseline; }
+    .suggest li:hover, .suggest li[aria-selected="true"] { background: var(--chip); }
+    .suggest li b { font-variant-numeric: tabular-nums; min-width: 46px; }
+    .suggest li span { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tagline { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tag { display: inline-flex; align-items: center; gap: 6px; background: var(--chip); border-radius: 999px; padding: 3px 4px 3px 10px; font-size: 12.5px; font-weight: 600; }
+    .tag button { border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 14px; line-height: 1; padding: 2px 6px; border-radius: 999px; }
+    .legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; color: var(--muted); }
+    .legend[hidden] { display: none; }
+    .legend .grad { width: 120px; height: 8px; border-radius: 4px; background: linear-gradient(90deg, #0ea5e9, #a78bfa, #f43f5e); }
+    @media (max-width: 860px) {
+        .app { grid-template-columns: 1fr; padding: 12px 16px; }
+        .stage { position: static; height: auto; order: -1; }
+        .map { flex: none; height: 72vh; }
+    }
+</style>
+</head>
+<body>
+<div class="app">
+    <aside>
+        <div class="card brand">
+            <h1>FTC Pit Map</h1>
+            <p class="sub">2025 season · rendered with <code>ftc-pit-map</code></p>
+        </div>
+
+        <div class="card">
+            <h2>Event</h2>
+            <div class="chips" id="events"></div>
+            <div class="chips" id="divisions" style="margin-top:8px"></div>
+        </div>
+
+        <div class="card stack">
+            <h2>Teams</h2>
+            <label class="field">Highlight
+                <div class="row">
+                    <div class="suggest" style="flex:1"><input type="text" id="hl-input" placeholder="Team number or name" autocomplete="off"></div>
+                    <input type="color" id="hl-color" value="#f59e0b" title="Highlight color">
+                </div>
+            </label>
+            <div class="tagline" id="hl-tags"></div>
+            <label class="field">Outline
+                <div class="row">
+                    <div class="suggest" style="flex:1"><input type="text" id="ol-input" placeholder="Team number or name" autocomplete="off"></div>
+                    <input type="color" id="ol-color" value="#ef4444" title="Outline color">
+                </div>
+            </label>
+            <div class="tagline" id="ol-tags"></div>
+            <div class="toggle"><span>Fade other pits</span><input type="checkbox" id="dim" checked></div>
+            <div class="toggle"><span>Color by team age</span><input type="checkbox" id="age"></div>
+            <div class="legend" id="age-legend" hidden><span>older</span><span class="grad"></span><span>newer</span></div>
+        </div>
+
+        <div class="card stack">
+            <h2>Walking route</h2>
+            <div class="row">
+                <input type="text" id="r-from" placeholder="From team">
+                <span style="color:var(--muted)">→</span>
+                <input type="text" id="r-to" placeholder="Team or area" list="r-areas">
+                <datalist id="r-areas"></datalist>
+            </div>
+            <div class="row">
+                <button class="btn primary" id="r-go">Show route</button>
+                <button class="btn" id="r-clear">Clear</button>
+            </div>
+            <div class="row">
+                <button class="btn" id="r-field">Nearest field</button>
+                <button class="btn" id="r-queue">Nearest queue</button>
+            </div>
+            <div class="result" id="r-result"></div>
+        </div>
+
+        <div class="card stack">
+            <h2>Customize style</h2>
+            <label class="field">Pit corners <input type="range" id="t-radius" min="0" max="1" step="0.02"></label>
+            <label class="field">Area corners <input type="range" id="t-oradius" min="0" max="1" step="0.02"></label>
+            <label class="field">Field corners <input type="range" id="t-fradius" min="0" max="1" step="0.02"></label>
+            <label class="field">Wall corners <input type="range" id="t-wradius" min="0" max="0.5" step="0.02"></label>
+            <label class="field">Pit spacing <input type="range" id="t-gap" min="0" max="0.25" step="0.01"></label>
+            <label class="field">Event color strength <input type="range" id="t-mix" min="0" max="0.9" step="0.05"></label>
+            <label class="field">Route corners <input type="range" id="t-corner" min="0" max="1.5" step="0.1"></label>
+            <div class="row">
+                <label class="field" style="flex:1">Route <input type="color" id="t-route"></label>
+                <label class="field" style="flex:1">Walls <input type="color" id="t-wall"></label>
+                <label class="field" style="flex:1">Floor <input type="color" id="t-bg"></label>
+            </div>
+            <select id="t-font">
+                <option value="">Font: theme default</option>
+                <option value='"Inter", ui-sans-serif, system-ui, sans-serif'>Font: Inter</option>
+                <option value='Roboto, "Helvetica Neue", Arial, sans-serif'>Font: Roboto</option>
+                <option value='ui-monospace, "SF Mono", Menlo, Consolas, monospace'>Font: monospace</option>
+                <option value='Georgia, "Times New Roman", serif'>Font: serif</option>
+            </select>
+            <div class="row">
+                <button class="btn" id="t-reset">Reset to theme</button>
+                <button class="btn" id="t-copy">Copy theme JSON</button>
+            </div>
+        </div>
+
+        <div class="card stack">
+            <h2>View</h2>
+            <div class="row">
+                <select id="theme">
+                    <option value="auto">Theme: system</option>
+                    <option value="light">Theme: light</option>
+                    <option value="dark">Theme: dark</option>
+                    <option value="ftcscout">Theme: FTCScout</option>
+                    <option value="ftcscout-dark">Theme: FTCScout dark</option>
+                    <option value="ftc-events">Theme: FTC-Events</option>
+                </select>
+                <select id="names">
+                    <option value="zoom">Names: when zoomed</option>
+                    <option value="true">Names: always</option>
+                    <option value="false">Names: never</option>
+                </select>
+            </div>
+            <label class="field">Field alliance sides
+                <select id="alliances">
+                    <option value="">Unknown (neutral)</option>
+                    <option value="red-first">Red at top / left</option>
+                    <option value="blue-first">Blue at top / left</option>
+                </select>
+            </label>
+            <label class="field">On pit click
+                <select id="click">
+                    <option value="custom">Popup with actions (custom)</option>
+                    <option value="popup">Popup (built-in)</option>
+                    <option value="focus">Zoom to pit</option>
+                    <option value="tooltip">Tooltip only</option>
+                    <option value="none">Nothing</option>
+                </select>
+            </label>
+            <div class="row">
+                <button class="btn" id="png">Download PNG</button>
+                <button class="btn" id="svgdl">Download SVG</button>
+            </div>
+        </div>
+    </aside>
+
+    <main class="stage">
+        <div class="bar">
+            <div class="stats" id="stats"></div>
+            <div class="stats"><span>Drag to pan · Ctrl + scroll / pinch to zoom · double-click to zoom in</span></div>
+        </div>
+        <div class="map" id="map"></div>
+    </main>
+</div>
+
+<script src="../../dist/pit-map.umd.js"></script>
+<script src="data/events.js"></script>
+<script>
+const { PitMap } = FtcPitMap;
+const MAPS = window.PIT_MAPS;
+const NAMES = {
+    FPEEUR: "Premier Event Europe", NLCMP: "Netherlands Championship", FTCCMP1: "FIRST Championship",
+    FTCCMP1EDIS: "Edison", FTCCMP1FRAN: "Franklin", FTCCMP1GOOD: "Goodall",
+    FTCCMP1JACK: "Jackson", FTCCMP1LOVE: "Lovelace", FTCCMP1ROSS: "Ross",
+};
+const $ = (id) => document.getElementById(id);
+
+const state = { event: "FTCCMP1", highlight: new Map(), outline: new Map() };
+const map = new PitMap($("map"), { scrollZoom: "modifier" });
+
+// ---------- event + division chips
+function chip(code, label, parent, swatch) {
+    const b = document.createElement("button");
+    b.className = "chip" + (swatch ? " div" : "");
+    b.dataset.code = code;
+    if (swatch) {
+        const s = document.createElement("span");
+        s.className = "sw";
+        s.style.background = swatch;
+        b.appendChild(s);
+    }
+    b.append(label);
+    b.onclick = () => selectEvent(code);
+    parent.appendChild(b);
+}
+chip("FPEEUR", "FPE Europe", $("events"));
+chip("NLCMP", "Netherlands CMP", $("events"));
+chip("FTCCMP1", "Worlds", $("events"));
+for (const code of Object.keys(MAPS).filter((c) => c.startsWith("FTCCMP1") && c !== "FTCCMP1")) {
+    const color = MAPS[code].elements.find((e) => e.type === "PIT" && e.team)?.color;
+    chip(code, NAMES[code], $("divisions"), color);
+}
+
+function selectEvent(code) {
+    state.event = code;
+    document.querySelectorAll(".chip[data-code]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.code === code));
+    $("divisions").style.display = code.startsWith("FTCCMP1") ? "" : "none";
+    map.setData(MAPS[code]);
+    $("r-result").textContent = "";
+    refreshAreas();
+    applyTeams();
+    const teams = map.getTeams();
+    const pits = MAPS[code].elements.filter((e) => e.type === "PIT").length;
+    $("stats").innerHTML = `<span><b>${NAMES[code]}</b></span><span><b>${teams.length}</b> teams</span><span><b>${pits}</b> pits</span>`;
+}
+
+// ---------- team pickers with suggestions
+function picker(inputId, tagsId, key, colorId) {
+    const input = $(inputId);
+    const wrap = input.parentElement;
+    let list = null, sel = -1, items = [];
+    const close = () => { list?.remove(); list = null; sel = -1; };
+    const add = (team) => {
+        state[key].set(String(team.number), null);
+        input.value = "";
+        close();
+        applyTeams();
+        map.focusTeam(team.number);
+    };
+    input.addEventListener("input", () => {
+        items = map.findTeams(input.value, 8);
+        close();
+        if (!items.length) return;
+        list = document.createElement("ul");
+        list.setAttribute("role", "listbox");
+        items.forEach((t, i) => {
+            const li = document.createElement("li");
+            li.setAttribute("role", "option");
+            li.innerHTML = `<b></b><span></span>`;
+            li.firstChild.textContent = t.displayNumber;
+            li.lastChild.textContent = t.name || "";
+            li.onmousedown = (e) => { e.preventDefault(); add(t); };
+            list.appendChild(li);
+        });
+        wrap.appendChild(list);
+    });
+    input.addEventListener("keydown", (e) => {
+        if (!list) return;
+        if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+            sel = (sel + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length;
+            [...list.children].forEach((li, i) => li.setAttribute("aria-selected", i === sel));
+            e.preventDefault();
+        } else if (e.key === "Enter") {
+            add(items[Math.max(sel, 0)]);
+        } else if (e.key === "Escape") close();
+    });
+    input.addEventListener("blur", () => setTimeout(close, 100));
+    $(colorId).addEventListener("input", applyTeams);
+}
+// Color pickers follow the theme's highlight/outline colors until the user picks one.
+const userColor = { "hl-color": false, "ol-color": false };
+for (const id of Object.keys(userColor)) $(id).addEventListener("input", () => (userColor[id] = true));
+picker("hl-input", "hl-tags", "highlight", "hl-color");
+picker("ol-input", "ol-tags", "outline", "ol-color");
+
+function renderTags(key, tagsId, color) {
+    const box = $(tagsId);
+    box.replaceChildren();
+    for (const num of state[key].keys()) {
+        const tag = document.createElement("span");
+        tag.className = "tag";
+        tag.style.boxShadow = `inset 3px 0 0 ${color}`;
+        tag.append(num);
+        const x = document.createElement("button");
+        x.textContent = "×";
+        x.title = `Remove ${num}`;
+        x.onclick = () => { state[key].delete(num); applyTeams(); };
+        tag.appendChild(x);
+        tag.ondblclick = () => map.focusTeam(num);
+        box.appendChild(tag);
+    }
+}
+
+function teamAgeColor(team) {
+    // Lower team numbers registered earlier: a quick proxy for team age.
+    const n = parseInt(team.number, 10);
+    const t = Math.max(0, Math.min(1, Math.log10(Math.max(n, 1)) / Math.log10(35000)));
+    const stops = [[14, 165, 233], [167, 139, 250], [244, 63, 94]];
+    const k = t * 2, i = Math.min(1, Math.floor(k)), f = k - i;
+    const c = stops[i].map((v, j) => Math.round(v + (stops[i + 1][j] - v) * f));
+    return `rgb(${c.join(",")})`;
+}
+
+function applyTeams() {
+    if (!userColor["hl-color"]) $("hl-color").value = toHex(map.theme.highlight);
+    if (!userColor["ol-color"]) $("ol-color").value = toHex(map.theme.outline);
+    const hlColor = $("hl-color").value, olColor = $("ol-color").value;
+    renderTags("highlight", "hl-tags", hlColor);
+    renderTags("outline", "ol-tags", olColor);
+    map.update({
+        highlight: [...state.highlight.keys()],
+        outline: [...state.outline.keys()],
+        highlightColor: userColor["hl-color"] ? hlColor : null,
+        outlineColor: userColor["ol-color"] ? olColor : null,
+        dimOthers: $("dim").checked,
+        colorBy: $("age").checked ? teamAgeColor : null,
+    });
+}
+$("dim").onchange = applyTeams;
+$("age").onchange = () => { $("age-legend").hidden = !$("age").checked; applyTeams(); };
+
+// ---------- routes
+function knownDestination(to) {
+    const low = to.toLowerCase();
+    if (map.hasTeam(to)) return true;
+    return map.getAreas().some((a) => a.kind === low || a.name.toLowerCase() === low);
+}
+function showRoute(from, to) {
+    const out = $("r-result");
+    if (!from) return (out.textContent = "Enter a team to start from (or click a pit).");
+    if (!map.hasTeam(from)) return (out.textContent = `Team ${from} isn't on this map.`);
+    if (!to) return (out.textContent = "Enter a team or pick an area.");
+    if (!knownDestination(to)) {
+        const what = { field: "competition fields", queue: "queueing area" }[to.toLowerCase()];
+        return (out.textContent = what ? `This map has no ${what}.` : `“${to}” isn't on this map.`);
+    }
+    const r = map.showRoute(from, to);
+    if (!r) return (out.textContent = "No walkable route found.");
+    const mins = Math.max(1, Math.round(r.seconds / 60));
+    const dest = r.to && r.to.type !== "PIT" ? ` to <b>${r.to.label || "the field"}</b>` : "";
+    out.innerHTML = `<b>~${Math.round(r.meters)} m</b>${dest} · about <b>${mins} min</b> walk`;
+}
+$("r-go").onclick = () => showRoute($("r-from").value.trim(), $("r-to").value.trim());
+$("r-field").onclick = () => { $("r-to").value = "field"; showRoute($("r-from").value.trim(), "field"); };
+$("r-queue").onclick = () => { $("r-to").value = "queue"; showRoute($("r-from").value.trim(), "queue"); };
+function refreshAreas() {
+    const areas = map.getAreas();
+    $("r-areas").replaceChildren(...areas.map((a) => Object.assign(document.createElement("option"), { value: a.kind === "area" ? a.name : a.kind, label: a.name })));
+    $("r-field").disabled = !areas.some((a) => a.kind === "field");
+    $("r-queue").disabled = !areas.some((a) => a.kind === "queue");
+}
+$("r-clear").onclick = () => { map.clearRoute(); $("r-result").textContent = ""; };
+
+// ---------- custom click popup: the built-in content plus action buttons
+function actionPopup(team, element, ctx) {
+    if (!team) return false;
+    const box = ctx.defaultContent();
+    const bar = document.createElement("div");
+    bar.className = "pm-actions";
+    const action = (label, fn) => {
+        const b = document.createElement("button");
+        b.textContent = label;
+        b.onclick = () => { fn(); ctx.close(); };
+        bar.appendChild(b);
+    };
+    action("Route from here", () => { $("r-from").value = team.number; if ($("r-to").value) $("r-go").click(); });
+    action("Route to here", () => { $("r-to").value = team.number; if ($("r-from").value) $("r-go").click(); });
+    action(state.highlight.has(team.number) ? "Unhighlight" : "Highlight", () => {
+        state.highlight.has(team.number) ? state.highlight.delete(team.number) : state.highlight.set(team.number, null);
+        applyTeams();
+    });
+    action(state.outline.has(team.number) ? "Remove outline" : "Outline", () => {
+        state.outline.has(team.number) ? state.outline.delete(team.number) : state.outline.set(team.number, null);
+        applyTeams();
+    });
+    box.appendChild(bar);
+    return box;
+}
+function applyClick() {
+    const v = $("click").value;
+    map.update(v === "custom" ? { clickAction: "popup", popup: actionPopup } : { clickAction: v, popup: true });
+}
+$("click").onchange = applyClick;
+$("alliances").onchange = (e) => map.update({ fieldAlliances: e.target.value || null });
+applyClick();
+
+// ---------- live style customization: theme tokens layered over the chosen preset
+const overrides = {};
+const TOKEN_INPUTS = { "t-radius": "pitRadius", "t-oradius": "objectRadius", "t-fradius": "fieldRadius", "t-wradius": "wallRadius", "t-gap": "pitGap", "t-mix": "pitMix", "t-corner": "routeCornerRadius", "t-route": "route", "t-wall": "wall", "t-bg": "background", "t-font": "fontFamily" };
+function toHex(c) {
+    const m = /rgba?\(([^)]+)\)/.exec(c);
+    if (m) return "#" + m[1].split(/[ ,]+/).slice(0, 3).map((v) => (+v).toString(16).padStart(2, "0")).join("");
+    if (/^#[0-9a-f]{6}$/i.test(c)) return c;
+    const ctx = document.createElement("canvas").getContext("2d");
+    ctx.fillStyle = c;
+    return ctx.fillStyle;
+}
+function syncStyleInputs() {
+    const T = map.theme;
+    for (const [id, key] of Object.entries(TOKEN_INPUTS)) {
+        const el = $(id);
+        if (key in overrides) continue;
+        el.value = el.type === "color" ? toHex(T[key]) : el.tagName === "SELECT" ? "" : T[key];
+    }
+}
+// The FTCScout options style the page like FTCScout and give the map the single "ftcscout"
+// preset: it reads the page's variables, so light/dark follows body.dark by itself.
+const mapThemeFor = (v) => (v === "ftcscout-dark" ? "ftcscout" : v);
+function applyTheme() {
+    const base = mapThemeFor($("theme").value);
+    map.update({ theme: Object.keys(overrides).length ? { base, ...overrides } : base });
+    syncStyleInputs();
+    applyTeams(); // pickers follow the theme's highlight/outline colors
+}
+for (const [id, key] of Object.entries(TOKEN_INPUTS)) {
+    $(id).addEventListener("input", (e) => {
+        const v = e.target.value;
+        if (e.target.tagName === "SELECT" && !v) delete overrides[key];
+        else overrides[key] = e.target.type === "range" ? parseFloat(v) : v;
+        applyTheme();
+    });
+}
+$("t-reset").onclick = () => { for (const k in overrides) delete overrides[k]; applyTheme(); };
+$("t-copy").onclick = async () => {
+    const json = JSON.stringify({ base: mapThemeFor($("theme").value), ...overrides }, null, 2);
+    try { await navigator.clipboard.writeText(json); $("t-copy").textContent = "Copied!"; }
+    catch { prompt("Theme JSON", json); }
+    setTimeout(() => ($("t-copy").textContent = "Copy theme JSON"), 1200);
+};
+
+// ---------- view
+$("theme").onchange = (e) => {
+    const t = e.target.value;
+    const page = { auto: null, light: "light", dark: "dark", ftcscout: "light", "ftcscout-dark": "dark", "ftc-events": "light" }[t];
+    if (!page) document.documentElement.removeAttribute("data-theme");
+    else document.documentElement.dataset.theme = page;
+    document.body.classList.toggle("site-ftcscout", t.startsWith("ftcscout"));
+    document.body.classList.toggle("dark", t === "ftcscout-dark");
+    document.body.classList.toggle("site-ftc-events", t === "ftc-events");
+    applyTheme();
+};
+$("names").onchange = (e) => {
+    const v = e.target.value;
+    map.update({ showTeamNames: v === "zoom" ? "zoom" : v === "true" });
+};
+function download(blob, name) {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+$("png").onclick = async () => download(await map.toPNG(), `${state.event}-pitmap.png`);
+$("svgdl").onclick = () => download(new Blob([map.toSVGString()], { type: "image/svg+xml" }), `${state.event}-pitmap.svg`);
+
+// Start with something to look at.
+selectEvent(new URLSearchParams(location.search).get("event") || "FTCCMP1");
+for (const t of (new URLSearchParams(location.search).get("highlight") || "").split(",").filter(Boolean)) state.highlight.set(t, null);
+for (const t of (new URLSearchParams(location.search).get("outline") || "").split(",").filter(Boolean)) state.outline.set(t, null);
+applyTeams();
+syncStyleInputs();
+const qs = new URLSearchParams(location.search);
+if (qs.get("theme")) { $("theme").value = qs.get("theme"); $("theme").onchange({ target: $("theme") }); }
+if (qs.get("route")) { const [a, b] = qs.get("route").split(","); $("r-from").value = a; $("r-to").value = b; showRoute(a, b); }
+if (qs.get("focus")) setTimeout(() => map.focusTeam(qs.get("focus"), { flash: false }), 50);
+if (qs.get("popup")) map.openPopup(qs.get("popup"));
+</script>
+</body>
+</html>

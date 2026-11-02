@@ -1,0 +1,5708 @@
+{
+  "minX": 0,
+  "minY": 0,
+  "width": 46,
+  "height": 64,
+  "showPitNumbers": false,
+  "showPitAddresses": true,
+  "elements": [
+    {
+      "type": "PIT",
+      "x": 0,
+      "y": 54,
+      "width": 2,
+      "height": 2,
+      "label": "1",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "365",
+        "name": "MOE",
+        "displayNumber": "365"
+      },
+      "address": "A10",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 0,
+      "y": 56,
+      "width": 2,
+      "height": 2,
+      "label": "2",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "506",
+        "name": "Pandara",
+        "displayNumber": "506"
+      },
+      "address": "A08",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 0,
+      "y": 58,
+      "width": 2,
+      "height": 2,
+      "label": "3",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "1002",
+        "name": "CircuitRunners Robotics - Surge",
+        "displayNumber": "1002"
+      },
+      "address": "A06",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 0,
+      "y": 60,
+      "width": 2,
+      "height": 2,
+      "label": "4",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "5237",
+        "name": "Loose Screws",
+        "displayNumber": "5237"
+      },
+      "address": "A04",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 0,
+      "y": 62,
+      "width": 2,
+      "height": 2,
+      "label": "5",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "6093",
+        "name": "Deviation From The Norm",
+        "displayNumber": "6093"
+      },
+      "address": "A02",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 2,
+      "y": 62,
+      "width": 2,
+      "height": 2,
+      "label": "6",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "6133",
+        "name": "The \"NUTS!\"",
+        "displayNumber": "6133"
+      },
+      "address": "B01",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 2,
+      "y": 60,
+      "width": 2,
+      "height": 2,
+      "label": "7",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "6962",
+        "name": "Pokébolts",
+        "displayNumber": "6962"
+      },
+      "address": "B03",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 2,
+      "y": 58,
+      "width": 2,
+      "height": 2,
+      "label": "8",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "7477",
+        "name": "Super 7",
+        "displayNumber": "7477"
+      },
+      "address": "B05",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 2,
+      "y": 56,
+      "width": 2,
+      "height": 2,
+      "label": "9",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "8680",
+        "name": "Kraken-Pinion",
+        "displayNumber": "8680"
+      },
+      "address": "B07",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 2,
+      "y": 54,
+      "width": 2,
+      "height": 2,
+      "label": "10",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "9808",
+        "name": "Team Chargers",
+        "displayNumber": "9808"
+      },
+      "address": "B09",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 2,
+      "y": 50,
+      "width": 2,
+      "height": 2,
+      "label": "11",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "11444",
+        "name": "Garnet Squadron",
+        "displayNumber": "11444"
+      },
+      "address": "B11",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 2,
+      "y": 48,
+      "width": 2,
+      "height": 2,
+      "label": "12",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "14954",
+        "name": "The Teal Roborioles",
+        "displayNumber": "14954"
+      },
+      "address": "B13",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 48,
+      "width": 2,
+      "height": 2,
+      "label": "13",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "9879",
+        "name": "Root Negative One",
+        "displayNumber": "9879"
+      },
+      "address": "B14",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 50,
+      "width": 2,
+      "height": 2,
+      "label": "14",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "10084",
+        "name": "Team Calamari",
+        "displayNumber": "10084"
+      },
+      "address": "B12",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 54,
+      "width": 2,
+      "height": 2,
+      "label": "15",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "10138",
+        "name": "Newton Busters",
+        "displayNumber": "10138"
+      },
+      "address": "B10",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 56,
+      "width": 2,
+      "height": 2,
+      "label": "16",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "10255",
+        "name": "RoboDux",
+        "displayNumber": "10255"
+      },
+      "address": "B08",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 58,
+      "width": 2,
+      "height": 2,
+      "label": "17",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "11329",
+        "name": "I.C.E. Robotics",
+        "displayNumber": "11329"
+      },
+      "address": "B06",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 60,
+      "width": 2,
+      "height": 2,
+      "label": "18",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "12331",
+        "name": "Scarsdale Robo Raiders",
+        "displayNumber": "12331"
+      },
+      "address": "B04",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 62,
+      "width": 2,
+      "height": 2,
+      "label": "19",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "13100",
+        "name": "47 Beavers",
+        "displayNumber": "13100"
+      },
+      "address": "B02",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 62,
+      "width": 2,
+      "height": 2,
+      "label": "20",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "13375",
+        "name": "Great Neck North Goatbusters",
+        "displayNumber": "13375"
+      },
+      "address": "C01",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 60,
+      "width": 2,
+      "height": 2,
+      "label": "21",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "14204",
+        "name": "Super Scream Bros",
+        "displayNumber": "14204"
+      },
+      "address": "C03",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 58,
+      "width": 2,
+      "height": 2,
+      "label": "22",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "14525",
+        "name": "TerraBats",
+        "displayNumber": "14525"
+      },
+      "address": "C05",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 56,
+      "width": 2,
+      "height": 2,
+      "label": "23",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "14631",
+        "name": "Laser Tech",
+        "displayNumber": "14631"
+      },
+      "address": "C07",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 54,
+      "width": 2,
+      "height": 2,
+      "label": "24",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "15668",
+        "name": "FullMetal Kestrels",
+        "displayNumber": "15668"
+      },
+      "address": "C09",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 50,
+      "width": 2,
+      "height": 2,
+      "label": "25",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "16236",
+        "name": "Juice",
+        "displayNumber": "16236"
+      },
+      "address": "C11",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 48,
+      "width": 2,
+      "height": 2,
+      "label": "26",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "16917",
+        "name": "Gear Wizards",
+        "displayNumber": "16917"
+      },
+      "address": "C13",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 46,
+      "width": 2,
+      "height": 2,
+      "label": "27",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "17288",
+        "name": "Rubber Bandits",
+        "displayNumber": "17288"
+      },
+      "address": "C16",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 48,
+      "width": 2,
+      "height": 2,
+      "label": "28",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "17861",
+        "name": "CSH",
+        "displayNumber": "17861"
+      },
+      "address": "C14",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 50,
+      "width": 2,
+      "height": 2,
+      "label": "29",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "18185",
+        "name": "Lightbotics",
+        "displayNumber": "18185"
+      },
+      "address": "C12",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 54,
+      "width": 2,
+      "height": 2,
+      "label": "30",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "18240",
+        "name": "RoboScout Squad",
+        "displayNumber": "18240"
+      },
+      "address": "C10",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 56,
+      "width": 2,
+      "height": 2,
+      "label": "31",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "18650",
+        "name": "Cookie Clickers",
+        "displayNumber": "18650"
+      },
+      "address": "C08",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 58,
+      "width": 2,
+      "height": 2,
+      "label": "32",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19066",
+        "name": "AiCitizens",
+        "displayNumber": "19066"
+      },
+      "address": "C06",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 60,
+      "width": 2,
+      "height": 2,
+      "label": "33",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19498",
+        "name": "Devolotics",
+        "displayNumber": "19498"
+      },
+      "address": "C04",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 62,
+      "width": 2,
+      "height": 2,
+      "label": "34",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19500",
+        "name": "RoBEARtics",
+        "displayNumber": "19500"
+      },
+      "address": "C02",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 62,
+      "width": 2,
+      "height": 2,
+      "label": "35",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19955",
+        "name": "BHS - Robo Rangers",
+        "displayNumber": "19955"
+      },
+      "address": "D01",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 60,
+      "width": 2,
+      "height": 2,
+      "label": "36",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19956",
+        "name": "BHS - Mayhem Performance Robotics",
+        "displayNumber": "19956"
+      },
+      "address": "D03",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 58,
+      "width": 2,
+      "height": 2,
+      "label": "37",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "20131",
+        "name": "The Inventors",
+        "displayNumber": "20131"
+      },
+      "address": "D05",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 56,
+      "width": 2,
+      "height": 2,
+      "label": "38",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "20515",
+        "name": "Cubed ETs",
+        "displayNumber": "20515"
+      },
+      "address": "D07",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 54,
+      "width": 2,
+      "height": 2,
+      "label": "39",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "21225",
+        "name": "Shear Force",
+        "displayNumber": "21225"
+      },
+      "address": "D09",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 50,
+      "width": 2,
+      "height": 2,
+      "label": "40",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "21936",
+        "name": "SaMoTech",
+        "displayNumber": "21936"
+      },
+      "address": "D11",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 48,
+      "width": 2,
+      "height": 2,
+      "label": "41",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "22105",
+        "name": "Runtime Terror",
+        "displayNumber": "22105"
+      },
+      "address": "D13",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 46,
+      "width": 2,
+      "height": 2,
+      "label": "42",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "22471",
+        "name": "techATTACK",
+        "displayNumber": "22471"
+      },
+      "address": "D15",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 18,
+      "y": 46,
+      "width": 2,
+      "height": 2,
+      "label": "43",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "22755",
+        "name": "Team Circle - Wolmer's Boys",
+        "displayNumber": "22755"
+      },
+      "address": "D16",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 18,
+      "y": 48,
+      "width": 2,
+      "height": 2,
+      "label": "44",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23305",
+        "name": "Creative Minds",
+        "displayNumber": "23305"
+      },
+      "address": "D14",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 18,
+      "y": 50,
+      "width": 2,
+      "height": 2,
+      "label": "45",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23350",
+        "name": "Microchips & Queso",
+        "displayNumber": "23350"
+      },
+      "address": "D12",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 18,
+      "y": 54,
+      "width": 2,
+      "height": 2,
+      "label": "46",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23396",
+        "name": "Hivemind",
+        "displayNumber": "23396"
+      },
+      "address": "D10",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 18,
+      "y": 56,
+      "width": 2,
+      "height": 2,
+      "label": "47",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23504",
+        "name": "Space Tech",
+        "displayNumber": "23504"
+      },
+      "address": "D08",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 18,
+      "y": 58,
+      "width": 2,
+      "height": 2,
+      "label": "48",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23623",
+        "name": "Hydra Dragons",
+        "displayNumber": "23623"
+      },
+      "address": "D06",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 18,
+      "y": 60,
+      "width": 2,
+      "height": 2,
+      "label": "49",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "24090",
+        "name": "Trojan Robotics",
+        "displayNumber": "24090"
+      },
+      "address": "D04",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 18,
+      "y": 62,
+      "width": 2,
+      "height": 2,
+      "label": "50",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "24219",
+        "name": "Duck Robotics",
+        "displayNumber": "24219"
+      },
+      "address": "D02",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 20,
+      "y": 62,
+      "width": 2,
+      "height": 2,
+      "label": "51",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "24751",
+        "name": "GreenAms Robotics Team",
+        "displayNumber": "24751"
+      },
+      "address": "E01",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 20,
+      "y": 60,
+      "width": 2,
+      "height": 2,
+      "label": "52",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "25957",
+        "name": "Quantum Igniters",
+        "displayNumber": "25957"
+      },
+      "address": "E03",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 20,
+      "y": 58,
+      "width": 2,
+      "height": 2,
+      "label": "53",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "26064",
+        "name": "circuit breakers",
+        "displayNumber": "26064"
+      },
+      "address": "E05",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 20,
+      "y": 56,
+      "width": 2,
+      "height": 2,
+      "label": "54",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "26089",
+        "name": "Gladius",
+        "displayNumber": "26089"
+      },
+      "address": "E07",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 20,
+      "y": 54,
+      "width": 2,
+      "height": 2,
+      "label": "55",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "26501",
+        "name": "RED SCALES",
+        "displayNumber": "26501"
+      },
+      "address": "E09",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 20,
+      "y": 50,
+      "width": 2,
+      "height": 2,
+      "label": "56",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "27674",
+        "name": "KAP",
+        "displayNumber": "27674"
+      },
+      "address": "E11",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 20,
+      "y": 48,
+      "width": 2,
+      "height": 2,
+      "label": "57",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "29029",
+        "name": "FoxSlide",
+        "displayNumber": "29029"
+      },
+      "address": "E13",
+      "color": "#fffe8e"
+    },
+    {
+      "type": "PIT",
+      "x": 24,
+      "y": 62,
+      "width": 2,
+      "height": 2,
+      "label": "58",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "701",
+        "name": "The GONK Squad",
+        "displayNumber": "701"
+      },
+      "address": "E02",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 24,
+      "y": 60,
+      "width": 2,
+      "height": 2,
+      "label": "59",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "4102",
+        "name": "CATScan",
+        "displayNumber": "4102"
+      },
+      "address": "E04",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 24,
+      "y": 58,
+      "width": 2,
+      "height": 2,
+      "label": "60",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "6437",
+        "name": "Mad Hatters",
+        "displayNumber": "6437"
+      },
+      "address": "E06",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 24,
+      "y": 56,
+      "width": 2,
+      "height": 2,
+      "label": "61",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "7253",
+        "name": "Raging Robots",
+        "displayNumber": "7253"
+      },
+      "address": "E08",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 24,
+      "y": 54,
+      "width": 2,
+      "height": 2,
+      "label": "62",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "8393",
+        "name": "The Giant Diencephalic BrainSTEM Robotics Team",
+        "displayNumber": "8393"
+      },
+      "address": "E10",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 24,
+      "y": 50,
+      "width": 2,
+      "height": 2,
+      "label": "63",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "8492",
+        "name": "Titanium Trojans",
+        "displayNumber": "8492"
+      },
+      "address": "E12",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 24,
+      "y": 48,
+      "width": 2,
+      "height": 2,
+      "label": "64",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "8565",
+        "name": "TechnicBots",
+        "displayNumber": "8565"
+      },
+      "address": "E14",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 24,
+      "y": 46,
+      "width": 2,
+      "height": 2,
+      "label": "65",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "8803",
+        "name": "East Rankin Robotics",
+        "displayNumber": "8803"
+      },
+      "address": "E16",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 26,
+      "y": 46,
+      "width": 2,
+      "height": 2,
+      "label": "66",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "9876",
+        "name": "The Countdown",
+        "displayNumber": "9876"
+      },
+      "address": "F15",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 26,
+      "y": 48,
+      "width": 2,
+      "height": 2,
+      "label": "67",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "9999",
+        "name": "The Ninejas",
+        "displayNumber": "9999"
+      },
+      "address": "F13",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 26,
+      "y": 50,
+      "width": 2,
+      "height": 2,
+      "label": "68",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "10015",
+        "name": "Hyper Droid",
+        "displayNumber": "10015"
+      },
+      "address": "F11",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 26,
+      "y": 54,
+      "width": 2,
+      "height": 2,
+      "label": "69",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "10016",
+        "name": "Clarkston RoboWolves",
+        "displayNumber": "10016"
+      },
+      "address": "F09",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 26,
+      "y": 56,
+      "width": 2,
+      "height": 2,
+      "label": "70",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "10355",
+        "name": "Project Peacock",
+        "displayNumber": "10355"
+      },
+      "address": "F07",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 26,
+      "y": 58,
+      "width": 2,
+      "height": 2,
+      "label": "71",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "10949",
+        "name": "Mechanical Operations Bureau - MOB Robotics",
+        "displayNumber": "10949"
+      },
+      "address": "F05",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 26,
+      "y": 60,
+      "width": 2,
+      "height": 2,
+      "label": "72",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "11148",
+        "name": "Barker Redbacks",
+        "displayNumber": "11148"
+      },
+      "address": "F03",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 26,
+      "y": 62,
+      "width": 2,
+      "height": 2,
+      "label": "73",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "11511",
+        "name": "Referees",
+        "displayNumber": "11511"
+      },
+      "address": "F01",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 30,
+      "y": 62,
+      "width": 2,
+      "height": 2,
+      "label": "74",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "12887",
+        "name": "Devolt Phobos",
+        "displayNumber": "12887"
+      },
+      "address": "F02",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 30,
+      "y": 60,
+      "width": 2,
+      "height": 2,
+      "label": "75",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "14841",
+        "name": "Mighty Meadowbots Blue",
+        "displayNumber": "14841"
+      },
+      "address": "F04",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 30,
+      "y": 58,
+      "width": 2,
+      "height": 2,
+      "label": "76",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "14906",
+        "name": "Leviathan Robotics",
+        "displayNumber": "14906"
+      },
+      "address": "F06",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 30,
+      "y": 56,
+      "width": 2,
+      "height": 2,
+      "label": "77",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "15297",
+        "name": "Legacy",
+        "displayNumber": "15297"
+      },
+      "address": "F08",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 30,
+      "y": 54,
+      "width": 2,
+      "height": 2,
+      "label": "78",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "15527",
+        "name": "Ramstein HS (Team 3)",
+        "displayNumber": "15527"
+      },
+      "address": "F10",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 30,
+      "y": 50,
+      "width": 2,
+      "height": 2,
+      "label": "79",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "16417",
+        "name": "ROC",
+        "displayNumber": "16417"
+      },
+      "address": "F12",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 30,
+      "y": 48,
+      "width": 2,
+      "height": 2,
+      "label": "80",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "16818",
+        "name": "Hype-Birds",
+        "displayNumber": "16818"
+      },
+      "address": "F14",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 30,
+      "y": 46,
+      "width": 2,
+      "height": 2,
+      "label": "81",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "17755",
+        "name": "CERBOTICS - BLUE",
+        "displayNumber": "17755"
+      },
+      "address": "F16",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 32,
+      "y": 46,
+      "width": 2,
+      "height": 2,
+      "label": "82",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "18108",
+        "name": "High Voltage",
+        "displayNumber": "18108"
+      },
+      "address": "G15",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 32,
+      "y": 48,
+      "width": 2,
+      "height": 2,
+      "label": "83",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "18221",
+        "name": "Meta^Infinity",
+        "displayNumber": "18221"
+      },
+      "address": "G13",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 32,
+      "y": 50,
+      "width": 2,
+      "height": 2,
+      "label": "84",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "18255",
+        "name": "Stealth Robotics",
+        "displayNumber": "18255"
+      },
+      "address": "G11",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 32,
+      "y": 54,
+      "width": 2,
+      "height": 2,
+      "label": "85",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "18763",
+        "name": "Texpand",
+        "displayNumber": "18763"
+      },
+      "address": "G09",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 32,
+      "y": 56,
+      "width": 2,
+      "height": 2,
+      "label": "86",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19819",
+        "name": "AstroBruins",
+        "displayNumber": "19819"
+      },
+      "address": "G07",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 32,
+      "y": 58,
+      "width": 2,
+      "height": 2,
+      "label": "87",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19862",
+        "name": "Mecha Mantises",
+        "displayNumber": "19862"
+      },
+      "address": "G05",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 32,
+      "y": 60,
+      "width": 2,
+      "height": 2,
+      "label": "88",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "20871",
+        "name": "Eureka",
+        "displayNumber": "20871"
+      },
+      "address": "G03",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 32,
+      "y": 62,
+      "width": 2,
+      "height": 2,
+      "label": "89",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "21036",
+        "name": "JUSTICE FTC TEAM",
+        "displayNumber": "21036"
+      },
+      "address": "G01",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 36,
+      "y": 62,
+      "width": 2,
+      "height": 2,
+      "label": "90",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "21305",
+        "name": "Rogue Cats",
+        "displayNumber": "21305"
+      },
+      "address": "G02",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 36,
+      "y": 60,
+      "width": 2,
+      "height": 2,
+      "label": "91",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23264",
+        "name": "Circuit Breakers",
+        "displayNumber": "23264"
+      },
+      "address": "G04",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 36,
+      "y": 58,
+      "width": 2,
+      "height": 2,
+      "label": "92",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23392",
+        "name": "Viking Innovators",
+        "displayNumber": "23392"
+      },
+      "address": "G06",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 36,
+      "y": 56,
+      "width": 2,
+      "height": 2,
+      "label": "93",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "24064",
+        "name": "ITKAN JIAR Janktastrophe",
+        "displayNumber": "24064"
+      },
+      "address": "G08",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 36,
+      "y": 54,
+      "width": 2,
+      "height": 2,
+      "label": "94",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "24089",
+        "name": "Iron Lions",
+        "displayNumber": "24089"
+      },
+      "address": "G10",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 36,
+      "y": 50,
+      "width": 2,
+      "height": 2,
+      "label": "95",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "24253",
+        "name": "Giggle Pickles",
+        "displayNumber": "24253"
+      },
+      "address": "G12",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 36,
+      "y": 48,
+      "width": 2,
+      "height": 2,
+      "label": "96",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "24331",
+        "name": "Caesar Circuitry",
+        "displayNumber": "24331"
+      },
+      "address": "G14",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 36,
+      "y": 46,
+      "width": 2,
+      "height": 2,
+      "label": "97",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "24799",
+        "name": "Mechanical Advantage",
+        "displayNumber": "24799"
+      },
+      "address": "G16",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 38,
+      "y": 48,
+      "width": 2,
+      "height": 2,
+      "label": "98",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "24804",
+        "name": "xCeption",
+        "displayNumber": "24804"
+      },
+      "address": "H13",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 38,
+      "y": 50,
+      "width": 2,
+      "height": 2,
+      "label": "99",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "24906",
+        "name": "TC",
+        "displayNumber": "24906"
+      },
+      "address": "H11",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 38,
+      "y": 54,
+      "width": 2,
+      "height": 2,
+      "label": "100",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "25153",
+        "name": "Cartesian Robotics",
+        "displayNumber": "25153"
+      },
+      "address": "H09",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 38,
+      "y": 56,
+      "width": 2,
+      "height": 2,
+      "label": "101",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "25171",
+        "name": "RoboTakev",
+        "displayNumber": "25171"
+      },
+      "address": "H07",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 38,
+      "y": 58,
+      "width": 2,
+      "height": 2,
+      "label": "102",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "25584",
+        "name": "MAGIS",
+        "displayNumber": "25584"
+      },
+      "address": "H05",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 38,
+      "y": 60,
+      "width": 2,
+      "height": 2,
+      "label": "103",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "25631",
+        "name": "Proxima Nova",
+        "displayNumber": "25631"
+      },
+      "address": "H03",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 38,
+      "y": 62,
+      "width": 2,
+      "height": 2,
+      "label": "104",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "25650",
+        "name": "One Small Step for an Axolotl",
+        "displayNumber": "25650"
+      },
+      "address": "H01",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 42,
+      "y": 62,
+      "width": 2,
+      "height": 2,
+      "label": "105",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "26073",
+        "name": "BeaverBots",
+        "displayNumber": "26073"
+      },
+      "address": "H02",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 42,
+      "y": 60,
+      "width": 2,
+      "height": 2,
+      "label": "106",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "26960",
+        "name": "Tech Dragons",
+        "displayNumber": "26960"
+      },
+      "address": "H04",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 42,
+      "y": 58,
+      "width": 2,
+      "height": 2,
+      "label": "107",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "27501",
+        "name": "EFZ Robotics",
+        "displayNumber": "27501"
+      },
+      "address": "H06",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 42,
+      "y": 56,
+      "width": 2,
+      "height": 2,
+      "label": "108",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "27572",
+        "name": "Dinonaut",
+        "displayNumber": "27572"
+      },
+      "address": "H08",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 42,
+      "y": 54,
+      "width": 2,
+      "height": 2,
+      "label": "109",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "27679",
+        "name": "CDC Tech",
+        "displayNumber": "27679"
+      },
+      "address": "H10",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 44,
+      "y": 54,
+      "width": 2,
+      "height": 2,
+      "label": "110",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "28061",
+        "name": "FIZMAT ROBOTICS",
+        "displayNumber": "28061"
+      },
+      "address": "I09",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 44,
+      "y": 56,
+      "width": 2,
+      "height": 2,
+      "label": "111",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "30110",
+        "name": "Coyote",
+        "displayNumber": "30110"
+      },
+      "address": "I07",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 44,
+      "y": 58,
+      "width": 2,
+      "height": 2,
+      "label": "112",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "30435",
+        "name": "Klutch Robotics",
+        "displayNumber": "30435"
+      },
+      "address": "I05",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 44,
+      "y": 60,
+      "width": 2,
+      "height": 2,
+      "label": "113",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "32728",
+        "name": "Celestial",
+        "displayNumber": "32728"
+      },
+      "address": "I03",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 44,
+      "y": 62,
+      "width": 2,
+      "height": 2,
+      "label": "114",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "34063",
+        "name": "Rust Bucket",
+        "displayNumber": "34063"
+      },
+      "address": "I01",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 46,
+      "width": 2,
+      "height": 2,
+      "label": "115",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "772",
+        "name": "Golden Dragons",
+        "displayNumber": "772"
+      },
+      "address": "B16",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 44,
+      "width": 2,
+      "height": 2,
+      "label": "116",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "3189",
+        "name": "Rapid Unscheduled Disassembly",
+        "displayNumber": "3189"
+      },
+      "address": "B18",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 42,
+      "width": 2,
+      "height": 2,
+      "label": "117",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "4133",
+        "name": "Fusion",
+        "displayNumber": "4133"
+      },
+      "address": "B20",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 40,
+      "width": 2,
+      "height": 2,
+      "label": "118",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "4964",
+        "name": "Rolla Patriots",
+        "displayNumber": "4964"
+      },
+      "address": "B22",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 38,
+      "width": 2,
+      "height": 2,
+      "label": "119",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "5026",
+        "name": "Tesla Coils",
+        "displayNumber": "5026"
+      },
+      "address": "B24",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 34,
+      "width": 2,
+      "height": 2,
+      "label": "120",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "6272",
+        "name": "Iron Eagles Prime",
+        "displayNumber": "6272"
+      },
+      "address": "B26",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 32,
+      "width": 2,
+      "height": 2,
+      "label": "121",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "6417",
+        "name": "Blu Cru",
+        "displayNumber": "6417"
+      },
+      "address": "B28",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 30,
+      "width": 2,
+      "height": 2,
+      "label": "122",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "7172",
+        "name": "Technical Difficulties",
+        "displayNumber": "7172"
+      },
+      "address": "B30",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 28,
+      "width": 2,
+      "height": 2,
+      "label": "123",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "7288",
+        "name": "RoboGlaciers",
+        "displayNumber": "7288"
+      },
+      "address": "B32",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 26,
+      "width": 2,
+      "height": 2,
+      "label": "124",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "8721",
+        "name": "Mighty Mechanics",
+        "displayNumber": "8721"
+      },
+      "address": "B34",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 24,
+      "width": 2,
+      "height": 2,
+      "label": "125",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "9567",
+        "name": "Cybernetic Elks",
+        "displayNumber": "9567"
+      },
+      "address": "B36",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 24,
+      "width": 2,
+      "height": 2,
+      "label": "126",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "10104",
+        "name": "That OTHER Team",
+        "displayNumber": "10104"
+      },
+      "address": "C35",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 26,
+      "width": 2,
+      "height": 2,
+      "label": "127",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "10309",
+        "name": "Jefferson  TechnoHuskies",
+        "displayNumber": "10309"
+      },
+      "address": "C33",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 28,
+      "width": 2,
+      "height": 2,
+      "label": "128",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "10809",
+        "name": "Crow Force",
+        "displayNumber": "10809"
+      },
+      "address": "C31",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 30,
+      "width": 2,
+      "height": 2,
+      "label": "129",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "12272",
+        "name": "Team Lightning",
+        "displayNumber": "12272"
+      },
+      "address": "C29",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 32,
+      "width": 2,
+      "height": 2,
+      "label": "130",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "12313",
+        "name": "Hotdawgs",
+        "displayNumber": "12313"
+      },
+      "address": "C27",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 34,
+      "width": 2,
+      "height": 2,
+      "label": "131",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "12682",
+        "name": "The Golden Ratio",
+        "displayNumber": "12682"
+      },
+      "address": "C25",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 38,
+      "width": 2,
+      "height": 2,
+      "label": "132",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "12808",
+        "name": "RevAmped Robotics",
+        "displayNumber": "12808"
+      },
+      "address": "C23",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 40,
+      "width": 2,
+      "height": 2,
+      "label": "133",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "14503",
+        "name": "Robo Sapiens",
+        "displayNumber": "14503"
+      },
+      "address": "C21",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 42,
+      "width": 2,
+      "height": 2,
+      "label": "134",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "14596",
+        "name": "XLR8",
+        "displayNumber": "14596"
+      },
+      "address": "C19",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 44,
+      "width": 2,
+      "height": 2,
+      "label": "135",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "15534",
+        "name": "VERTEX",
+        "displayNumber": "15534"
+      },
+      "address": "C17",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 46,
+      "width": 2,
+      "height": 2,
+      "label": "136",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "15991",
+        "name": "Gamma",
+        "displayNumber": "15991"
+      },
+      "address": "C15",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 44,
+      "width": 2,
+      "height": 2,
+      "label": "137",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "15996",
+        "name": "BrickBot",
+        "displayNumber": "15996"
+      },
+      "address": "C18",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 42,
+      "width": 2,
+      "height": 2,
+      "label": "138",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "16008",
+        "name": "Armored Artemises",
+        "displayNumber": "16008"
+      },
+      "address": "C20",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 40,
+      "width": 2,
+      "height": 2,
+      "label": "139",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "16010",
+        "name": "Astra Machina",
+        "displayNumber": "16010"
+      },
+      "address": "C22",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 38,
+      "width": 2,
+      "height": 2,
+      "label": "140",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "16076",
+        "name": "MeadowBrook High",
+        "displayNumber": "16076"
+      },
+      "address": "C24",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 34,
+      "width": 2,
+      "height": 2,
+      "label": "141",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "16617",
+        "name": "Swift-A-Maize",
+        "displayNumber": "16617"
+      },
+      "address": "C26",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 32,
+      "width": 2,
+      "height": 2,
+      "label": "142",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "17257",
+        "name": "GoBuilder.GC",
+        "displayNumber": "17257"
+      },
+      "address": "C28",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 30,
+      "width": 2,
+      "height": 2,
+      "label": "143",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "18139",
+        "name": "Rebel Robotics",
+        "displayNumber": "18139"
+      },
+      "address": "C30",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 28,
+      "width": 2,
+      "height": 2,
+      "label": "144",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "18270",
+        "name": "RoboPlayers",
+        "displayNumber": "18270"
+      },
+      "address": "C32",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 26,
+      "width": 2,
+      "height": 2,
+      "label": "145",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19376",
+        "name": "Thermal Equilibrium",
+        "displayNumber": "19376"
+      },
+      "address": "C34",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 24,
+      "width": 2,
+      "height": 2,
+      "label": "146",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "20240",
+        "name": "Slingshot",
+        "displayNumber": "20240"
+      },
+      "address": "C36",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 24,
+      "width": 2,
+      "height": 2,
+      "label": "147",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "20265",
+        "name": "Heart of RoBots",
+        "displayNumber": "20265"
+      },
+      "address": "D35",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 26,
+      "width": 2,
+      "height": 2,
+      "label": "148",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "21536",
+        "name": "Team Stealth",
+        "displayNumber": "21536"
+      },
+      "address": "D33",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 28,
+      "width": 2,
+      "height": 2,
+      "label": "149",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "22156",
+        "name": "Robo Titans",
+        "displayNumber": "22156"
+      },
+      "address": "D31",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 30,
+      "width": 2,
+      "height": 2,
+      "label": "150",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "22985",
+        "name": "Paraducks",
+        "displayNumber": "22985"
+      },
+      "address": "D29",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 32,
+      "width": 2,
+      "height": 2,
+      "label": "151",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23250",
+        "name": "Verge",
+        "displayNumber": "23250"
+      },
+      "address": "D27",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 34,
+      "width": 2,
+      "height": 2,
+      "label": "152",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23292",
+        "name": "SuperPowered Jalapenos",
+        "displayNumber": "23292"
+      },
+      "address": "D25",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 38,
+      "width": 2,
+      "height": 2,
+      "label": "153",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23532",
+        "name": "ITKAN MYCC",
+        "displayNumber": "23532"
+      },
+      "address": "D23",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 40,
+      "width": 2,
+      "height": 2,
+      "label": "154",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23619",
+        "name": "PrepaTec - OVERTURE Purple",
+        "displayNumber": "23619"
+      },
+      "address": "D21",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 42,
+      "width": 2,
+      "height": 2,
+      "label": "155",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23636",
+        "name": "Pymble Bees",
+        "displayNumber": "23636"
+      },
+      "address": "D19",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 44,
+      "width": 2,
+      "height": 2,
+      "label": "156",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23842",
+        "name": "TeamOKC Awesome Possums",
+        "displayNumber": "23842"
+      },
+      "address": "D17",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 18,
+      "y": 44,
+      "width": 2,
+      "height": 2,
+      "label": "157",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23849",
+        "name": "Droid Force",
+        "displayNumber": "23849"
+      },
+      "address": "D18",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 18,
+      "y": 42,
+      "width": 2,
+      "height": 2,
+      "label": "158",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "24697",
+        "name": "SANA",
+        "displayNumber": "24697"
+      },
+      "address": "D20",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 18,
+      "y": 40,
+      "width": 2,
+      "height": 2,
+      "label": "159",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "25039",
+        "name": "Golden Horn Jr",
+        "displayNumber": "25039"
+      },
+      "address": "D22",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 18,
+      "y": 38,
+      "width": 2,
+      "height": 2,
+      "label": "160",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "33611",
+        "name": "OVERTIME",
+        "displayNumber": "33611"
+      },
+      "address": "D24",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 18,
+      "y": 34,
+      "width": 2,
+      "height": 2,
+      "label": "161",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "25049",
+        "name": "BudJetTech",
+        "displayNumber": "25049"
+      },
+      "address": "D26",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 18,
+      "y": 32,
+      "width": 2,
+      "height": 2,
+      "label": "162",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "25209",
+        "name": "FRITS",
+        "displayNumber": "25209"
+      },
+      "address": "D28",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 18,
+      "y": 30,
+      "width": 2,
+      "height": 2,
+      "label": "163",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "25576",
+        "name": "Voyager X",
+        "displayNumber": "25576"
+      },
+      "address": "D30",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 18,
+      "y": 28,
+      "width": 2,
+      "height": 2,
+      "label": "164",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "25609",
+        "name": "LOAD Robotics",
+        "displayNumber": "25609"
+      },
+      "address": "D32",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 18,
+      "y": 26,
+      "width": 2,
+      "height": 2,
+      "label": "165",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "25620",
+        "name": "Hexadecimal Nibble",
+        "displayNumber": "25620"
+      },
+      "address": "D34",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 18,
+      "y": 24,
+      "width": 2,
+      "height": 2,
+      "label": "166",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "25943",
+        "name": "HIVE Robotics",
+        "displayNumber": "25943"
+      },
+      "address": "D36",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 18,
+      "y": 22,
+      "width": 2,
+      "height": 2,
+      "label": "167",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "26000",
+        "name": "Theseus",
+        "displayNumber": "26000"
+      },
+      "address": "D38",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 20,
+      "y": 22,
+      "width": 2,
+      "height": 2,
+      "label": "168",
+      "labelOrientation": "HORIZONTAL",
+      "index": 173,
+      "team": {
+        "number": "26908",
+        "name": "Teamsters",
+        "displayNumber": "26908"
+      },
+      "address": "E37",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 20,
+      "y": 24,
+      "width": 2,
+      "height": 2,
+      "label": "169",
+      "labelOrientation": "HORIZONTAL",
+      "index": 174,
+      "team": {
+        "number": "27772",
+        "name": "JelToqSun",
+        "displayNumber": "27772"
+      },
+      "address": "E35",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 20,
+      "y": 26,
+      "width": 2,
+      "height": 2,
+      "label": "170",
+      "labelOrientation": "HORIZONTAL",
+      "index": 175,
+      "team": {
+        "number": "31978",
+        "name": "Delta T",
+        "displayNumber": "31978"
+      },
+      "address": "E33",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 20,
+      "y": 28,
+      "width": 2,
+      "height": 2,
+      "label": "171",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "33490",
+        "name": "Indy’s Innovators",
+        "displayNumber": "33490"
+      },
+      "address": "E31",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 20,
+      "y": 34,
+      "width": 2,
+      "height": 2,
+      "label": "172",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "11308",
+        "name": "YISE",
+        "displayNumber": "11308"
+      },
+      "address": "E25",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 20,
+      "y": 32,
+      "width": 2,
+      "height": 2,
+      "label": "173",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "207",
+        "name": "Critical Mass",
+        "displayNumber": "207"
+      },
+      "address": "E27",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 20,
+      "y": 30,
+      "width": 2,
+      "height": 2,
+      "label": "174",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "359",
+        "name": "WEBB.exe",
+        "displayNumber": "359"
+      },
+      "address": "E29",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 24,
+      "y": 24,
+      "width": 2,
+      "height": 2,
+      "label": "175",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "3747",
+        "name": "The Hive",
+        "displayNumber": "3747"
+      },
+      "address": "E36",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 24,
+      "y": 26,
+      "width": 2,
+      "height": 2,
+      "label": "176",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "4410",
+        "name": "ARC Lightning",
+        "displayNumber": "4410"
+      },
+      "address": "E34",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 24,
+      "y": 28,
+      "width": 2,
+      "height": 2,
+      "label": "177",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "5477",
+        "name": "Innovo",
+        "displayNumber": "5477"
+      },
+      "address": "E32",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 24,
+      "y": 30,
+      "width": 2,
+      "height": 2,
+      "label": "178",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "9415",
+        "name": "Wrench Dressing",
+        "displayNumber": "9415"
+      },
+      "address": "E30",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 24,
+      "y": 32,
+      "width": 2,
+      "height": 2,
+      "label": "179",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "9848",
+        "name": "GearView",
+        "displayNumber": "9848"
+      },
+      "address": "E28",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 24,
+      "y": 34,
+      "width": 2,
+      "height": 2,
+      "label": "180",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "10435",
+        "name": "Circuit Breakers",
+        "displayNumber": "10435"
+      },
+      "address": "E26",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 24,
+      "y": 38,
+      "width": 2,
+      "height": 2,
+      "label": "181",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "11172",
+        "name": "Static Discharge",
+        "displayNumber": "11172"
+      },
+      "address": "E24",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 24,
+      "y": 40,
+      "width": 2,
+      "height": 2,
+      "label": "182",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "11225",
+        "name": "DELTA Robotics (Louisville Collegiate School)",
+        "displayNumber": "11225"
+      },
+      "address": "E22",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 24,
+      "y": 42,
+      "width": 2,
+      "height": 2,
+      "label": "183",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "11260",
+        "name": "Up-A-Creek Robotics",
+        "displayNumber": "11260"
+      },
+      "address": "E20",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 24,
+      "y": 44,
+      "width": 2,
+      "height": 2,
+      "label": "184",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "12524",
+        "name": "Sputnik Original",
+        "displayNumber": "12524"
+      },
+      "address": "E18",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 26,
+      "y": 44,
+      "width": 2,
+      "height": 2,
+      "label": "185",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "12599",
+        "name": "Overcharged",
+        "displayNumber": "12599"
+      },
+      "address": "F17",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 26,
+      "y": 42,
+      "width": 2,
+      "height": 2,
+      "label": "186",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "12928",
+        "name": "LightSaders",
+        "displayNumber": "12928"
+      },
+      "address": "F19",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 26,
+      "y": 40,
+      "width": 2,
+      "height": 2,
+      "label": "187",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "13088",
+        "name": "Cyber Saints",
+        "displayNumber": "13088"
+      },
+      "address": "F21",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 26,
+      "y": 38,
+      "width": 2,
+      "height": 2,
+      "label": "188",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "13684",
+        "name": "Infinity Tech",
+        "displayNumber": "13684"
+      },
+      "address": "F23",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 26,
+      "y": 34,
+      "width": 2,
+      "height": 2,
+      "label": "189",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "14896",
+        "name": "Knight Bots - St. Georges",
+        "displayNumber": "14896"
+      },
+      "address": "F25",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 26,
+      "y": 32,
+      "width": 2,
+      "height": 2,
+      "label": "190",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "16265",
+        "name": "ENIGMA",
+        "displayNumber": "16265"
+      },
+      "address": "F27",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 26,
+      "y": 30,
+      "width": 2,
+      "height": 2,
+      "label": "191",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "18140",
+        "name": "TBD-ThunderBolts in Disguise",
+        "displayNumber": "18140"
+      },
+      "address": "F29",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 26,
+      "y": 28,
+      "width": 2,
+      "height": 2,
+      "label": "192",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "18420",
+        "name": "Metal Masters",
+        "displayNumber": "18420"
+      },
+      "address": "F31",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 26,
+      "y": 26,
+      "width": 2,
+      "height": 2,
+      "label": "193",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19013",
+        "name": "G-Force",
+        "displayNumber": "19013"
+      },
+      "address": "F33",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 26,
+      "y": 24,
+      "width": 2,
+      "height": 2,
+      "label": "194",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19163",
+        "name": "MLP",
+        "displayNumber": "19163"
+      },
+      "address": "F35",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 30,
+      "y": 24,
+      "width": 2,
+      "height": 2,
+      "label": "195",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19411",
+        "name": "Tech Tigers",
+        "displayNumber": "19411"
+      },
+      "address": "F36",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 30,
+      "y": 26,
+      "width": 2,
+      "height": 2,
+      "label": "196",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19426",
+        "name": "QHSS Cardinals",
+        "displayNumber": "19426"
+      },
+      "address": "F34",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 30,
+      "y": 28,
+      "width": 2,
+      "height": 2,
+      "label": "197",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19502",
+        "name": "The Moment Makers",
+        "displayNumber": "19502"
+      },
+      "address": "F32",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 30,
+      "y": 30,
+      "width": 2,
+      "height": 2,
+      "label": "198",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19564",
+        "name": "ITKAN Solar",
+        "displayNumber": "19564"
+      },
+      "address": "F30",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 30,
+      "y": 32,
+      "width": 2,
+      "height": 2,
+      "label": "199",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19660",
+        "name": "Sigma",
+        "displayNumber": "19660"
+      },
+      "address": "F28",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 30,
+      "y": 34,
+      "width": 2,
+      "height": 2,
+      "label": "200",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19705",
+        "name": "WXYZ",
+        "displayNumber": "19705"
+      },
+      "address": "F26",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 30,
+      "y": 38,
+      "width": 2,
+      "height": 2,
+      "label": "201",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19706",
+        "name": "Potential Energy",
+        "displayNumber": "19706"
+      },
+      "address": "F24",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 30,
+      "y": 40,
+      "width": 2,
+      "height": 2,
+      "label": "202",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19745",
+        "name": "Turtle Walkers",
+        "displayNumber": "19745"
+      },
+      "address": "F22",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 30,
+      "y": 42,
+      "width": 2,
+      "height": 2,
+      "label": "203",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19836",
+        "name": "Hawk",
+        "displayNumber": "19836"
+      },
+      "address": "F20",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 30,
+      "y": 44,
+      "width": 2,
+      "height": 2,
+      "label": "204",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "20744",
+        "name": "24 Karat",
+        "displayNumber": "20744"
+      },
+      "address": "F18",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 32,
+      "y": 44,
+      "width": 2,
+      "height": 2,
+      "label": "205",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "21058",
+        "name": "Panheya (ᵔ  ᵔ)",
+        "displayNumber": "21058"
+      },
+      "address": "G17",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 32,
+      "y": 42,
+      "width": 2,
+      "height": 2,
+      "label": "206",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "21380",
+        "name": "Beyond Robotics",
+        "displayNumber": "21380"
+      },
+      "address": "G19",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 32,
+      "y": 40,
+      "width": 2,
+      "height": 2,
+      "label": "207",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "21587",
+        "name": "Orca Robotics",
+        "displayNumber": "21587"
+      },
+      "address": "G21",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 32,
+      "y": 38,
+      "width": 2,
+      "height": 2,
+      "label": "208",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "22029",
+        "name": "ASAP",
+        "displayNumber": "22029"
+      },
+      "address": "G23",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 32,
+      "y": 34,
+      "width": 2,
+      "height": 2,
+      "label": "209",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "22222",
+        "name": "Robobober",
+        "displayNumber": "22222"
+      },
+      "address": "G25",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 32,
+      "y": 32,
+      "width": 2,
+      "height": 2,
+      "label": "210",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "22377",
+        "name": "SigmaCorns",
+        "displayNumber": "22377"
+      },
+      "address": "G27",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 32,
+      "y": 30,
+      "width": 2,
+      "height": 2,
+      "label": "211",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23213",
+        "name": "Open Source",
+        "displayNumber": "23213"
+      },
+      "address": "G29",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 32,
+      "y": 28,
+      "width": 2,
+      "height": 2,
+      "label": "212",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23224",
+        "name": "Cheesy Bytes",
+        "displayNumber": "23224"
+      },
+      "address": "G31",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 32,
+      "y": 26,
+      "width": 2,
+      "height": 2,
+      "label": "213",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23286",
+        "name": "Lazer Robotics",
+        "displayNumber": "23286"
+      },
+      "address": "G33",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 32,
+      "y": 24,
+      "width": 2,
+      "height": 2,
+      "label": "214",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23417",
+        "name": "The Energizers",
+        "displayNumber": "23417"
+      },
+      "address": "G35",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 36,
+      "y": 26,
+      "width": 2,
+      "height": 2,
+      "label": "215",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23424",
+        "name": "Fruity Loops",
+        "displayNumber": "23424"
+      },
+      "address": "G34",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 36,
+      "y": 28,
+      "width": 2,
+      "height": 2,
+      "label": "216",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "24070",
+        "name": "AllNew101",
+        "displayNumber": "24070"
+      },
+      "address": "G32",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 36,
+      "y": 30,
+      "width": 2,
+      "height": 2,
+      "label": "217",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "25528",
+        "name": "Nomadic.Dragons.FTC",
+        "displayNumber": "25528"
+      },
+      "address": "G30",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 36,
+      "y": 32,
+      "width": 2,
+      "height": 2,
+      "label": "218",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "25619",
+        "name": "Nova Pyra",
+        "displayNumber": "25619"
+      },
+      "address": "G28",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 36,
+      "y": 34,
+      "width": 2,
+      "height": 2,
+      "label": "219",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "25780",
+        "name": "CyberChaos",
+        "displayNumber": "25780"
+      },
+      "address": "G26",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 36,
+      "y": 38,
+      "width": 2,
+      "height": 2,
+      "label": "220",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "26100",
+        "name": "Warrior Bots",
+        "displayNumber": "26100"
+      },
+      "address": "G24",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 36,
+      "y": 40,
+      "width": 2,
+      "height": 2,
+      "label": "221",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "26112",
+        "name": "GNCE Organized Anarchy",
+        "displayNumber": "26112"
+      },
+      "address": "G22",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 36,
+      "y": 42,
+      "width": 2,
+      "height": 2,
+      "label": "222",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "26115",
+        "name": "Alphabots",
+        "displayNumber": "26115"
+      },
+      "address": "G20",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 36,
+      "y": 44,
+      "width": 2,
+      "height": 2,
+      "label": "223",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "26537",
+        "name": "Arcturus - Artemis",
+        "displayNumber": "26537"
+      },
+      "address": "G18",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 38,
+      "y": 34,
+      "width": 2,
+      "height": 2,
+      "label": "224",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "26744",
+        "name": "Lion Robotics Black",
+        "displayNumber": "26744"
+      },
+      "address": "H25",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 38,
+      "y": 32,
+      "width": 2,
+      "height": 2,
+      "label": "225",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "26914",
+        "name": "ROBOTECH FTC",
+        "displayNumber": "26914"
+      },
+      "address": "H27",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 38,
+      "y": 30,
+      "width": 2,
+      "height": 2,
+      "label": "226",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "28028",
+        "name": "Absolute Hack",
+        "displayNumber": "28028"
+      },
+      "address": "H29",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 38,
+      "y": 28,
+      "width": 2,
+      "height": 2,
+      "label": "227",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "30393",
+        "name": "Lumens³",
+        "displayNumber": "30393"
+      },
+      "address": "H31",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 38,
+      "y": 26,
+      "width": 2,
+      "height": 2,
+      "label": "228",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "30784",
+        "name": "ITKAN Lunar Jr",
+        "displayNumber": "30784"
+      },
+      "address": "H33",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 22,
+      "width": 2,
+      "height": 2,
+      "label": "229",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "3565",
+        "name": "Ghost Robotics",
+        "displayNumber": "3565"
+      },
+      "address": "B38",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 20,
+      "width": 2,
+      "height": 2,
+      "label": "230",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "3825",
+        "name": "Ψ Lynx",
+        "displayNumber": "3825"
+      },
+      "address": "B40",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 16,
+      "width": 2,
+      "height": 2,
+      "label": "231",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "4848",
+        "name": "Chaos",
+        "displayNumber": "4848"
+      },
+      "address": "B42",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 14,
+      "width": 2,
+      "height": 2,
+      "label": "232",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "5356",
+        "name": "TARDIS",
+        "displayNumber": "5356"
+      },
+      "address": "B44",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 12,
+      "width": 2,
+      "height": 2,
+      "label": "233",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "7140",
+        "name": "Knightmares",
+        "displayNumber": "7140"
+      },
+      "address": "B46",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 10,
+      "width": 2,
+      "height": 2,
+      "label": "234",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "7149",
+        "name": "ENFORCERS",
+        "displayNumber": "7149"
+      },
+      "address": "B48",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 8,
+      "width": 2,
+      "height": 2,
+      "label": "235",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "8304",
+        "name": "Wired Cats",
+        "displayNumber": "8304"
+      },
+      "address": "B50",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 6,
+      "width": 2,
+      "height": 2,
+      "label": "236",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "10298",
+        "name": "Brain Stormz",
+        "displayNumber": "10298"
+      },
+      "address": "B52",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 4,
+      "width": 2,
+      "height": 2,
+      "label": "237",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "10477",
+        "name": "Rapid Robots",
+        "displayNumber": "10477"
+      },
+      "address": "B54",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 2,
+      "width": 2,
+      "height": 2,
+      "label": "238",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "11093",
+        "name": "MegaKnytes",
+        "displayNumber": "11093"
+      },
+      "address": "B56",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 0,
+      "width": 2,
+      "height": 2,
+      "label": "239",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "11212",
+        "name": "The Clueless",
+        "displayNumber": "11212"
+      },
+      "address": "B58",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 0,
+      "width": 2,
+      "height": 2,
+      "label": "240",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "11347",
+        "name": "CircuitRunners Robotics - Blackout",
+        "displayNumber": "11347"
+      },
+      "address": "C57",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 2,
+      "width": 2,
+      "height": 2,
+      "label": "241",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "12611",
+        "name": "TechNova",
+        "displayNumber": "12611"
+      },
+      "address": "C55",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 4,
+      "width": 2,
+      "height": 2,
+      "label": "242",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "12649",
+        "name": "Code Blooded",
+        "displayNumber": "12649"
+      },
+      "address": "C53",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 6,
+      "width": 2,
+      "height": 2,
+      "label": "243",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "13093",
+        "name": "Golden Fish",
+        "displayNumber": "13093"
+      },
+      "address": "C51",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 8,
+      "width": 2,
+      "height": 2,
+      "label": "244",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "13201",
+        "name": "Team Hazmat",
+        "displayNumber": "13201"
+      },
+      "address": "C49",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 10,
+      "width": 2,
+      "height": 2,
+      "label": "245",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "14270",
+        "name": "Quantum Robotics",
+        "displayNumber": "14270"
+      },
+      "address": "C47",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 12,
+      "width": 2,
+      "height": 2,
+      "label": "246",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "15104",
+        "name": "Hartland E-Gals",
+        "displayNumber": "15104"
+      },
+      "address": "C45",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 14,
+      "width": 2,
+      "height": 2,
+      "label": "247",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "15993",
+        "name": "infO(1)Robotics",
+        "displayNumber": "15993"
+      },
+      "address": "C43",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 16,
+      "width": 2,
+      "height": 2,
+      "label": "248",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "16169",
+        "name": "Banana Box",
+        "displayNumber": "16169"
+      },
+      "address": "C41",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 20,
+      "width": 2,
+      "height": 2,
+      "label": "249",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "16377",
+        "name": "Spicy Ketchup",
+        "displayNumber": "16377"
+      },
+      "address": "C39",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 8,
+      "y": 22,
+      "width": 2,
+      "height": 2,
+      "label": "250",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "16473",
+        "name": "SciFighters",
+        "displayNumber": "16473"
+      },
+      "address": "C37",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 22,
+      "width": 2,
+      "height": 2,
+      "label": "251",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "17792",
+        "name": "Amigos Droids",
+        "displayNumber": "17792"
+      },
+      "address": "C38",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 20,
+      "width": 2,
+      "height": 2,
+      "label": "252",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "18011",
+        "name": "Hyperion Bots",
+        "displayNumber": "18011"
+      },
+      "address": "C40",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 16,
+      "width": 2,
+      "height": 2,
+      "label": "253",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "18225",
+        "name": "High Definition",
+        "displayNumber": "18225"
+      },
+      "address": "C42",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 14,
+      "width": 2,
+      "height": 2,
+      "label": "254",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "18227",
+        "name": "Area 52",
+        "displayNumber": "18227"
+      },
+      "address": "C44",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 12,
+      "width": 2,
+      "height": 2,
+      "label": "255",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "18858",
+        "name": "ARC",
+        "displayNumber": "18858"
+      },
+      "address": "C46",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 10,
+      "width": 2,
+      "height": 2,
+      "label": "256",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19606",
+        "name": "Riser",
+        "displayNumber": "19606"
+      },
+      "address": "C48",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 8,
+      "width": 2,
+      "height": 2,
+      "label": "257",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19652",
+        "name": "Techineers",
+        "displayNumber": "19652"
+      },
+      "address": "C50",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 6,
+      "width": 2,
+      "height": 2,
+      "label": "258",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19779",
+        "name": "Metal Rebels",
+        "displayNumber": "19779"
+      },
+      "address": "C52",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 4,
+      "width": 2,
+      "height": 2,
+      "label": "259",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "20625",
+        "name": "SOCES Knights",
+        "displayNumber": "20625"
+      },
+      "address": "C54",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 2,
+      "width": 2,
+      "height": 2,
+      "label": "260",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "21229",
+        "name": "Quality Control",
+        "displayNumber": "21229"
+      },
+      "address": "C56",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 0,
+      "width": 2,
+      "height": 2,
+      "label": "261",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23222",
+        "name": "Cheesy Chips",
+        "displayNumber": "23222"
+      },
+      "address": "C58",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 0,
+      "width": 2,
+      "height": 2,
+      "label": "262",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23521",
+        "name": "DeSoto Technix",
+        "displayNumber": "23521"
+      },
+      "address": "D57",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 2,
+      "width": 2,
+      "height": 2,
+      "label": "263",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23524",
+        "name": "Robusta",
+        "displayNumber": "23524"
+      },
+      "address": "D55",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 4,
+      "width": 2,
+      "height": 2,
+      "label": "264",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23786",
+        "name": "MakEMinds",
+        "displayNumber": "23786"
+      },
+      "address": "D53",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 6,
+      "width": 2,
+      "height": 2,
+      "label": "265",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23840",
+        "name": "Howard Dynamics",
+        "displayNumber": "23840"
+      },
+      "address": "D51",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 8,
+      "width": 2,
+      "height": 2,
+      "label": "266",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23918",
+        "name": "SUPER SIGMA ROBOTICS",
+        "displayNumber": "23918"
+      },
+      "address": "D49",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 10,
+      "width": 2,
+      "height": 2,
+      "label": "267",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23942",
+        "name": "Rez Kidz",
+        "displayNumber": "23942"
+      },
+      "address": "D47",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 12,
+      "width": 2,
+      "height": 2,
+      "label": "268",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23944",
+        "name": "Robolobos Fenrir",
+        "displayNumber": "23944"
+      },
+      "address": "D45",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 14,
+      "width": 2,
+      "height": 2,
+      "label": "269",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "24018",
+        "name": "Avant-Garde",
+        "displayNumber": "24018"
+      },
+      "address": "D43",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 16,
+      "width": 2,
+      "height": 2,
+      "label": "270",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "25577",
+        "name": "ZAĞANOS",
+        "displayNumber": "25577"
+      },
+      "address": "D41",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 20,
+      "width": 2,
+      "height": 2,
+      "label": "271",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "25707",
+        "name": "Solar Flare",
+        "displayNumber": "25707"
+      },
+      "address": "D39",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 14,
+      "y": 22,
+      "width": 2,
+      "height": 2,
+      "label": "272",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "26025",
+        "name": "Furious Frogs",
+        "displayNumber": "26025"
+      },
+      "address": "D37",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 18,
+      "y": 20,
+      "width": 2,
+      "height": 2,
+      "label": "273",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "26249",
+        "name": "SKAR",
+        "displayNumber": "26249"
+      },
+      "address": "D40",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 18,
+      "y": 16,
+      "width": 2,
+      "height": 2,
+      "label": "274",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "26820",
+        "name": "Molten Glass",
+        "displayNumber": "26820"
+      },
+      "address": "D42",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 18,
+      "y": 14,
+      "width": 2,
+      "height": 2,
+      "label": "275",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "26907",
+        "name": "Inspiring Minds Ricochet Robotics",
+        "displayNumber": "26907"
+      },
+      "address": "D44",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 18,
+      "y": 12,
+      "width": 2,
+      "height": 2,
+      "label": "276",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "27188",
+        "name": "Fractal Fusion",
+        "displayNumber": "27188"
+      },
+      "address": "D46",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 18,
+      "y": 10,
+      "width": 2,
+      "height": 2,
+      "label": "277",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "28133",
+        "name": "CaiVerziPePereti",
+        "displayNumber": "28133"
+      },
+      "address": "D48",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 18,
+      "y": 8,
+      "width": 2,
+      "height": 2,
+      "label": "278",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "28651",
+        "name": "Robotics Revolution",
+        "displayNumber": "28651"
+      },
+      "address": "D50",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 18,
+      "y": 6,
+      "width": 2,
+      "height": 2,
+      "label": "279",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "28804",
+        "name": "CyberSmiths",
+        "displayNumber": "28804"
+      },
+      "address": "D52",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 18,
+      "y": 4,
+      "width": 2,
+      "height": 2,
+      "label": "280",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "29999",
+        "name": "Weeping Angels",
+        "displayNumber": "29999"
+      },
+      "address": "D54",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 18,
+      "y": 2,
+      "width": 2,
+      "height": 2,
+      "label": "281",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "30439",
+        "name": "Cool Name Pending...",
+        "displayNumber": "30439"
+      },
+      "address": "D56",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 20,
+      "y": 2,
+      "width": 2,
+      "height": 2,
+      "label": "282",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "32240",
+        "name": "Penguinauts",
+        "displayNumber": "32240"
+      },
+      "address": "E55",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 20,
+      "y": 4,
+      "width": 2,
+      "height": 2,
+      "label": "283",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "32706",
+        "name": "Tic-Tac-Tech",
+        "displayNumber": "32706"
+      },
+      "address": "E53",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 20,
+      "y": 16,
+      "width": 2,
+      "height": 2,
+      "label": "284",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "32736",
+        "name": "KONDOR",
+        "displayNumber": "32736"
+      },
+      "address": "E41",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 20,
+      "y": 20,
+      "width": 2,
+      "height": 2,
+      "label": "285",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "33033",
+        "name": "TGJ",
+        "displayNumber": "33033"
+      },
+      "address": "E39",
+      "color": "#b6b6b6"
+    },
+    {
+      "type": "PIT",
+      "x": 24,
+      "y": 22,
+      "width": 2,
+      "height": 2,
+      "label": "286",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "3216",
+        "name": "Robophins",
+        "displayNumber": "3216"
+      },
+      "address": "E38",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 24,
+      "y": 20,
+      "width": 2,
+      "height": 2,
+      "label": "287",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "6165",
+        "name": "MSET CuttleFish",
+        "displayNumber": "6165"
+      },
+      "address": "E40",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 24,
+      "y": 16,
+      "width": 2,
+      "height": 2,
+      "label": "288",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "7244",
+        "name": "OUT of the BOX Robotics",
+        "displayNumber": "7244"
+      },
+      "address": "E42",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 24,
+      "y": 14,
+      "width": 2,
+      "height": 2,
+      "label": "289",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "7854",
+        "name": "MidKnight Madness",
+        "displayNumber": "7854"
+      },
+      "address": "E44",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 24,
+      "y": 12,
+      "width": 2,
+      "height": 2,
+      "label": "290",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "9707",
+        "name": "St. Mary's BE.A.ST. Robotics",
+        "displayNumber": "9707"
+      },
+      "address": "E46",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 24,
+      "y": 10,
+      "width": 2,
+      "height": 2,
+      "label": "291",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "9791",
+        "name": "Divide by Zero",
+        "displayNumber": "9791"
+      },
+      "address": "E48",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 24,
+      "y": 8,
+      "width": 2,
+      "height": 2,
+      "label": "292",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "10136",
+        "name": "Frost RoboFalcons",
+        "displayNumber": "10136"
+      },
+      "address": "E50",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 24,
+      "y": 6,
+      "width": 2,
+      "height": 2,
+      "label": "293",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "10653",
+        "name": "Dragatrons",
+        "displayNumber": "10653"
+      },
+      "address": "E52",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 24,
+      "y": 4,
+      "width": 2,
+      "height": 2,
+      "label": "294",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "10984",
+        "name": "Beep Patrol",
+        "displayNumber": "10984"
+      },
+      "address": "E54",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 24,
+      "y": 2,
+      "width": 2,
+      "height": 2,
+      "label": "295",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "11228",
+        "name": "OverClucked Bots",
+        "displayNumber": "11228"
+      },
+      "address": "E56",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 26,
+      "y": 2,
+      "width": 2,
+      "height": 2,
+      "label": "296",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "11525",
+        "name": "Minerva's Mechanics",
+        "displayNumber": "11525"
+      },
+      "address": "F55",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 26,
+      "y": 4,
+      "width": 2,
+      "height": 2,
+      "label": "297",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "13532",
+        "name": "EagleBots FTC 13532",
+        "displayNumber": "13532"
+      },
+      "address": "F53",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 26,
+      "y": 6,
+      "width": 2,
+      "height": 2,
+      "label": "298",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "14380",
+        "name": "Blue BotBuilders",
+        "displayNumber": "14380"
+      },
+      "address": "F51",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 26,
+      "y": 8,
+      "width": 2,
+      "height": 2,
+      "label": "299",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "14423",
+        "name": "RoboCorns",
+        "displayNumber": "14423"
+      },
+      "address": "F49",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 26,
+      "y": 10,
+      "width": 2,
+      "height": 2,
+      "label": "300",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "14450",
+        "name": "RoboRebels",
+        "displayNumber": "14450"
+      },
+      "address": "F47",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 26,
+      "y": 12,
+      "width": 2,
+      "height": 2,
+      "label": "301",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "14712",
+        "name": "Ruckus Robotics",
+        "displayNumber": "14712"
+      },
+      "address": "F45",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 26,
+      "y": 14,
+      "width": 2,
+      "height": 2,
+      "label": "302",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "15083",
+        "name": "Overclock",
+        "displayNumber": "15083"
+      },
+      "address": "F43",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 26,
+      "y": 16,
+      "width": 2,
+      "height": 2,
+      "label": "303",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "15549",
+        "name": "DCHS-Rundell's",
+        "displayNumber": "15549"
+      },
+      "address": "F41",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 26,
+      "y": 20,
+      "width": 2,
+      "height": 2,
+      "label": "304",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "16205",
+        "name": "Lightning Bots",
+        "displayNumber": "16205"
+      },
+      "address": "F39",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 26,
+      "y": 22,
+      "width": 2,
+      "height": 2,
+      "label": "305",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "18142",
+        "name": "Fusion",
+        "displayNumber": "18142"
+      },
+      "address": "F37",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 30,
+      "y": 22,
+      "width": 2,
+      "height": 2,
+      "label": "306",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "18264",
+        "name": "TheElectronovas",
+        "displayNumber": "18264"
+      },
+      "address": "F38",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 30,
+      "y": 20,
+      "width": 2,
+      "height": 2,
+      "label": "307",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "18908",
+        "name": "Mighty Hawks",
+        "displayNumber": "18908"
+      },
+      "address": "F40",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 30,
+      "y": 16,
+      "width": 2,
+      "height": 2,
+      "label": "308",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "18996",
+        "name": "S.T.A.T.I.C.",
+        "displayNumber": "18996"
+      },
+      "address": "F42",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 30,
+      "y": 14,
+      "width": 2,
+      "height": 2,
+      "label": "309",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19213",
+        "name": "Mystery",
+        "displayNumber": "19213"
+      },
+      "address": "F44",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 30,
+      "y": 12,
+      "width": 2,
+      "height": 2,
+      "label": "310",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19448",
+        "name": "X BOTS",
+        "displayNumber": "19448"
+      },
+      "address": "F46",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 30,
+      "y": 10,
+      "width": 2,
+      "height": 2,
+      "label": "311",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19571",
+        "name": "The Robo Brigade",
+        "displayNumber": "19571"
+      },
+      "address": "F48",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 30,
+      "y": 8,
+      "width": 2,
+      "height": 2,
+      "label": "312",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19639",
+        "name": "Alphabots",
+        "displayNumber": "19639"
+      },
+      "address": "F50",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 30,
+      "y": 6,
+      "width": 2,
+      "height": 2,
+      "label": "313",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "20153",
+        "name": "Silver Wolves",
+        "displayNumber": "20153"
+      },
+      "address": "F52",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 30,
+      "y": 4,
+      "width": 2,
+      "height": 2,
+      "label": "314",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "20293",
+        "name": "Laser Bots",
+        "displayNumber": "20293"
+      },
+      "address": "F54",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 30,
+      "y": 2,
+      "width": 2,
+      "height": 2,
+      "label": "315",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "20506",
+        "name": "Technobots",
+        "displayNumber": "20506"
+      },
+      "address": "F56",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 32,
+      "y": 2,
+      "width": 2,
+      "height": 2,
+      "label": "316",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "21087",
+        "name": "Velocity",
+        "displayNumber": "21087"
+      },
+      "address": "G55",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 32,
+      "y": 4,
+      "width": 2,
+      "height": 2,
+      "label": "317",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "21239",
+        "name": "All Systems Go",
+        "displayNumber": "21239"
+      },
+      "address": "G53",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 32,
+      "y": 6,
+      "width": 2,
+      "height": 2,
+      "label": "318",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "21430",
+        "name": "BroomBots",
+        "displayNumber": "21430"
+      },
+      "address": "G51",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 32,
+      "y": 8,
+      "width": 2,
+      "height": 2,
+      "label": "319",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "21502",
+        "name": "Bionic Bulldogs",
+        "displayNumber": "21502"
+      },
+      "address": "G49",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 32,
+      "y": 10,
+      "width": 2,
+      "height": 2,
+      "label": "320",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "21982",
+        "name": "Inkineers",
+        "displayNumber": "21982"
+      },
+      "address": "G47",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 32,
+      "y": 12,
+      "width": 2,
+      "height": 2,
+      "label": "321",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "22437",
+        "name": "Demon Dogs",
+        "displayNumber": "22437"
+      },
+      "address": "G45",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 32,
+      "y": 14,
+      "width": 2,
+      "height": 2,
+      "label": "322",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23232",
+        "name": "SAKURA Tempesta",
+        "displayNumber": "23232"
+      },
+      "address": "G43",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 32,
+      "y": 16,
+      "width": 2,
+      "height": 2,
+      "label": "323",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23268",
+        "name": "Ultraviolet",
+        "displayNumber": "23268"
+      },
+      "address": "G41",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 32,
+      "y": 20,
+      "width": 2,
+      "height": 2,
+      "label": "324",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23435",
+        "name": "Gyrobotic Droids",
+        "displayNumber": "23435"
+      },
+      "address": "G39",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 32,
+      "y": 22,
+      "width": 2,
+      "height": 2,
+      "label": "325",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23511",
+        "name": "Seattle Solvers",
+        "displayNumber": "23511"
+      },
+      "address": "G37",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 36,
+      "y": 24,
+      "width": 2,
+      "height": 2,
+      "label": "326",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23948",
+        "name": "Shiprock Chieftains",
+        "displayNumber": "23948"
+      },
+      "address": "G36",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 36,
+      "y": 22,
+      "width": 2,
+      "height": 2,
+      "label": "327",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "24006",
+        "name": "LeXT--Watermelon Why？",
+        "displayNumber": "24006"
+      },
+      "address": "G38",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 36,
+      "y": 20,
+      "width": 2,
+      "height": 2,
+      "label": "328",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "24180",
+        "name": "Blue Bananas",
+        "displayNumber": "24180"
+      },
+      "address": "G40",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 36,
+      "y": 16,
+      "width": 2,
+      "height": 2,
+      "label": "329",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "24966",
+        "name": "Portables UBITECH",
+        "displayNumber": "24966"
+      },
+      "address": "G42",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 36,
+      "y": 14,
+      "width": 2,
+      "height": 2,
+      "label": "330",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "25316",
+        "name": "Eagles",
+        "displayNumber": "25316"
+      },
+      "address": "G44",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 36,
+      "y": 12,
+      "width": 2,
+      "height": 2,
+      "label": "331",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "25963",
+        "name": "Android",
+        "displayNumber": "25963"
+      },
+      "address": "G46",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 36,
+      "y": 10,
+      "width": 2,
+      "height": 2,
+      "label": "332",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "26192",
+        "name": "Heatwaves",
+        "displayNumber": "26192"
+      },
+      "address": "G48",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 36,
+      "y": 8,
+      "width": 2,
+      "height": 2,
+      "label": "333",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "26949",
+        "name": "Royal Society of Robotics",
+        "displayNumber": "26949"
+      },
+      "address": "G50",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 36,
+      "y": 6,
+      "width": 2,
+      "height": 2,
+      "label": "334",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "27570",
+        "name": "BAYI RONG ZHEN",
+        "displayNumber": "27570"
+      },
+      "address": "G52",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 36,
+      "y": 4,
+      "width": 2,
+      "height": 2,
+      "label": "335",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "27628",
+        "name": "Beargineers",
+        "displayNumber": "27628"
+      },
+      "address": "G54",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 36,
+      "y": 2,
+      "width": 2,
+      "height": 2,
+      "label": "336",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "28338",
+        "name": "AUTONOVA",
+        "displayNumber": "28338"
+      },
+      "address": "G56",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 38,
+      "y": 2,
+      "width": 2,
+      "height": 2,
+      "label": "337",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "30030",
+        "name": "Exodus",
+        "displayNumber": "30030"
+      },
+      "address": "H55",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 38,
+      "y": 4,
+      "width": 2,
+      "height": 2,
+      "label": "338",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "30380",
+        "name": "Bitflip",
+        "displayNumber": "30380"
+      },
+      "address": "H53",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 38,
+      "y": 16,
+      "width": 2,
+      "height": 2,
+      "label": "339",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "31000",
+        "name": "VANTA",
+        "displayNumber": "31000"
+      },
+      "address": "H41",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 38,
+      "y": 20,
+      "width": 2,
+      "height": 2,
+      "label": "340",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "31663",
+        "name": "RSR Cuttlefish",
+        "displayNumber": "31663"
+      },
+      "address": "H39",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 38,
+      "y": 22,
+      "width": 2,
+      "height": 2,
+      "label": "341",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "31862",
+        "name": "SEGFAULT",
+        "displayNumber": "31862"
+      },
+      "address": "H37",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 38,
+      "y": 24,
+      "width": 2,
+      "height": 2,
+      "label": "342",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "32281",
+        "name": "Chillydawgs",
+        "displayNumber": "32281"
+      },
+      "address": "H35",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 20,
+      "y": 6,
+      "width": 2,
+      "height": 10
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 38,
+      "y": 6,
+      "width": 2,
+      "height": 10
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 38,
+      "y": 38,
+      "width": 2,
+      "height": 10
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 20,
+      "y": 38,
+      "width": 2,
+      "height": 10
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 2,
+      "y": 38,
+      "width": 2,
+      "height": 10
+    },
+    {
+      "type": "LABEL",
+      "x": 6,
+      "y": 36,
+      "width": 16,
+      "height": 2,
+      "label": "Goodall",
+      "labelOrientation": "HORIZONTAL"
+    },
+    {
+      "type": "LABEL",
+      "x": 24,
+      "y": 36,
+      "width": 16,
+      "height": 2,
+      "label": "Jackson",
+      "labelOrientation": "HORIZONTAL"
+    },
+    {
+      "type": "LABEL",
+      "x": 6,
+      "y": 18,
+      "width": 16,
+      "height": 2,
+      "label": "Ross",
+      "labelOrientation": "HORIZONTAL"
+    },
+    {
+      "type": "LABEL",
+      "x": 24,
+      "y": 18,
+      "width": 16,
+      "height": 2,
+      "label": "Lovelace",
+      "labelOrientation": "HORIZONTAL"
+    },
+    {
+      "type": "LABEL",
+      "x": 0,
+      "y": 52,
+      "width": 22,
+      "height": 2,
+      "label": "Edison",
+      "labelOrientation": "HORIZONTAL"
+    },
+    {
+      "type": "LABEL",
+      "x": 24,
+      "y": 52,
+      "width": 22,
+      "height": 2,
+      "label": "Franklin",
+      "labelOrientation": "HORIZONTAL"
+    },
+    {
+      "type": "OBJECT",
+      "x": 44,
+      "y": 39,
+      "width": 2,
+      "height": 13,
+      "label": "Pit Admin",
+      "labelOrientation": "VERTICAL"
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 45,
+      "y": 21,
+      "width": 1,
+      "height": 9
+    },
+    {
+      "type": "OBJECT",
+      "x": 44,
+      "y": 2,
+      "width": 2,
+      "height": 17,
+      "label": "Robot Help & Inspection",
+      "labelOrientation": "VERTICAL"
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 2,
+      "y": 0,
+      "width": 1,
+      "height": 35
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 3,
+      "y": 6,
+      "width": 1,
+      "height": 9
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 3,
+      "y": 15,
+      "width": 1,
+      "height": 1
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 45,
+      "y": 30,
+      "width": 1,
+      "height": 4
+    },
+    {
+      "type": "LABEL",
+      "x": 0,
+      "y": 0,
+      "width": 2,
+      "height": 35,
+      "label": "Practice Fields",
+      "labelOrientation": "VERTICAL"
+    },
+    {
+      "type": "LABEL",
+      "x": 4,
+      "y": 58,
+      "width": 2,
+      "height": 6,
+      "label": "B Street",
+      "labelOrientation": "VERTICAL"
+    },
+    {
+      "type": "LABEL",
+      "x": 10,
+      "y": 58,
+      "width": 2,
+      "height": 6,
+      "label": "C Street",
+      "labelOrientation": "VERTICAL"
+    },
+    {
+      "type": "LABEL",
+      "x": 16,
+      "y": 58,
+      "width": 2,
+      "height": 6,
+      "label": "D Street",
+      "labelOrientation": "VERTICAL"
+    },
+    {
+      "type": "LABEL",
+      "x": 22,
+      "y": 58,
+      "width": 2,
+      "height": 6,
+      "label": "E Street",
+      "labelOrientation": "VERTICAL"
+    },
+    {
+      "type": "LABEL",
+      "x": 28,
+      "y": 58,
+      "width": 2,
+      "height": 6,
+      "label": "F Street",
+      "labelOrientation": "VERTICAL"
+    },
+    {
+      "type": "LABEL",
+      "x": 34,
+      "y": 58,
+      "width": 2,
+      "height": 6,
+      "label": "G Street",
+      "labelOrientation": "VERTICAL"
+    },
+    {
+      "type": "LABEL",
+      "x": 40,
+      "y": 58,
+      "width": 2,
+      "height": 6,
+      "label": "H Street",
+      "labelOrientation": "VERTICAL"
+    },
+    {
+      "type": "LABEL",
+      "x": 42,
+      "y": 34,
+      "width": 4,
+      "height": 3,
+      "label": "QUEUE",
+      "labelOrientation": "HORIZONTAL"
+    }
+  ]
+}

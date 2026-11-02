@@ -1,0 +1,1142 @@
+{
+  "minX": 0,
+  "minY": 0,
+  "width": 22,
+  "height": 26,
+  "showPitNumbers": false,
+  "showPitAddresses": true,
+  "elements": [
+    {
+      "type": "PIT",
+      "x": 0,
+      "y": 12,
+      "width": 2,
+      "height": 2,
+      "label": "1",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "11308",
+        "name": "YISE",
+        "displayNumber": "11308"
+      },
+      "address": "E25",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 0,
+      "y": 10,
+      "width": 2,
+      "height": 2,
+      "label": "2",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "207",
+        "name": "Critical Mass",
+        "displayNumber": "207"
+      },
+      "address": "E27",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 0,
+      "y": 8,
+      "width": 2,
+      "height": 2,
+      "label": "3",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "359",
+        "name": "WEBB.exe",
+        "displayNumber": "359"
+      },
+      "address": "E29",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 4,
+      "y": 2,
+      "width": 2,
+      "height": 2,
+      "label": "4",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "3747",
+        "name": "The Hive",
+        "displayNumber": "3747"
+      },
+      "address": "E36",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 4,
+      "y": 4,
+      "width": 2,
+      "height": 2,
+      "label": "5",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "4410",
+        "name": "ARC Lightning",
+        "displayNumber": "4410"
+      },
+      "address": "E34",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 4,
+      "y": 6,
+      "width": 2,
+      "height": 2,
+      "label": "6",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "5477",
+        "name": "Innovo",
+        "displayNumber": "5477"
+      },
+      "address": "E32",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 4,
+      "y": 8,
+      "width": 2,
+      "height": 2,
+      "label": "7",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "9415",
+        "name": "Wrench Dressing",
+        "displayNumber": "9415"
+      },
+      "address": "E30",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 4,
+      "y": 10,
+      "width": 2,
+      "height": 2,
+      "label": "8",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "9848",
+        "name": "GearView",
+        "displayNumber": "9848"
+      },
+      "address": "E28",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 4,
+      "y": 12,
+      "width": 2,
+      "height": 2,
+      "label": "9",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "10435",
+        "name": "Circuit Breakers",
+        "displayNumber": "10435"
+      },
+      "address": "E26",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 4,
+      "y": 16,
+      "width": 2,
+      "height": 2,
+      "label": "10",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "11172",
+        "name": "Static Discharge",
+        "displayNumber": "11172"
+      },
+      "address": "E24",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 4,
+      "y": 18,
+      "width": 2,
+      "height": 2,
+      "label": "11",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "11225",
+        "name": "DELTA Robotics (Louisville Collegiate School)",
+        "displayNumber": "11225"
+      },
+      "address": "E22",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 4,
+      "y": 20,
+      "width": 2,
+      "height": 2,
+      "label": "12",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "11260",
+        "name": "Up-A-Creek Robotics",
+        "displayNumber": "11260"
+      },
+      "address": "E20",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 4,
+      "y": 22,
+      "width": 2,
+      "height": 2,
+      "label": "13",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "12524",
+        "name": "Sputnik Original",
+        "displayNumber": "12524"
+      },
+      "address": "E18",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 22,
+      "width": 2,
+      "height": 2,
+      "label": "14",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "12599",
+        "name": "Overcharged",
+        "displayNumber": "12599"
+      },
+      "address": "F17",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 20,
+      "width": 2,
+      "height": 2,
+      "label": "15",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "12928",
+        "name": "LightSaders",
+        "displayNumber": "12928"
+      },
+      "address": "F19",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 18,
+      "width": 2,
+      "height": 2,
+      "label": "16",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "13088",
+        "name": "Cyber Saints",
+        "displayNumber": "13088"
+      },
+      "address": "F21",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 16,
+      "width": 2,
+      "height": 2,
+      "label": "17",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "13684",
+        "name": "Infinity Tech",
+        "displayNumber": "13684"
+      },
+      "address": "F23",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 10,
+      "width": 2,
+      "height": 2,
+      "label": "18",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "16265",
+        "name": "ENIGMA",
+        "displayNumber": "16265"
+      },
+      "address": "F27",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 12,
+      "width": 2,
+      "height": 2,
+      "label": "19",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "14896",
+        "name": "Knight Bots - St. Georges",
+        "displayNumber": "14896"
+      },
+      "address": "F25",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 8,
+      "width": 2,
+      "height": 2,
+      "label": "20",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "18140",
+        "name": "TBD-ThunderBolts in Disguise",
+        "displayNumber": "18140"
+      },
+      "address": "F29",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 6,
+      "width": 2,
+      "height": 2,
+      "label": "21",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "18420",
+        "name": "Metal Masters",
+        "displayNumber": "18420"
+      },
+      "address": "F31",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 4,
+      "width": 2,
+      "height": 2,
+      "label": "22",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19013",
+        "name": "G-Force",
+        "displayNumber": "19013"
+      },
+      "address": "F33",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 2,
+      "width": 2,
+      "height": 2,
+      "label": "23",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19163",
+        "name": "MLP",
+        "displayNumber": "19163"
+      },
+      "address": "F35",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 10,
+      "y": 2,
+      "width": 2,
+      "height": 2,
+      "label": "24",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19411",
+        "name": "Tech Tigers",
+        "displayNumber": "19411"
+      },
+      "address": "F36",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 10,
+      "y": 4,
+      "width": 2,
+      "height": 2,
+      "label": "25",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19426",
+        "name": "QHSS Cardinals",
+        "displayNumber": "19426"
+      },
+      "address": "F34",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 10,
+      "y": 6,
+      "width": 2,
+      "height": 2,
+      "label": "26",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19502",
+        "name": "The Moment Makers",
+        "displayNumber": "19502"
+      },
+      "address": "F32",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 10,
+      "y": 8,
+      "width": 2,
+      "height": 2,
+      "label": "27",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19564",
+        "name": "ITKAN Solar",
+        "displayNumber": "19564"
+      },
+      "address": "F30",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 10,
+      "y": 10,
+      "width": 2,
+      "height": 2,
+      "label": "28",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19660",
+        "name": "Sigma",
+        "displayNumber": "19660"
+      },
+      "address": "F28",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 10,
+      "y": 12,
+      "width": 2,
+      "height": 2,
+      "label": "29",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19705",
+        "name": "WXYZ",
+        "displayNumber": "19705"
+      },
+      "address": "F26",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 10,
+      "y": 16,
+      "width": 2,
+      "height": 2,
+      "label": "30",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19706",
+        "name": "Potential Energy",
+        "displayNumber": "19706"
+      },
+      "address": "F24",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 10,
+      "y": 18,
+      "width": 2,
+      "height": 2,
+      "label": "31",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19745",
+        "name": "Turtle Walkers",
+        "displayNumber": "19745"
+      },
+      "address": "F22",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 10,
+      "y": 20,
+      "width": 2,
+      "height": 2,
+      "label": "32",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "19836",
+        "name": "Hawk",
+        "displayNumber": "19836"
+      },
+      "address": "F20",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 10,
+      "y": 22,
+      "width": 2,
+      "height": 2,
+      "label": "33",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "20744",
+        "name": "24 Karat",
+        "displayNumber": "20744"
+      },
+      "address": "F18",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 22,
+      "width": 2,
+      "height": 2,
+      "label": "34",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "21058",
+        "name": "Panheya (ᵔ  ᵔ)",
+        "displayNumber": "21058"
+      },
+      "address": "G17",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 20,
+      "width": 2,
+      "height": 2,
+      "label": "35",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "21380",
+        "name": "Beyond Robotics",
+        "displayNumber": "21380"
+      },
+      "address": "G19",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 18,
+      "width": 2,
+      "height": 2,
+      "label": "36",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "21587",
+        "name": "Orca Robotics",
+        "displayNumber": "21587"
+      },
+      "address": "G21",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 16,
+      "width": 2,
+      "height": 2,
+      "label": "37",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "22029",
+        "name": "ASAP",
+        "displayNumber": "22029"
+      },
+      "address": "G23",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 12,
+      "width": 2,
+      "height": 2,
+      "label": "38",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "22222",
+        "name": "Robobober",
+        "displayNumber": "22222"
+      },
+      "address": "G25",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 10,
+      "width": 2,
+      "height": 2,
+      "label": "39",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "22377",
+        "name": "SigmaCorns",
+        "displayNumber": "22377"
+      },
+      "address": "G27",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 8,
+      "width": 2,
+      "height": 2,
+      "label": "40",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23213",
+        "name": "Open Source",
+        "displayNumber": "23213"
+      },
+      "address": "G29",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 6,
+      "width": 2,
+      "height": 2,
+      "label": "41",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23224",
+        "name": "Cheesy Bytes",
+        "displayNumber": "23224"
+      },
+      "address": "G31",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 4,
+      "width": 2,
+      "height": 2,
+      "label": "42",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23286",
+        "name": "Lazer Robotics",
+        "displayNumber": "23286"
+      },
+      "address": "G33",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 2,
+      "width": 2,
+      "height": 2,
+      "label": "43",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23417",
+        "name": "The Energizers",
+        "displayNumber": "23417"
+      },
+      "address": "G35",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 16,
+      "y": 4,
+      "width": 2,
+      "height": 2,
+      "label": "44",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "23424",
+        "name": "Fruity Loops",
+        "displayNumber": "23424"
+      },
+      "address": "G34",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 16,
+      "y": 6,
+      "width": 2,
+      "height": 2,
+      "label": "45",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "24070",
+        "name": "AllNew101",
+        "displayNumber": "24070"
+      },
+      "address": "G32",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 16,
+      "y": 8,
+      "width": 2,
+      "height": 2,
+      "label": "46",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "25528",
+        "name": "Nomadic.Dragons.FTC",
+        "displayNumber": "25528"
+      },
+      "address": "G30",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 16,
+      "y": 10,
+      "width": 2,
+      "height": 2,
+      "label": "47",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "25619",
+        "name": "Nova Pyra",
+        "displayNumber": "25619"
+      },
+      "address": "G28",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 16,
+      "y": 12,
+      "width": 2,
+      "height": 2,
+      "label": "48",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "25780",
+        "name": "CyberChaos",
+        "displayNumber": "25780"
+      },
+      "address": "G26",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 16,
+      "y": 16,
+      "width": 2,
+      "height": 2,
+      "label": "49",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "26100",
+        "name": "Warrior Bots",
+        "displayNumber": "26100"
+      },
+      "address": "G24",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 16,
+      "y": 18,
+      "width": 2,
+      "height": 2,
+      "label": "50",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "26112",
+        "name": "GNCE Organized Anarchy",
+        "displayNumber": "26112"
+      },
+      "address": "G22",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 16,
+      "y": 20,
+      "width": 2,
+      "height": 2,
+      "label": "51",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "26115",
+        "name": "Alphabots",
+        "displayNumber": "26115"
+      },
+      "address": "G20",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 16,
+      "y": 22,
+      "width": 2,
+      "height": 2,
+      "label": "52",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "26537",
+        "name": "Arcturus - Artemis",
+        "displayNumber": "26537"
+      },
+      "address": "G18",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 18,
+      "y": 12,
+      "width": 2,
+      "height": 2,
+      "label": "53",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "26744",
+        "name": "Lion Robotics Black",
+        "displayNumber": "26744"
+      },
+      "address": "H25",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 18,
+      "y": 10,
+      "width": 2,
+      "height": 2,
+      "label": "54",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "26914",
+        "name": "ROBOTECH FTC",
+        "displayNumber": "26914"
+      },
+      "address": "H27",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 18,
+      "y": 8,
+      "width": 2,
+      "height": 2,
+      "label": "55",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "28028",
+        "name": "Absolute Hack",
+        "displayNumber": "28028"
+      },
+      "address": "H29",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 18,
+      "y": 6,
+      "width": 2,
+      "height": 2,
+      "label": "56",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "30393",
+        "name": "Lumens³",
+        "displayNumber": "30393"
+      },
+      "address": "H31",
+      "color": "#ffd279"
+    },
+    {
+      "type": "PIT",
+      "x": 18,
+      "y": 4,
+      "width": 2,
+      "height": 2,
+      "label": "57",
+      "labelOrientation": "HORIZONTAL",
+      "team": {
+        "number": "30784",
+        "name": "ITKAN Lunar Jr",
+        "displayNumber": "30784"
+      },
+      "address": "H33",
+      "color": "#ffd279"
+    },
+    {
+      "type": "LABEL",
+      "x": 2,
+      "y": 20,
+      "width": 2,
+      "height": 6,
+      "label": "E Street",
+      "labelOrientation": "VERTICAL"
+    },
+    {
+      "type": "LABEL",
+      "x": 8,
+      "y": 20,
+      "width": 2,
+      "height": 6,
+      "label": "F Street",
+      "labelOrientation": "VERTICAL"
+    },
+    {
+      "type": "LABEL",
+      "x": 14,
+      "y": 20,
+      "width": 2,
+      "height": 6,
+      "label": "G Street",
+      "labelOrientation": "VERTICAL"
+    },
+    {
+      "type": "LABEL",
+      "x": 20,
+      "y": 20,
+      "width": 2,
+      "height": 6,
+      "label": "H Street",
+      "labelOrientation": "VERTICAL"
+    },
+    {
+      "type": "PIT",
+      "x": 0,
+      "y": 6,
+      "width": 2,
+      "height": 2,
+      "label": "58",
+      "labelOrientation": "HORIZONTAL",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 0,
+      "y": 4,
+      "width": 2,
+      "height": 2,
+      "label": "59",
+      "labelOrientation": "HORIZONTAL",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 0,
+      "y": 2,
+      "width": 2,
+      "height": 2,
+      "label": "60",
+      "labelOrientation": "HORIZONTAL",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 0,
+      "y": 0,
+      "width": 2,
+      "height": 2,
+      "label": "61",
+      "labelOrientation": "HORIZONTAL",
+      "color": "#8ed7ff"
+    },
+    {
+      "type": "PIT",
+      "x": 4,
+      "y": 0,
+      "width": 2,
+      "height": 2,
+      "label": "62",
+      "labelOrientation": "HORIZONTAL",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 0,
+      "width": 2,
+      "height": 2,
+      "label": "63",
+      "labelOrientation": "HORIZONTAL",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 10,
+      "y": 0,
+      "width": 2,
+      "height": 2,
+      "label": "64",
+      "labelOrientation": "HORIZONTAL",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 0,
+      "width": 2,
+      "height": 2,
+      "label": "65",
+      "labelOrientation": "HORIZONTAL",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 16,
+      "y": 2,
+      "width": 2,
+      "height": 2,
+      "label": "66",
+      "labelOrientation": "HORIZONTAL",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 16,
+      "y": 0,
+      "width": 2,
+      "height": 2,
+      "label": "67",
+      "labelOrientation": "HORIZONTAL",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 18,
+      "y": 2,
+      "width": 2,
+      "height": 2,
+      "label": "68",
+      "labelOrientation": "HORIZONTAL",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 18,
+      "y": 0,
+      "width": 2,
+      "height": 2,
+      "label": "69",
+      "labelOrientation": "HORIZONTAL",
+      "color": "#98ff8e"
+    },
+    {
+      "type": "PIT",
+      "x": 16,
+      "y": 24,
+      "width": 2,
+      "height": 2,
+      "label": "70",
+      "labelOrientation": "HORIZONTAL",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 12,
+      "y": 24,
+      "width": 2,
+      "height": 2,
+      "label": "71",
+      "labelOrientation": "HORIZONTAL",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 10,
+      "y": 24,
+      "width": 2,
+      "height": 2,
+      "label": "72",
+      "labelOrientation": "HORIZONTAL",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 6,
+      "y": 24,
+      "width": 2,
+      "height": 2,
+      "label": "73",
+      "labelOrientation": "HORIZONTAL",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "PIT",
+      "x": 4,
+      "y": 24,
+      "width": 2,
+      "height": 2,
+      "label": "74",
+      "labelOrientation": "HORIZONTAL",
+      "color": "#ff8eff"
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 18,
+      "y": 16,
+      "width": 2,
+      "height": 10
+    },
+    {
+      "type": "BOUNDARY",
+      "x": 0,
+      "y": 16,
+      "width": 2,
+      "height": 10
+    }
+  ]
+}
