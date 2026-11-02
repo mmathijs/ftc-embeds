@@ -1292,8 +1292,8 @@ export class PitMap {
 
         let uid = (this._uid = this._uid || Math.random().toString(36).slice(2, 8));
         let defs = svg("defs", null, s);
-        let dots = svg("pattern", { id: `${PREFIX}-dots-${uid}`, width: 1, height: 1, patternUnits: "userSpaceOnUse" }, defs);
-        svg("circle", { cx: 0, cy: 0, r: 0.045, fill: T.gridDot }, dots);
+        let dots = svg("pattern", { id: `${PREFIX}-dots-${uid}`, x: -0.5, y: -0.5, width: 1, height: 1, patternUnits: "userSpaceOnUse" }, defs);
+        svg("circle", { cx: 0.5, cy: 0.5, r: 0.045, fill: T.gridDot }, dots);
         let hatch = svg("pattern", { id: `${PREFIX}-hatch-${uid}`, width: 0.5, height: 0.5, patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)" }, defs);
         svg("rect", { width: 0.5, height: 0.5, fill: T.objectFill }, hatch);
         if (!isNone(T.objectHatch)) svg("line", { x1: 0, y1: 0, x2: 0, y2: 0.5, stroke: T.objectHatch, "stroke-width": 0.16 }, hatch);
