@@ -41,6 +41,10 @@ Publishing uses npm trusted publishing (no stored token): on npmjs.com, the `ftc
 
 Open `dist/pit-map-demo.html` (self-contained) or `demo/pit-map/index.html` after building.
 
+## Website
+
+[ftc-embeds.com](https://ftc-embeds.com) hosts the configuration dashboard (`site/index.html`), the iframe embed pages (`site/embed/`), the library (`/lib/pit-map.umd.js`) and example data. `npm run build` builds it into `dist/site`; `scripts/deploy.sh [user@host]` uploads it and reloads Caddy (`deploy/Caddyfile`). Live events need the embeds API: set its URL in `site/config.js`.
+
 ## Layout
 
 ```
@@ -48,7 +52,10 @@ src/core/api.mjs              shared API client (configure, preset queries)
 src/<widget>/<widget>.mjs     source (ES module) + <widget>.d.ts types
 demo/<widget>/                demo pages and example data
 docs/<widget>.md              documentation
-scripts/build.mjs             builds every widget into dist/
+site/                         ftc-embeds.com: dashboard, embed pages, config.js
+deploy/Caddyfile              web server config for ftc-embeds.com
+scripts/build.mjs             builds every widget and the site into dist/
+scripts/deploy.sh             uploads dist/site to the server
 ```
 
 ## License

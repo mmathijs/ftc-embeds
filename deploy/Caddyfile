@@ -1,0 +1,26 @@
+# ftc-embeds.com: static site from dist/site (scripts/deploy.sh uploads it to /srv/ftc-embeds/site).
+ftc-embeds.com {
+	root * /srv/ftc-embeds/site
+	encode zstd gzip
+
+	# Clean URLs: /embed/pit-map -> embed/pit-map.html
+	try_files {path} {path}.html {path}/index.html
+	file_server
+
+	# Library and example data are loaded by other websites.
+	@shared path /lib/* /examples/*
+	header @shared {
+		Access-Control-Allow-Origin "*"
+		Cache-Control "public, max-age=3600"
+	}
+	header /embed/* Cache-Control "public, max-age=300"
+	header {
+		Referrer-Policy "strict-origin-when-cross-origin"
+		X-Content-Type-Options "nosniff"
+		-Server
+	}
+}
+
+www.ftc-embeds.com {
+	redir https://ftc-embeds.com{uri} permanent
+}

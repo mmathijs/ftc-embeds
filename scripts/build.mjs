@@ -86,3 +86,21 @@ return { ${exported.join(", ")}${defaultExport ? `, default: ${defaultExport}` :
     }
     console.log(`built ${name} (exports: ${exported.join(", ")})`);
 }
+
+// Website (ftc-embeds.com): dashboard, iframe embed pages, the library and the example events.
+import { cpSync, readdirSync, rmSync } from "node:fs";
+
+const site = resolve(root, "dist/site");
+rmSync(site, { recursive: true, force: true });
+cpSync(resolve(root, "site"), site, { recursive: true });
+mkdirSync(resolve(site, "lib"), { recursive: true });
+for (const { name } of WIDGETS) {
+    for (const ext of [".mjs", ".umd.js"]) writeFileSync(resolve(site, `lib/${name}${ext}`), readFileSync(resolve(root, `dist/${name}${ext}`)));
+}
+const examples = resolve(root, "demo/pit-map/data");
+mkdirSync(resolve(site, "examples"), { recursive: true });
+writeFileSync(resolve(site, "examples/events.js"), readFileSync(resolve(examples, "events.js")));
+for (const file of readdirSync(examples).filter((f) => f.endsWith("_pitmap.json"))) {
+    writeFileSync(resolve(site, `examples/${file.replace("_pitmap", "")}`), readFileSync(resolve(examples, file)));
+}
+console.log("built site (dist/site)");
