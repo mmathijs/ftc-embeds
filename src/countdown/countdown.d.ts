@@ -16,12 +16,17 @@ export declare function getEventInfo(event: string, options?: ApiOptions): Promi
 
 /** The moment a day ("2026-02-07") starts in a time zone, as epoch milliseconds. */
 export declare function zonedMidnight(date: string, timeZone?: string | null): number;
+/** The earliest scheduled match time (epoch ms), or null without a schedule. */
+export declare function firstMatchTime(matches: { scheduledStartTime: string | null }[] | null | undefined): number | null;
+export { getEventMatches, EVENT_MATCHES_QUERY } from "../event-matches/event-matches";
 /** Days, hours, minutes and seconds from `now` until `target` (epoch ms; all 0 once passed). */
 export declare function timeLeft(target: number, now: number): { days: number; hours: number; minutes: number; seconds: number; total: number };
 
 export interface CountdownOptions extends TeamWidgetOptions {
     /** "boxes" (default) | "compact" (one line) */
     layout?: "boxes" | "compact" | null;
+    /** "start" (default): the first day, at midnight in the event's time zone; "first-match": the first scheduled match (for a team: its own), else the start. */
+    to?: "start" | "first-match";
     /** Team mode: seconds between refreshes while the team's event is on (default 30). */
     refresh?: number;
 }

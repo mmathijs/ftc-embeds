@@ -5,10 +5,10 @@
  */
 import { TeamWidget, defineTeamElement, h, place } from "../core/team-ui.mjs";
 import { chip, matchStatus, isLive } from "../core/team-views.mjs";
-import { getEventInfo } from "../core/event-api.mjs";
+import { getEventInfo, getEventMatches } from "../core/event-api.mjs";
 import { getTeamMatches } from "../core/team-api.mjs";
 export { configure, EmbedsApiError, DEFAULT_API_BASE } from "../core/api.mjs";
-export { getEventInfo, parseEventCode, EVENT_INFO_QUERY } from "../core/event-api.mjs";
+export { getEventInfo, getEventMatches, parseEventCode, EVENT_INFO_QUERY, EVENT_MATCHES_QUERY } from "../core/event-api.mjs";
 export { getTeamMatches, seasonOf } from "../core/team-api.mjs";
 export { TEAM_THEMES, TEAM_THEME_MODES, TEAM_SHAPES, TEAM_THEME_SHAPES, ICONS } from "../core/team-ui.mjs";
 export { TEAM_TEXT } from "../core/team-text.mjs";
@@ -27,6 +27,12 @@ export function zonedMidnight(date, timeZone) {
     return guess - offset(t); // again, in case the offset changes in between (DST)
 }
 
+/** The earliest scheduled match time (epoch ms) of a list of matches, or null without a schedule. */
+export function firstMatchTime(matches) {
+    let times = (matches || []).map((m) => Date.parse(m.scheduledStartTime)).filter((t) => !Number.isNaN(t));
+    return times.length ? Math.min(...times) : null;
+}
+
 /** Days, hours, minutes and seconds left until `target` (all 0 once it has passed). */
 export function timeLeft(target, now) {
     let s = Math.max(0, Math.floor((target - now) / 1000));
@@ -39,7 +45,8 @@ export class Countdown extends TeamWidget {
     static kind = "countdown";
     static subjects = ["event", "team"];
     // layout: "boxes" (default) | "compact" (one line)
-    static defaults = { layout: "boxes", refresh: 30 };
+    // to: "start" (the first day, midnight in the event's time zone) | "first-match"
+    static defaults = { layout: "boxes", to: "start", refresh: 30 };
     static css = `
 .cd-what{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;margin:-4px 0 12px;font-size:var(--_small-size);color:var(--_muted)}
 .cd-what .ev-name{font-weight:600;color:var(--_text)}
@@ -59,7 +66,9 @@ export class Countdown extends TeamWidget {
 
     fetch(api) {
         // An event (event + season), or else a team's next match or event.
-        return this.byEvent ? getEventInfo(this.options.event, api) : getTeamMatches(this.options.team, api);
+        if (!this.byEvent) return getTeamMatches(this.options.team, api);
+        // The first match needs the schedule; the rest only the event.
+        return this.options.to === "first-match" ? getEventMatches(this.options.event, api) : getEventInfo(this.options.event, api);
     }
 
     get byEvent() {
@@ -77,6 +86,8 @@ export class Countdown extends TeamWidget {
             let ev = d;
             if (ev.ongoing) return { event: ev, live: true };
             if (ev.finished || ev.started) return { event: ev, done: true };
+            let first = this.options.to === "first-match" ? firstMatchTime(ev.matches) : null;
+            if (first) return { event: ev, target: first, label: this.t("cdFirstMatchIn") };
             return { event: ev, target: zonedMidnight(ev.start, ev.timezone), label: this.t("cdStartsIn") };
         }
         let st = matchStatus(d, now);
@@ -89,6 +100,9 @@ export class Countdown extends TeamWidget {
         }
         if (st.upcoming) {
             let tz = d.events.find((e) => e.event.code === st.upcoming.code)?.event.timezone;
+            // The team's own first match there, once the schedule is out.
+            let first = this.options.to === "first-match" ? firstMatchTime(d.matches.filter((m) => m.eventCode === st.upcoming.code).map((m) => m.match)) : null;
+            if (first) return { event: st.upcoming, target: first, label: this.t("cdFirstMatchIn") };
             return { event: st.upcoming, target: zonedMidnight(st.upcoming.start, tz), label: this.t("cdNextEvent") };
         }
         return { none: true };
@@ -161,7 +175,7 @@ export class Countdown extends TeamWidget {
 
 /** Registers <ftc-countdown event="NLCMP" season="2025"> or <ftc-countdown team="19444">. Extra attribute: refresh. */
 export function defineCountdownElement(tagName = "ftc-countdown") {
-    defineTeamElement(tagName, Countdown, { refresh: "refresh" });
+    defineTeamElement(tagName, Countdown, { to: "to", refresh: "refresh" });
 }
 
 if (typeof window !== "undefined" && typeof customElements !== "undefined") defineCountdownElement();

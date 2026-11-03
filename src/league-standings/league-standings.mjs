@@ -4,7 +4,7 @@
  * License: MIT
  */
 import { TeamWidget, defineTeamElement, h, record } from "../core/team-ui.mjs";
-import { EVENT_CSS, highlighted, teamCell, stat, limitRows, scrollToMine } from "../core/event-views.mjs";
+import { EVENT_CSS, highlighted, teamCell, stat, columnDigits, limitRows, scrollToMine } from "../core/event-views.mjs";
 import { getEventLeague } from "../core/event-api.mjs";
 export { configure, EmbedsApiError, DEFAULT_API_BASE } from "../core/api.mjs";
 export { getEventLeague, parseEventCode, EVENT_LEAGUE_QUERY } from "../core/event-api.mjs";
@@ -52,6 +52,7 @@ export class LeagueStandings extends TeamWidget {
 
     table(rows) {
         let mine = highlighted(this);
+        let rpDigits = columnDigits(rows.map((r) => r.avgRp));
         let shown = limitRows(rows, Number(this.options.limit) || null, (r) => mine.has(r.teamNumber));
         let head = h("tr", null,
             h("th", { class: "rk" }, this.t("colRank")),
@@ -64,7 +65,7 @@ export class LeagueStandings extends TeamWidget {
             : h("tr", { class: mine.has(r.teamNumber) ? "me" : null, part: mine.has(r.teamNumber) ? "row row-me" : "row" },
                 h("td", { class: "rk", part: "rank" }, this.int(r.stats.rank)),
                 teamCell(this, r.teamNumber, r.team?.name),
-                h("td", { class: "n", part: "col col-avg-rp" }, stat(this, r.avgRp)),
+                h("td", { class: "n", part: "col col-avg-rp" }, stat(this, r.avgRp, rpDigits)),
                 this.shows("record") ? h("td", { class: "n c-record", part: "col col-record" }, record(r.stats) ?? "–") : null,
             ));
         return h("div", { class: "tbl-wrap" }, h("table", { class: "tbl", part: "table" }, h("thead", null, head), h("tbody", null, body)));

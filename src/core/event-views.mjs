@@ -74,10 +74,18 @@ export function teamCell(w, number, name) {
     );
 }
 
-/** A number as FTC shows it: whole numbers as is, others with two decimals (in the widget's numberFormat). */
+/**
+ * A number in a table column, in the widget's numberFormat: with `digits` decimals (zeros
+ * included, so a column lines up), or none for a column of whole numbers (see columnDigits).
+ */
 export function stat(w, v, digits = 2) {
     if (v == null) return "–";
-    return Number.isInteger(v) ? w.int(v) : w.num(v, digits);
+    return digits === 0 ? w.int(v) : w.num(v, digits);
+}
+
+/** The decimals for a column: none when every value is whole (counts, 2021 RP totals), else `digits`. */
+export function columnDigits(values, digits = 2) {
+    return values.every((v) => v == null || Number.isInteger(v)) ? 0 : digits;
 }
 
 /**

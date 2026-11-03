@@ -4,7 +4,7 @@
  * latest), with the team marked. From FTCScout. Zero dependencies. License: MIT
  */
 import { TeamWidget, defineTeamElement, h, record } from "../core/team-ui.mjs";
-import { EVENT_CSS, eventLine, highlighted, teamCell, stat, limitRows, scrollToMine } from "../core/event-views.mjs";
+import { EVENT_CSS, eventLine, highlighted, teamCell, stat, columnDigits, limitRows, scrollToMine } from "../core/event-views.mjs";
 import { getEventRankings } from "../core/event-api.mjs";
 import { getTeamResults } from "../core/team-api.mjs";
 export { configure, EmbedsApiError, DEFAULT_API_BASE } from "../core/api.mjs";
@@ -16,16 +16,17 @@ export { TEAM_TEXT } from "../core/team-text.mjs";
 
 /** The columns, in order; `columns` picks and orders them (rank and team are always shown). */
 const COLUMNS = {
-    rp: { label: "colRp", value: (w, s) => stat(w, s.rp) },
-    tb1: { label: "colTb1", value: (w, s) => stat(w, s.tb1) },
-    tb2: { label: "colTb2", value: (w, s) => stat(w, s.tb2) },
+    // d: the column's decimals (columnDigits), so every row has the same number of them.
+    rp: { label: "colRp", value: (w, s, d) => stat(w, s.rp, d), digits: (s) => s.rp },
+    tb1: { label: "colTb1", value: (w, s, d) => stat(w, s.tb1, d), digits: (s) => s.tb1 },
+    tb2: { label: "colTb2", value: (w, s, d) => stat(w, s.tb2, d), digits: (s) => s.tb2 },
     record: { label: "colRecord", value: (w, s) => record(s) ?? "–" },
-    matches: { label: "colMatches", value: (w, s) => stat(w, s.qualMatchesPlayed) },
+    matches: { label: "colMatches", value: (w, s) => stat(w, s.qualMatchesPlayed, 0) },
     opr: { label: "colOpr", value: (w, s) => w.num(s.opr?.totalPointsNp) },
     epa: { label: "colEpa", value: (w, s) => w.num(s.epa) },
     // Share of matches won (ties count as played, not won).
     winrate: { label: "colWinRate", value: (w, s) => (s.wins == null || !(s.wins + s.losses + s.ties) ? "–" : `${w.num((100 * s.wins) / (s.wins + s.losses + s.ties), 0)}%`) },
-    dqs: { label: "colDqs", value: (w, s) => stat(w, s.dqs) },
+    dqs: { label: "colDqs", value: (w, s) => stat(w, s.dqs, 0) },
 };
 
 /**
@@ -125,6 +126,7 @@ export class EventRankings extends TeamWidget {
         let mine = this.marked();
         // Remote events have no record.
         let cols = this.columns().filter((c) => !["record", "winrate", "dqs"].includes(c) || rows.some((r) => r.stats.wins != null));
+        let digits = Object.fromEntries(cols.map((c) => [c, COLUMNS[c].digits ? columnDigits(rows.map((r) => COLUMNS[c].digits(r.stats))) : null]));
         let shown = limitRows(rows, Number(this.options.limit) || null, (r) => mine.has(r.teamNumber));
         let head = h("tr", null,
             h("th", { class: "rk" }, this.t("colRank")),
@@ -136,7 +138,7 @@ export class EventRankings extends TeamWidget {
             : h("tr", { class: mine.has(r.teamNumber) ? "me" : null, part: mine.has(r.teamNumber) ? "row row-me" : "row" },
                 h("td", { class: "rk", part: "rank" }, this.int(r.stats.rank)),
                 teamCell(this, r.teamNumber, r.team?.name),
-                cols.map((c) => h("td", { class: `n c-${c}`, part: `col col-${c}` }, COLUMNS[c].value(this, r.stats))),
+                cols.map((c) => h("td", { class: `n c-${c}`, part: `col col-${c}` }, COLUMNS[c].value(this, r.stats, digits[c]))),
             ));
         return h("div", { class: "tbl-wrap" }, h("table", { class: "tbl", part: "table" }, h("thead", null, head), h("tbody", null, body)));
     }

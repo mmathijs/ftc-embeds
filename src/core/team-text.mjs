@@ -112,6 +112,7 @@ export const TEAM_TEXT = {
     noLeagueStandings: "No league standings for this league yet.",
     countdown: "Countdown",
     cdStartsIn: "Starts in",
+    cdFirstMatchIn: "First match in",
     cdMatchIn: "{match} in",
     cdNextEvent: "Next event",
     cdDays: ["day", "days"],

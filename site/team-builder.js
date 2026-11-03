@@ -72,7 +72,7 @@
         stats: ["opr", "epa", "record"], upcoming: 1, skipScrimmages: false, oldest: false, onlyWon: false, seasons: "", limit: "", hide: "",
         locale: "", numberFormat: "locale", decimals: 1, dateFormat: "short", hourCycle: "", timeZone: "",
         // event widgets
-        scrollTo: "auto", scrollOffset: "",
+        scrollTo: "auto", scrollOffset: "", countdownTo: "start",
         event: "", shape: "", highlight: "", columns: "", maxHeight: "", level: "all", matchState: "all", onlyTeam: false, names: false,
     };
     let state = { ...DEFAULTS };
@@ -118,6 +118,7 @@
         }
         if (kind !== "team" && w !== "countdown" && state.highlight.trim()) o.highlight = state.highlight.split(/[\s,;]+/).filter(Boolean).join(",");
         if ((w === "event-rankings" || w === "event-advancement") && state.columns.trim()) o.columns = state.columns.split(/[\s,]+/).filter(Boolean).join(",");
+        if (w === "countdown" && state.countdownTo !== "start") o.to = state.countdownTo;
         if (w === "event-matches") {
             if (state.level !== "all") o.level = state.level;
             if (state.matchState !== "all") o.state = state.matchState;
@@ -242,6 +243,8 @@
         if (document.activeElement !== $("columns")) $("columns").value = state.columns;
         if (document.activeElement !== $("highlight")) $("highlight").value = state.highlight;
         $("matches-box").hidden = state.widget !== "event-matches";
+        $("countdown-box").hidden = state.widget !== "countdown";
+        $("countdown-to").value = state.countdownTo;
         $("level").value = state.level;
         $("match-state").value = state.matchState;
         $("only-team").checked = state.onlyTeam;
@@ -345,6 +348,7 @@
     $("scroll-to").onchange = (e) => set({ scrollTo: e.target.value });
     $("scroll-offset").onchange = (e) => set({ scrollOffset: e.target.value.trim() });
     $("level").onchange = (e) => set({ level: e.target.value });
+    $("countdown-to").onchange = (e) => set({ countdownTo: e.target.value });
     $("match-state").onchange = (e) => set({ matchState: e.target.value });
     $("only-team").onchange = (e) => set({ onlyTeam: e.target.checked });
     $("names").onchange = (e) => set({ names: e.target.checked });

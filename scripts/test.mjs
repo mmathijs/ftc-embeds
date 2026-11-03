@@ -139,7 +139,7 @@ const TEAM_WIDGETS = [
     { name: "event-matches", cls: "EventMatches", define: "defineEventMatchesElement", api: ["getEventMatches", "matchRows", "EVENT_MATCHES_QUERY"] },
     { name: "event-advancement", cls: "EventAdvancement", define: "defineEventAdvancementElement", api: ["getEventAdvancement", "advancementRows", "EVENT_ADVANCEMENT_QUERY"] },
     { name: "league-standings", cls: "LeagueStandings", define: "defineLeagueStandingsElement", api: ["getEventLeague", "EVENT_LEAGUE_QUERY"] },
-    { name: "countdown", cls: "Countdown", define: "defineCountdownElement", api: ["getEventInfo", "getTeamMatches", "zonedMidnight", "timeLeft", "EVENT_INFO_QUERY"] },
+    { name: "countdown", cls: "Countdown", define: "defineCountdownElement", api: ["getEventInfo", "getTeamMatches", "zonedMidnight", "timeLeft", "EVENT_INFO_QUERY", "firstMatchTime", "getEventMatches"] },
 ];
 
 for (const w of TEAM_WIDGETS) {
@@ -357,9 +357,15 @@ test("event tables show the top rows plus the highlighted teams below them", asy
     assert.deepEqual([...highlighted({ options: { highlight: [3977] } })], [3977]);
     const { TeamWidget } = await import(resolve(root, "src/core/team-ui.mjs"));
     const w = (options) => Object.assign(Object.create(TeamWidget.prototype), { options });
-    assert.equal(stat(w({ locale: "en-US" }), 903), "903");
+    assert.equal(stat(w({ locale: "en-US" }), 903, 0), "903");
     assert.equal(stat(w({ locale: "en-US" }), 2.6666), "2.67");
+    assert.equal(stat(w({ locale: "en-US" }), 2), "2.00");
+    assert.equal(stat(w({ locale: "en-US" }), 2.5), "2.50");
+    const { columnDigits } = await import(resolve(root, "src/core/event-views.mjs"));
+    assert.equal(columnDigits([903, 846, null]), 0);
+    assert.equal(columnDigits([3, 2.6666, 2]), 2);
     assert.equal(stat(w({ locale: "en-US", numberFormat: "comma" }), 2.6666), "2,67");
+    assert.equal(stat(w({ locale: "en-US" }), null), "–");
     assert.equal(stat(w({}), null), "–");
 });
 
@@ -417,4 +423,11 @@ test("a team's ranked events, newest first, for the tabs", async () => {
     const { teamRankedEvents } = await import(resolve(root, "src/event-rankings/event-rankings.mjs"));
     const e = (code, start, rank) => ({ event: { code, name: code, start }, stats: rank ? { rank } : null });
     assert.deepEqual(teamRankedEvents({ events: [e("Q1", "2025-11-29", 4), e("CMP", "2026-02-07", null), e("CMPOCK1", "2026-02-07", 12), e("Q0", "2025-10-01", 2)] }).map((x) => x.code), ["CMPOCK1", "Q1", "Q0"]);
+});
+
+test("the first match is the earliest scheduled one", async () => {
+    const { firstMatchTime } = await import(resolve(root, "src/countdown/countdown.mjs"));
+    assert.equal(firstMatchTime([{ scheduledStartTime: "2026-02-07T10:30:00Z" }, { scheduledStartTime: "2026-02-07T09:15:00Z" }, { scheduledStartTime: null }]), Date.parse("2026-02-07T09:15:00Z"));
+    assert.equal(firstMatchTime([{ scheduledStartTime: null }]), null);
+    assert.equal(firstMatchTime(undefined), null);
 });

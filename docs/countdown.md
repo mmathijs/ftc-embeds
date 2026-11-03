@@ -26,6 +26,7 @@ The [shared options](team-widgets.md#options) (theme, density, hide, title, text
 | Option | Attribute | |
 | --- | --- | --- |
 | `layout` | `layout` | `boxes` (default) or `compact` (one line) |
+| `to` | `to` | `start` (default: the first day, midnight in the event's time zone) or `first-match` (the first scheduled match; for a team its own first match at its next event; the start until the schedule is out) |
 | `refresh` | `refresh` | team mode: seconds between refreshes during the team's event (default 30) |
 
 It ticks every second, and reloads when it reaches zero.

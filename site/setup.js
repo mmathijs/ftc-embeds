@@ -233,9 +233,9 @@
     function flow() {
         if (state.kind != "event") return ["kind", "team", "widget", "look", "content", "format", "site", "done"];
         if (isMap()) return ["kind", "eventWidget", "event", "highlight", "look", "site", "done"];
-        // A countdown has no teams to mark and nothing else to pick.
+        // A countdown has no teams to mark.
         let countdown = state.eventWidget == "countdown";
-        return ["kind", "eventWidget", "event", ...(countdown ? [] : ["highlight"]), "look", ...(countdown ? [] : ["content"]), "format", "site", "done"];
+        return ["kind", "eventWidget", "event", ...(countdown ? [] : ["highlight"]), "look", "content", "format", "site", "done"];
     }
 
     // ------------------------------------------------------------ answers
@@ -247,7 +247,7 @@
         team: "", season: "", widget: "team-card", theme: "auto", shape: "", layout: "list", accent: "#2563eb", useAccent: false,
         stats: ["opr", "epa", "record"], upcoming: 1, skipScrimmages: false, oldest: false, onlyWon: false, seasons: "",
         // event widgets: which one, and what they show ("" / "all": the widget's default)
-        eventWidget: "pit-map", columns: "", eventLimit: "", level: "all", matchState: "all", matchTeam: "", maxHeight: "",
+        eventWidget: "pit-map", columns: "", eventLimit: "", level: "all", matchState: "all", matchTeam: "", maxHeight: "", countdownTo: "start",
         // pit map (same names as the /pit-map dashboard)
         source: "example", example: "FPEEUR", code: "", eventSeason: THIS_SEASON, highlight: "", mapTheme: "auto", mapShape: "", height: 600,
         // number, date and time formats (team widgets); "" / "locale" / "short": the widgets' defaults
@@ -317,6 +317,7 @@
             if (state.skipScrimmages) o.skipTypes = "Scrimmage";
             if (state.oldest) o.order = "oldest";
         }
+        if (w == "countdown" && state.countdownTo != "start") o.to = state.countdownTo;
         if (w == "event-rankings") {
             if (state.columns) o.columns = state.columns;
             if (state.eventLimit) o.limit = +state.eventLimit;
@@ -356,6 +357,7 @@
         }
         if (id != "countdown" && state.eventLimit) o.limit = +state.eventLimit;
         if (id != "countdown" && state.maxHeight) o.maxHeight = state.maxHeight;
+        if (id == "countdown" && state.countdownTo != "start") o.to = state.countdownTo;
         return formatOptions(o);
     }
     const scrollHeight = () => (state.maxHeight ? parseInt(state.maxHeight) + 4 : null);
@@ -559,6 +561,11 @@
 
     /** The "What to show" page of the event widgets. */
     function eventContent(head, id) {
+        if (id == "countdown")
+            return `${head}
+            <h1>Count down to what?</h1>
+            <p class="sub">While the event is on it says "Happening now", with the livestream when there is one.</p>
+            <div class="choices small">${choice("countdownTo", "start", "The first day", "Midnight where the event is")}${choice("countdownTo", "first-match", "The first match", "Once the schedule is out; the first day until then")}</div>`;
         let tall = `<p class="q">How tall? <small>A fixed height scrolls inside the widget, to ${id == "event-matches" ? "the next match" : "your team"}</small></p>
             <div class="choices small">${choice("maxHeight", "", "Fit everything", "As long as the list")}${choice("maxHeight", "400px", "400px", "Scrolls inside")}${choice("maxHeight", "600px", "600px", "Scrolls inside")}</div>`;
         let limits = (label, values) => `<div class="choices small">${choice("eventLimit", "", label)}${values.map(([v, l]) => choice("eventLimit", v, l)).join("")}</div>`;
@@ -696,8 +703,9 @@
             <div class="choices small">${choice("seasons", "", "Every season")}${choice("seasons", "1", "This season")}${choice("seasons", "3", "Last 3 seasons")}${choice("seasons", "5", "Last 5 seasons")}</div>`;
             if (w == "countdown")
                 return `${head}
-            <h1>Nothing else to pick.</h1>
-            <p class="sub">During an event this counts down to your next match. Between events it counts down to your next event this season.</p>`;
+            <h1>Count down to what?</h1>
+            <p class="sub">During an event it counts down to your next match. Between events, to your next event this season:</p>
+            <div class="choices small">${choice("countdownTo", "start", "Its first day", "Midnight where the event is")}${choice("countdownTo", "first-match", "Your first match there", "Once the schedule is out; the first day until then")}</div>`;
             if (w == "next-match")
                 return `${head}
             <h1>Nothing else to pick.</h1>
