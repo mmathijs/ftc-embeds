@@ -33,7 +33,8 @@ jobs:
                       echo "dist_tag=$id" >> "$GITHUB_OUTPUT"
                       echo "prerelease=true" >> "$GITHUB_OUTPUT"
                   else
-                      echo "dist_tag=latest" >> "$GITHUB_OUTPUT"
+                      # An older line (release-0.8): never move "latest".
+                      echo "dist_tag=release-0.8" >> "$GITHUB_OUTPUT"
                       echo "prerelease=false" >> "$GITHUB_OUTPUT"
                   fi
             - run: npm ci
@@ -61,7 +62,7 @@ jobs:
                   if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
                       echo "Release $GITHUB_REF_NAME already exists, skipping"
                   else
-                      flags=()
+                      flags=(--latest=false)
                       [ "$PRERELEASE" = true ] && flags+=(--prerelease)
                       gh release create "$GITHUB_REF_NAME" dist/*.mjs dist/*.js dist/*.html --title "$GITHUB_REF_NAME" --generate-notes "${flags[@]}"
                   fi
