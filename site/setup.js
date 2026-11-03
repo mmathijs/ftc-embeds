@@ -155,6 +155,8 @@
     const THIS_SEASON = window.FtcTeamCard?.seasonOf?.() ?? (new Date().getMonth() >= 8 ? new Date().getFullYear() : new Date().getFullYear() - 1);
     // Every season the widgets have data for: FTCScout's start with 2019–20.
     const FIRST_SEASON = 2019;
+    /** "2020–2021": a season with both years in full. */
+    const seasonLabel = (y) => `${y}–${+y + 1}`;
     const SEASONS = Array.from({ length: THIS_SEASON - FIRST_SEASON + 1 }, (_, i) => THIS_SEASON - i);
 
     // Website builders: which code fits, and how to paste it there. {h} is the suggested height.
@@ -511,7 +513,7 @@
             <p class="q">Which season? <small>Most people keep "current": it moves on by itself.</small></p>
             <div class="choices small">
                 ${choice("season", "", "Current")}
-                ${SEASONS.map((y) => choice("season", String(y), `${y}–${String(y + 1).slice(2)}`)).join("")}
+                ${SEASONS.map((y) => choice("season", String(y), `${seasonLabel(y)}`)).join("")}
             </div>`,
 
         widget: () => `
@@ -597,7 +599,7 @@
                 <div class="row" style="margin-top:20px">
                     <label class="f" style="flex:1 1 200px">Event code <input class="big" type="text" data-input="code" placeholder="e.g. NLCMP" autocomplete="off" style="text-transform:uppercase"></label>
                     <label class="f" style="flex:0 0 140px">Season
-                        <select data-select="eventSeason">${SEASONS.map((y) => `<option value="${y}">${y}–${String(y + 1).slice(2)}</option>`).join("")}</select>
+                        <select data-select="eventSeason">${SEASONS.map((y) => `<option value="${y}">${seasonLabel(y)}</option>`).join("")}</select>
                     </label>
                 </div>
                 <div class="status" id="event-status"></div>
@@ -660,7 +662,7 @@
             let what = state.kind == "event" ? `Pit map · ${state.source == "example" ? EXAMPLE_NAMES[state.example] || state.example : eventRef()}` : `${WIDGETS[state.widget].label} · team ${state.team}`;
             let rows = state.kind == "event"
                 ? [["event", "Event", what.split(" · ")[1]], ["highlight", "Teams", teamList() || "none"], ["look", "Look", `${themeLabel(state.mapTheme)} · ${MAP_SHAPE_LABELS[state.mapShape][0]} shape · ${state.height}px`], ["site", "Website", p.label]]
-                : [["team", "Team", `${state.team}${state.season ? `, ${state.season}` : ""}`], ["widget", "Widget", WIDGETS[state.widget].label], ["look", "Look", `${themeLabel(state.theme)} · ${TEAM_SHAPE_LABELS[state.shape][0]} shape · ${WIDGETS[state.widget].layouts[state.layout] || "List"}`], ["format", "Formats", formatSummary()], ["site", "Website", p.label]];
+                : [["team", "Team", `${state.team}${state.season ? `, ${seasonLabel(state.season)}` : ""}`], ["widget", "Widget", WIDGETS[state.widget].label], ["look", "Look", `${themeLabel(state.theme)} · ${TEAM_SHAPE_LABELS[state.shape][0]} shape · ${WIDGETS[state.widget].layouts[state.layout] || "List"}`], ["format", "Formats", formatSummary()], ["site", "Website", p.label]];
             return `
             <span class="kicker">Done</span>
             <h1>Here's your code.</h1>
