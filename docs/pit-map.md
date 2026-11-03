@@ -11,7 +11,7 @@ Render FTC pit maps as interactive SVG: pan and zoom, highlight and outline team
 python3 pitmap_to_json.py 2025 FPEEUR NLCMP FTCCMP1 -o pitmaps/
 ```
 
-Open `demo/index.html` (works straight from disk) for the full demo with 2025 FPEEUR, NLCMP and FTCCMP1 plus all six divisions, and `demo/web-component.html` for the web component.
+Open `demo/pit-map/index.html` (works straight from disk) for the full demo with 2025 FPEEUR, NLCMP and FTCCMP1 plus all six divisions, and `demo/pit-map/web-component.html` for the web component.
 
 ## Quick start
 
@@ -46,7 +46,7 @@ Instead of passing `data`, give the widget an event and it fetches the pit map f
 ```js
 import { configure, PitMap } from "ftc-embeds/pit-map";
 
-configure({ apiBase: "https://…/rest/embeds/v1" }); // or { graphqlUrl: "https://ftcscout-api.mmathijs.nl/graphql" }
+configure({ apiBase: "https://ftcscout-api.mmathijs.nl/rest/embeds/v1" }); // or { graphqlUrl: "https://ftcscout-api.mmathijs.nl/graphql" }
 const map = new PitMap(el, { event: "2025/FPEEUR", highlight: "16236" });
 map.on("load", ({ updatedAt }) => …);
 map.on("error", ({ error }) => …);   // error.notFound: no such event / no pit map

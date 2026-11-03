@@ -51,7 +51,8 @@ The site counts how often the embed is loaded per website, using the Referer hea
 ## Layout
 
 ```
-src/core/api.mjs              shared API client (configure, preset queries)
+src/core/api.mjs              shared API client (configure, preset queries, the pit map's)
+src/core/team-api.mjs         the team presets
 src/<widget>/<widget>.mjs     source (ES module) + <widget>.d.ts types
 demo/<widget>/                demo pages and example data
 docs/<widget>.md              documentation

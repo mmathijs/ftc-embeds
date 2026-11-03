@@ -34,6 +34,11 @@ export function configure(options = {}) {
     return { ...config };
 }
 
+/** The REST base URL a request with these options uses, or null (GraphQL only, or nothing set). */
+export function restBase(options = {}) {
+    return options.apiBase || config.apiBase || null;
+}
+
 /** Error from the embeds API. `status` is the HTTP status (0 = network/config problem). */
 export class EmbedsApiError extends Error {
     constructor(message, status = 0, url = null) {
@@ -111,7 +116,7 @@ function request(key, url, init, options) {
  * Run a preset query: GET {apiBase}{path} when a REST base is configured, otherwise POST the
  * query to the GraphQL endpoint. Both return the query result ({ data: … }).
  */
-async function preset(path, query, variables, options = {}) {
+export async function preset(path, query, variables, options = {}) {
     let apiBase = options.apiBase || config.apiBase;
     let graphqlUrl = options.graphqlUrl || config.graphqlUrl;
     if (apiBase) {
@@ -146,3 +151,4 @@ export async function getPitMap(event, options = {}) {
     if (!Array.isArray(pitMap.elements)) throw new EmbedsApiError("pit map has no elements", 200);
     return { season, code, updatedAt: pitMap.updatedAt ?? null, pitMap };
 }
+

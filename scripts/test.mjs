@@ -111,3 +111,40 @@ test("identical requests at the same time share one fetch", async () => {
     await Promise.all([getPitMap("2025/S", { apiBase: "https://e.test", fetch }), getPitMap("2025-s", { apiBase: "https://e.test", fetch })]);
     assert.equal(calls.length, 1);
 });
+
+test("team presets use REST paths, with the season only when given", async () => {
+    const api = await import(resolve(root, "src/core/team-api.mjs"));
+    const team = { number: 3977, name: "T", events: [], awards: [], matches: [] };
+    const { fetch, calls } = mockFetch({ status: 200, body: { data: { teamByNumber: team } } });
+    await api.getTeamCard("3977", { apiBase: "https://t1.test/v1/", fetch });
+    await api.getTeamResults(3977, { apiBase: "https://t2.test/v1", season: 2024, fetch });
+    await api.getTeamAwards({ number: 3977 }, { apiBase: "https://t3.test/v1", season: 2024, fetch });
+    await api.getTeamMatches(3977, { apiBase: "https://t4.test/v1", fetch });
+    assert.deepEqual(calls.map((c) => c.url), [
+        "https://t1.test/v1/teams/3977/card",
+        "https://t2.test/v1/teams/3977/results?season=2024",
+        "https://t3.test/v1/teams/3977/awards",
+        "https://t4.test/v1/teams/3977/matches",
+    ]);
+});
+
+test("team presets fall back to GraphQL with the current season", async () => {
+    const api = await import(resolve(root, "src/core/team-api.mjs"));
+    const { fetch, calls } = mockFetch({ status: 200, body: { data: { teamByNumber: { number: 1, events: [] } } } });
+    await api.getTeamCard(1, { graphqlUrl: "https://g.test/graphql", fetch });
+    const body = JSON.parse(calls[0].init.body);
+    assert.equal(body.query, api.TEAM_CARD_QUERY);
+    assert.deepEqual(body.variables, { number: 1, season: api.seasonOf() });
+    assert.equal(api.seasonOf(new Date(2026, 1, 7)), 2025);
+    assert.equal(api.seasonOf(new Date(2026, 8, 1)), 2026);
+});
+
+test("team stats are REST only, and unknown teams are not found", async () => {
+    const api = await import(resolve(root, "src/core/team-api.mjs"));
+    await assert.rejects(api.getTeamStats(1, { graphqlUrl: "https://g.test/graphql" }), /REST API/);
+    const none = mockFetch({ status: 200, body: { data: { team: null } } });
+    await assert.rejects(api.getTeamStats(5, { apiBase: "https://s.test", fetch: none.fetch }), (e) => e.notFound);
+    const noTeam = mockFetch({ status: 200, body: { data: { teamByNumber: null } } });
+    await assert.rejects(api.getTeamCard(6, { apiBase: "https://s2.test", fetch: noTeam.fetch }), (e) => e.notFound);
+    await assert.rejects(api.getTeamCard("abc", { apiBase: "https://s3.test" }), /not a team number/);
+});

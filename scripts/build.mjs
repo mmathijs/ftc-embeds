@@ -9,7 +9,9 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const WIDGETS = [{ name: "pit-map", global: "FtcPitMap" }];
+const WIDGETS = [
+    { name: "pit-map", global: "FtcPitMap" },
+];
 
 const IMPORT_RE = /^import\s*\{[^}]*\}\s*from\s*"(\.{1,2}\/[^"]+)";\s*$/gm;
 const REEXPORT_RE = /^export\s*\{([^}]*)\}\s*from\s*"(\.{1,2}\/[^"]+)";\s*$/gm;

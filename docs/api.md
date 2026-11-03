@@ -2,14 +2,14 @@
 
 Widgets load their data from a small REST API. **Each endpoint is a preset of a GraphQL query**: the backend runs the fixed query against its GraphQL schema with the path parameters as variables, caches the result for longer than normal API calls, and returns the result unchanged. Because the query is fixed, responses can be cached by URL (CDN, browser).
 
-> Status: not implemented on the backend yet. Until it is, point widgets at a GraphQL endpoint with `graphqlUrl`: the client then POSTs the same query directly (FTCScout's API already allows cross-origin requests).
+The API runs at `https://ftcscout-api.mmathijs.nl/rest/embeds/v1` (FTCScout, server-rs). For a GraphQL endpoint instead, set `graphqlUrl`: the client then POSTs the same queries directly (everything except `teams/{number}/stats`, which only exists as REST).
 
 ## Configuration
 
 ```js
 import { configure } from "ftc-embeds/pit-map";
 
-configure({ apiBase: "https://api.example.org/rest/embeds/v1" }); // REST presets (preferred)
+configure({ apiBase: "https://ftcscout-api.mmathijs.nl/rest/embeds/v1" }); // REST presets (preferred)
 configure({ graphqlUrl: "https://ftcscout-api.mmathijs.nl/graphql" });  // fallback: same query over GraphQL
 ```
 
@@ -21,7 +21,7 @@ Per widget: the `apiBase` / `graphqlUrl` options, or the `api-base` / `graphql-u
 - `Access-Control-Allow-Origin: *` (widgets run on any site).
 - `Content-Type: application/json`; the body is the GraphQL result: `{ "data": { … } }`, plus `errors` if any.
 - Status codes: `200` for any GraphQL result (including a `null` event); `400` for invalid path parameters; `5xx` for server errors. The client treats a `null` event or `null` pit map as "not found", so the backend doesn't need to map those to `404` (it may).
-- Caching (`Cache-Control`, TTL, invalidation): to be decided. Don't rely on specific values yet.
+- Caching: `Cache-Control: public, max-age=300` (5 minutes), and 30 seconds for `teams/{number}/matches`, which the live widgets poll. FTCScout's response cache and CDN keep answers longer, until the data behind them changes.
 
 ## Endpoints
 
@@ -98,6 +98,33 @@ The POSTs answer `202` with the request, which is then handled in the background
 
 After `done`, fetch the pit map with a cache-busting query parameter: the event without a pit map may still be in the browser's cache.
 
+## Team endpoints
+
+Presets of the queries in `src/core/team-api.mjs` (`TEAM_CARD_QUERY`, `TEAM_RESULTS_QUERY`, `TEAM_AWARDS_QUERY`, `TEAM_MATCHES_QUERY`), with variables `{ number, season }`. `season` is optional: the current season by default. An unknown team answers `{"data":{"teamByNumber":null}}`.
+
+| Endpoint | Query | Cache |
+| --- | --- | --- |
+| `GET {apiBase}/teams/{number}/card?season=` | `TEAM_CARD_QUERY` | 5 min |
+| `GET {apiBase}/teams/{number}/results?season=` | `TEAM_RESULTS_QUERY` | 5 min |
+| `GET {apiBase}/teams/{number}/awards` | `TEAM_AWARDS_QUERY` | 5 min |
+| `GET {apiBase}/teams/{number}/matches?season=` | `TEAM_MATCHES_QUERY` | 30 s (live widgets) |
+
+`GET {apiBase}/teams/{number}/stats?season=` is not a preset: FTCScout computes the team card's numbers for it (no GraphQL fallback).
+
+```json
+{ "data": {
+    "team": { "number": 19444, "name": "Lorentz Engineering", "rookieYear": 2021, "regionCode": "NL", "region": "NL" },
+    "season": 2025,
+    "opr": { "value": 69.1, "rank": 1454, "count": 8375 },
+    "regionalOpr": { "value": 69.1, "rank": 9, "count": 58, "region": "NL" },
+    "epa": { "value": 79.0, "rank": 1135 },
+    "seasonTotals": { "season": 2025, "events": 3, "matches": 32, "wins": 11, "losses": 11, "ties": 0, "awards": 4, "awardsWon": 3 },
+    "allTime": { "seasons": 5, "events": 17, "matches": 137, "wins": 65, "losses": 39, "ties": 0, "awards": 10, "awardsWon": 9 }
+} }
+```
+
+`regionalOpr` ranks among the teams of the team's home region; `null` when it has none. Unknown team: `{"data":{"team":null}}`.
+
 ## Client
 
 ```js
@@ -112,8 +139,17 @@ try {
 
 Widgets do this for you with the `event` option / attribute: `<ftc-pit-map event="2025/FPEEUR"></ftc-pit-map>`. Identical requests made at the same time (several widgets for one event) share one network request.
 
+The team presets work the same way (`getTeamCard`, `getTeamResults`, `getTeamAwards`, `getTeamMatches`, `getTeamStats`, each exported by the widgets that use them):
+
+```js
+import { getTeamCard } from "ftc-embeds/team-card";
+
+const team = await getTeamCard(19444, { season: 2025 }); // { number, name, location, quickStats, epa, events, … }
+```
+
 ## Adding an endpoint
 
-1. Write the GraphQL query and export it from `src/core/api.mjs` (e.g. `RANKINGS_QUERY`).
+1. Write the GraphQL query and export it from the client (`src/core/api.mjs` for events, `src/core/team-api.mjs` for teams), e.g. `RANKINGS_QUERY`.
 2. Add a `get…()` function there that calls `preset(path, query, variables)` and unwraps the result.
-3. Document the path, query and response here; the backend registers the same query under that path.
+3. Document the path, query and response here.
+4. Register the same query under that path in FTCScout's server-rs (`src/embed_presets.rs` for teams, `src/rest/embeds.rs` for events), with its cache time.
