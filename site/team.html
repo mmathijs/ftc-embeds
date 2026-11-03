@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Team widgets · ftc-embeds</title>
+<meta name="description" content="Put an FTC team's card, season results, awards or next match on your website. Pick a widget, adjust it, copy the code.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%231c1b19'/%3E%3Crect x='3' y='3' width='4' height='4' fill='%23ff5a1f'/%3E%3Crect x='9' y='3' width='4' height='4' fill='%23f4f1ea'/%3E%3Crect x='3' y='9' width='4' height='4' fill='%23f4f1ea'/%3E%3Crect x='9' y='9' width='4' height='4' fill='%23f4f1ea'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+    :root {
+        --paper: #f4f1ea;
+        --paper-2: #ebe6db;
+        --ink: #1c1b19;
+        --ink-2: #5d5a53;
+        --rule: #cfc8b8;
+        --grid: rgba(28, 27, 25, 0.016);
+        --accent: #ff5a1f;
+        --accent-ink: #1c1b19;
+        --field: #fbf9f4;
+        --code-bg: #1c1b19;
+        --code-ink: #ece7dc;
+        --sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+        --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+        color-scheme: light;
+    }
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --paper: #161512;
+            --paper-2: #1f1e1a;
+            --ink: #ece7dc;
+            --ink-2: #a39d90;
+            --rule: #3a3731;
+            --grid: rgba(236, 231, 220, 0.018);
+            --field: #1b1a17;
+            --code-bg: #0e0d0b;
+            color-scheme: dark;
+        }
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html { background: var(--paper); }
+    body {
+        margin: 0;
+        color: var(--ink);
+        font: 15px/1.5 var(--sans);
+        background-color: var(--paper);
+        background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+        background-size: 32px 32px;
+    }
+    a { color: inherit; text-underline-offset: 3px; }
+    a:hover { color: var(--accent); }
+
+    .top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 14px 28px; border-bottom: 2px solid var(--ink); }
+    .wordmark { font: 500 17px var(--mono); text-decoration: none; letter-spacing: -0.02em; }
+    .wordmark b { font-weight: 500; color: var(--accent); }
+    .top nav { display: flex; gap: 20px; font: 13px var(--mono); }
+    .top nav a { text-decoration: none; color: var(--ink-2); }
+    .top nav a:hover { color: var(--ink); }
+
+    .lede { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: end; padding: 36px 28px 26px; border-bottom: 1px solid var(--rule); }
+    .lede h1 { margin: 0; font-size: 34px; line-height: 1.1; font-weight: 600; letter-spacing: -0.025em; max-width: 18ch; }
+    .lede p { margin: 12px 0 0; color: var(--ink-2); max-width: 52ch; }
+    .lede .note { font: 12px/1.6 var(--mono); color: var(--ink-2); text-align: right; }
+
+    .app { display: grid; grid-template-columns: 330px minmax(0, 1fr); }
+    form { border-right: 1px solid var(--rule); }
+    fieldset { margin: 0; padding: 20px 28px 22px; border: 0; border-bottom: 1px solid var(--rule); display: grid; gap: 12px; }
+    legend { float: left; width: 100%; padding: 0; margin-bottom: 4px; font-weight: 600; font-size: 15px; }
+    legend span { font: 12px var(--mono); color: var(--accent); margin-right: 8px; }
+    label.f { display: grid; gap: 5px; font-size: 13px; color: var(--ink-2); }
+    .row { display: flex; gap: 10px; align-items: end; }
+    .row > * { min-width: 0; }
+    input[type="text"], input[type="number"], select {
+        width: 100%; font: 14px var(--sans); color: var(--ink); background: var(--field);
+        border: 1px solid var(--rule); border-radius: 2px; padding: 7px 9px; outline: none;
+    }
+    input[type="text"]::placeholder { color: var(--ink-2); opacity: 0.7; }
+    input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+    input[type="color"] { width: 36px; height: 34px; padding: 2px; border: 1px solid var(--rule); border-radius: 2px; background: var(--field); cursor: pointer; flex: none; }
+    input[type="range"] { width: 100%; accent-color: var(--ink); }
+    input[type="checkbox"] { accent-color: var(--ink); width: 15px; height: 15px; margin: 0; }
+    .check { display: flex; align-items: center; gap: 9px; font-size: 14px; cursor: pointer; }
+    .hint { margin: 0; font-size: 12.5px; color: var(--ink-2); }
+    .seg { display: flex; border: 1px solid var(--ink); }
+    .seg button { flex: 1; border: 0; background: none; color: var(--ink); font: 13px var(--sans); padding: 7px 8px; cursor: pointer; }
+    .seg button + button { border-left: 1px solid var(--ink); }
+    .seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+    .seg button:disabled { color: var(--ink-2); cursor: not-allowed; text-decoration: line-through; text-decoration-thickness: 1px; }
+    .link-btn { justify-self: start; border: 0; background: none; padding: 0; font: 13px var(--sans); color: var(--ink-2); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+    .link-btn:hover { color: var(--accent); }
+    .request { margin-top: 12px; padding: 12px; border: 1px dashed var(--ink-2); display: grid; gap: 10px; font-size: 14px; }
+    .request p { margin: 0; }
+    .request-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .request[data-state="error"] #request-msg { color: var(--accent); }
+    #request-refresh { margin-top: 10px; font-size: 12.5px; }
+
+    .work { padding: 24px 28px 32px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px; align-content: start; min-width: 0; }
+    .sheet { position: relative; border: 2px solid var(--ink); background: var(--paper); }
+    .preview { height: 560px; resize: vertical; overflow: hidden; }
+    .titleblock { position: absolute; left: -2px; bottom: -2px; z-index: 5; display: grid; grid-template-columns: auto auto; border: 2px solid var(--ink); background: var(--paper); font: 11px/1 var(--mono); pointer-events: none; }
+    .titleblock div { padding: 6px 9px; border-left: 1px solid var(--ink); }
+    .titleblock div:first-child { border-left: 0; }
+    .titleblock b { display: block; margin-bottom: 4px; font-weight: 400; color: var(--ink-2); font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.06em; }
+
+    .out-head { display: flex; justify-content: space-between; align-items: end; gap: 12px; flex-wrap: wrap; border-bottom: 1px solid var(--rule); }
+    .tabs { display: flex; gap: 22px; }
+    .tabs button { border: 0; background: none; padding: 0 0 9px; margin-bottom: -1px; font: 14px var(--sans); color: var(--ink-2); border-bottom: 2px solid transparent; cursor: pointer; }
+    .tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+    .actions { display: flex; gap: 8px; padding-bottom: 8px; }
+    .sheet-foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: -12px; }
+    .btn { font: 13px var(--sans); border: 1px solid var(--ink); border-radius: 2px; background: none; color: var(--ink); padding: 6px 11px; cursor: pointer; }
+    .btn:hover { background: var(--paper-2); }
+    .btn.go { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 500; }
+    .btn.go:hover { filter: brightness(1.05); }
+    #tab-hint { margin: 12px 0 10px; }
+    pre { margin: 0; background: var(--code-bg); color: var(--code-ink); padding: 16px 18px; overflow-x: auto; font: 12.5px/1.6 var(--mono); white-space: pre; max-height: 380px; border-radius: 2px; }
+
+    footer { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 18px 28px 28px; border-top: 2px solid var(--ink); font: 12px/1.6 var(--mono); color: var(--ink-2); }
+
+    @media (max-width: 920px) {
+        .top, .lede, fieldset, .work, footer { padding-left: 16px; padding-right: 16px; }
+        .lede { grid-template-columns: 1fr; padding-top: 24px; }
+        .lede h1 { font-size: 27px; }
+        .lede .note { text-align: left; }
+        .app { grid-template-columns: minmax(0, 1fr); }
+        form { border-right: 0; }
+        .work { order: -1; padding-top: 16px; }
+        .preview { height: 62vh; }
+        .top nav { gap: 14px; }
+    }
+    .stats-pick { display: flex; flex-wrap: wrap; gap: 6px; }
+    .stats-pick label { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; border: 1px solid var(--rule); padding: 3px 8px; border-radius: 2px; cursor: pointer; }
+    .stats-pick label:has(input:checked) { border-color: var(--ink); background: var(--paper-2); }
+    .preview.team { height: auto; min-height: 260px; resize: none; overflow: auto; padding: 22px; background: var(--field); }
+    .preview.team.on-dark { background: #11151c; }
+</style>
+</head>
+<body>
+<header class="top">
+    <a class="wordmark" href="/">ftc<b>-</b>embeds</a>
+    <nav>
+        <a href="/">pit map</a>
+        <a href="/team" aria-current="page">team widgets</a>
+        <a href="https://github.com/mmathijs/ftc-embeds/blob/main/docs/team-widgets.md">docs</a>
+        <a href="https://www.npmjs.com/package/ftc-embeds">npm</a>
+        <a href="https://github.com/mmathijs/ftc-embeds">source</a>
+        <a href="/stats">stats</a>
+    </nav>
+</header>
+
+<section class="lede">
+    <div>
+        <h1>Put your team's stats on your own site.</h1>
+        <p>A team card with the stats you choose, your season's results, every award, or your next match while you compete. Pick one, make it look like your site, and copy the code. It keeps itself up to date.</p>
+    </div>
+    <div class="note">FIRST Tech Challenge<br>team widgets</div>
+</section>
+
+<div class="app">
+    <form onsubmit="return false">
+        <fieldset>
+            <legend><span>01</span>Widget</legend>
+            <select id="widget" aria-label="Widget"></select>
+            <p class="hint" id="widget-hint"></p>
+            <div class="row">
+                <label class="f" style="flex:1">Team number <input type="number" id="team" value="3977" min="1"></label>
+                <label class="f" style="flex:0 0 100px">Season <input type="number" id="season" placeholder="current" min="2019" max="2040"></label>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend><span>02</span>Look</legend>
+            <label class="f">Theme
+                <select id="theme">
+                    <option value="auto">Light or dark, following the visitor</option>
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                    <option value="trophy">Trophy case (dark, metallic)</option>
+                    <option value="ftcscout">FTCScout</option>
+                    <option value="ftcscout-dark">FTCScout dark</option>
+                    <option value="ftc-events">FTC Events</option>
+                </select>
+            </label>
+            <label class="f">Layout <select id="layout"></select></label>
+            <label class="f">Spacing
+                <select id="density"><option value="normal">Normal</option><option value="compact">Compact</option></select>
+            </label>
+            <label class="f">Corners <span class="hint" id="radius-out"></span> <input type="range" id="radius" min="-1" max="24" step="1" value="-1"></label>
+            <label class="f">Avatar corners
+                <select id="avatar-radius">
+                    <option value="">Like FTCScout (4px)</option>
+                    <option value="0">Square</option>
+                    <option value="10px">Rounded</option>
+                    <option value="50%">Circle</option>
+                </select>
+            </label>
+            <label class="f">Accent color <input type="color" id="accent" value="#2563eb"></label>
+            <label class="check"><input type="checkbox" id="use-accent"> Use my accent color</label>
+            <label class="check"><input type="checkbox" id="bare"> No card around it</label>
+            <label class="f">Names link to
+                <select id="link-to"><option value="ftcscout">FTCScout</option><option value="ftc-events">FTC Events</option><option value="none">Nothing (no links)</option></select>
+            </label>
+        </fieldset>
+
+        <fieldset>
+            <legend><span>03</span>Content</legend>
+            <div id="card-box">
+                <span class="f">Stats, in the order you click them</span>
+                <div class="stats-pick" id="stats"></div>
+                <label class="f">Upcoming events to list <input type="number" id="upcoming" value="1" min="0" max="10"></label>
+            </div>
+            <div id="results-box">
+                <label class="check"><input type="checkbox" id="skip-scrimmages"> Leave out scrimmages</label>
+                <label class="check"><input type="checkbox" id="oldest"> Oldest event first</label>
+            </div>
+            <div id="awards-box">
+                <label class="check"><input type="checkbox" id="only-won"> Only awards won</label>
+                <label class="f">Seasons to show <input type="number" id="seasons" placeholder="all" min="1"></label>
+            </div>
+            <label class="f">Show at most <input type="number" id="limit" placeholder="no limit" min="1"></label>
+            <label class="f">Leave out (comma separated) <input type="text" id="hide" placeholder="website, location" autocomplete="off"></label>
+            <p class="hint" id="hide-hint"></p>
+        </fieldset>
+    </form>
+
+    <main class="work">
+        <div class="sheet">
+            <div class="preview team" id="preview"></div>
+        </div>
+
+        <section>
+            <div class="out-head">
+                <div class="tabs" role="tablist">
+                    <button role="tab" data-tab="element" aria-selected="true">HTML element</button>
+                    <button role="tab" data-tab="iframe" aria-selected="false">iframe</button>
+                    <button role="tab" data-tab="js" aria-selected="false">JavaScript</button>
+                </div>
+                <div class="actions">
+                    <button class="btn" id="share">Copy link to these settings</button>
+                    <button class="btn go" id="copy">Copy code</button>
+                </div>
+            </div>
+            <p class="hint" id="tab-hint"></p>
+            <pre id="snippet"></pre>
+        </section>
+    </main>
+</div>
+
+<footer>
+    <span>Made for the FTC community by <a href="https://github.com/mmathijs">mmathijs</a>. Open source, MIT license.</span>
+    <span>Not affiliated with <i>FIRST</i>®. Data from FTCScout and <i>FIRST</i>.</span>
+</footer>
+<script src="config.js"></script>
+<script src="lib/team-card.umd.js"></script>
+<script src="lib/team-results.umd.js"></script>
+<script src="lib/team-awards.umd.js"></script>
+<script src="lib/next-match.umd.js"></script>
+<script src="lib/team-season.umd.js"></script>
+<script src="team-builder.js"></script>
+</body>
+</html>
