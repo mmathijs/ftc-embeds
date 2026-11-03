@@ -62,14 +62,17 @@
     /* Progress: one cell per step; done steps are links back. */
     /* Header and steps stay at the top; --masthead (their height) keeps the preview below them. */
     .masthead { position: sticky; top: 0; z-index: 20; background: var(--paper); }
-    .progress { background: var(--paper); }
-    .progress { display: flex; border-bottom: 1px solid var(--rule); overflow-x: auto; scrollbar-width: none; }
-    .progress a, .progress span { flex: 1 0 auto; padding: 10px 16px 9px; font: 12px var(--mono); color: var(--ink-2); text-decoration: none; border-right: 1px solid var(--rule); white-space: nowrap; border-bottom: 3px solid transparent; }
+    /* The steps share the content's width and split it evenly: with an even number of steps (team 8,
+       pit map 6) the middle edge lands on the divider between the question and the preview. */
+    .progress { background: var(--paper); border-bottom: 1px solid var(--rule); overflow-x: auto; scrollbar-width: none; }
+    .progress-inner { display: flex; max-width: 1320px; margin: 0 auto; }
+    .progress a, .progress span { flex: 1 1 0; min-width: 0; overflow: hidden; text-overflow: ellipsis; padding: 10px 16px 9px; font: 12px var(--mono); color: var(--ink-2); text-decoration: none; border-right: 1px solid var(--rule); white-space: nowrap; border-bottom: 3px solid transparent; }
     .progress a:hover { color: var(--ink); background: var(--paper-2); }
     .progress .done { color: var(--ink); }
     .progress .done::before { content: "✓ "; color: var(--accent); }
     .progress [aria-current="step"] { color: var(--ink); border-bottom-color: var(--accent); font-weight: 500; }
     .progress .todo { opacity: .55; }
+    @media (min-width: 1321px) { .progress-inner { border-left: 1px solid var(--rule); } }
 
     .stage { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); max-width: 1320px; margin: 0 auto; min-height: calc(100vh - 160px); }
     .stage.solo { grid-template-columns: minmax(0, 1fr); max-width: 980px; }
@@ -191,6 +194,7 @@
         .preview.map { height: 60vh; }
         .top { flex-wrap: wrap; row-gap: 8px; }
         .top nav { flex-wrap: wrap; gap: 6px 16px; }
+        .progress a, .progress span { flex: 1 0 auto; overflow: visible; }
     }
 </style>
 </head>
@@ -207,7 +211,7 @@
     </nav>
 </header>
 
-<nav class="progress" id="progress" aria-label="Steps"></nav>
+<nav class="progress" aria-label="Steps"><div class="progress-inner" id="progress"></div></nav>
 </div>
 
 <div class="stage" id="stage">

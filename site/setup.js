@@ -792,7 +792,7 @@
             })
             .join("");
         // On narrow screens the steps scroll sideways: keep the current one in view.
-        let bar = $("progress");
+        let bar = $("progress").parentElement;
         let here = bar.querySelector('[aria-current="step"]');
         if (here && bar.scrollWidth > bar.clientWidth) bar.scrollLeft = here.offsetLeft - (bar.clientWidth - here.offsetWidth) / 2;
     }
