@@ -140,6 +140,7 @@ const BASE_CSS = `
 .${PREFIX}.density-compact{--_padding:10px;--_gap:6px;--_row-padding:6px;line-height:1.3}
 .${PREFIX}.density-compact .head{margin-bottom:6px}
 .${PREFIX}.bare{border:0;box-shadow:none;background:transparent;padding:0}
+.${PREFIX}.bare .strip{margin-inline:0;padding-inline:0;scroll-padding-inline:0}
 .${PREFIX} *,.${PREFIX} *::before,.${PREFIX} *::after{box-sizing:inherit}
 .${PREFIX} a{color:inherit;text-decoration:none}
 .${PREFIX} a:hover{text-decoration:underline}
@@ -157,7 +158,7 @@ const BASE_CSS = `
 .skeleton{height:12px;border-radius:6px;background:var(--_surface);margin:10px 0;animation:${PREFIX}-pulse 1.4s ease-in-out infinite}
 @keyframes ${PREFIX}-pulse{50%{opacity:.5}}
 .foot{margin-top:12px;display:flex;justify-content:flex-end;font-size:12px;color:var(--_muted)}
-.strip{display:flex;gap:var(--_gap);overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:thin;padding:var(--_glow-room);margin:calc(var(--_glow-room) * -1);scroll-padding-inline:var(--_glow-room)}
+.strip{display:flex;gap:var(--_gap);overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--_muted) 45%,transparent) transparent;padding:var(--_glow-room);margin:calc(var(--_glow-room) * -1);scroll-padding-inline:var(--_glow-room)}
 .strip>*{flex:0 0 var(--tile,var(--_tile-width));scroll-snap-align:start;background:var(--_surface);border-radius:var(--_inner-radius);padding:10px 12px;display:flex;flex-direction:column;min-width:0}
 .arrows{display:flex;gap:4px}
 .arrows button{all:unset;cursor:pointer;width:26px;height:26px;display:grid;place-items:center;border-radius:var(--_chip-radius);background:var(--_surface);color:var(--_text);font-size:15px;line-height:1}
@@ -551,6 +552,24 @@ export class TeamWidget {
     }
 }
 
+/** Options that are on or off: present (`<ftc-team-card bare>`) means on. */
+const FLAGS = new Set(["bare", "onlyWon"]);
+
+/** An attribute's option value: JSON for objects and arrays, "true"/"false" as booleans, and a
+ * flag attribute without a value ("") as true. */
+export function attrValue(v, flag = false) {
+    if (flag && v === "") return true;
+    if (/^\s*[{[]/.test(v)) {
+        try {
+            return JSON.parse(v);
+        } catch {
+            // keep the string
+        }
+    }
+    if (v === "true" || v === "false") return v === "true";
+    return v;
+}
+
 /**
  * Registers a custom element for a widget class. Attributes: team, season, theme (preset name or
  * JSON tokens), api-base, graphql-url, site-url, title, plus the widget's own (extraAttrs:
@@ -587,15 +606,7 @@ export function defineTeamElement(tagName, Widget, extraAttrs = {}) {
             let o = {};
             for (let [attr, key] of Object.entries(ATTRS)) {
                 if (!this.hasAttribute(attr)) continue;
-                let v = this.getAttribute(attr);
-                if (/^\s*[{[]/.test(v)) {
-                    try {
-                        v = JSON.parse(v);
-                    } catch {
-                        // keep the string
-                    }
-                } else if (v === "true" || v === "false") v = v === "true";
-                o[key] = v;
+                o[key] = attrValue(this.getAttribute(attr), FLAGS.has(key));
             }
             return o;
         }
