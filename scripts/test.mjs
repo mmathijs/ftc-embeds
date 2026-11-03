@@ -136,6 +136,7 @@ const TEAM_WIDGETS = [
     { name: "next-match", cls: "NextMatch", define: "defineNextMatchElement", api: ["getTeamMatches", "TEAM_MATCHES_QUERY"] },
     { name: "team-season", cls: "TeamSeason", define: "defineTeamSeasonElement", api: ["getTeamResults", "getTeamMatches"] },
     { name: "event-rankings", cls: "EventRankings", define: "defineEventRankingsElement", api: ["getEventRankings", "parseEventCode", "EVENT_RANKINGS_QUERY"] },
+    { name: "event-matches", cls: "EventMatches", define: "defineEventMatchesElement", api: ["getEventMatches", "matchRows", "EVENT_MATCHES_QUERY"] },
 ];
 
 for (const w of TEAM_WIDGETS) {
@@ -348,4 +349,27 @@ test("event tables show the top rows plus the highlighted teams below them", asy
     assert.equal(stat(w({ locale: "en-US" }), 2.6666), "2.67");
     assert.equal(stat(w({ locale: "en-US", numberFormat: "comma" }), 2.6666), "2,67");
     assert.equal(stat(w({}), null), "–");
+});
+
+test("the match schedule runs in play order, and the next match is the first unplayed one", async () => {
+    const { matchRows } = await import(resolve(root, "src/event-matches/event-matches.mjs"));
+    const t = (n, alliance) => ({ teamNumber: n, alliance, station: "One" });
+    const m = (id, level, played, time, teams = [t(1, "Red"), t(2, "Blue")]) => ({ id, description: `M${id}`, tournamentLevel: level, series: 0, matchNum: id, hasBeenPlayed: played, scheduledStartTime: time, teams });
+    const ev = { ongoing: true, matches: [m(4, "DoubleElim", false, "2026-02-07T15:00:00Z"), m(2, "Quals", true, "2026-02-07T10:10:00Z", [t(3, "Red"), t(4, "Blue")]), m(1, "Quals", true, "2026-02-07T10:00:00Z"), m(3, "Quals", false, "2026-02-07T10:20:00Z")] };
+    let { rows, next } = matchRows(ev);
+    assert.deepEqual(rows.map((r) => r.id), [1, 2, 3, 4]);
+    assert.equal(next.id, 3);
+    assert.deepEqual(matchRows(ev, { level: "playoffs" }).rows.map((r) => r.id), [4]);
+    assert.deepEqual(matchRows(ev, { state: "upcoming", team: 1 }).rows.map((r) => r.id), [3, 4]);
+    assert.deepEqual(matchRows(ev, { state: "played" }).rows.map((r) => r.id), [1, 2]);
+    assert.equal(matchRows({ ...ev, ongoing: false }).next, null);
+    assert.equal(matchRows(ev, { team: 1 }).next.id, 3);
+    assert.equal(matchRows(ev, { team: 3 }).next, null);
+});
+
+test("match times are in the event's time zone unless timeZone says otherwise", async () => {
+    const { TeamWidget } = await import(resolve(root, "src/core/team-ui.mjs"));
+    const w = (options) => Object.assign(Object.create(TeamWidget.prototype), { options });
+    assert.equal(w({ locale: "en-US", hourCycle: 24 }).time("2026-02-07T09:30:00Z", "Europe/Amsterdam"), "10:30");
+    assert.equal(w({ locale: "en-US", hourCycle: 24, timeZone: "UTC" }).time("2026-02-07T09:30:00Z", "Europe/Amsterdam"), "09:30");
 });

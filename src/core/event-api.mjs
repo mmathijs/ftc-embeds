@@ -30,6 +30,30 @@ export const EVENT_RANKINGS_QUERY = `query EmbedEventRankings($season: Int!, $co
 }
 ${RANK_STATS_FRAGMENT}`;
 
+const EVENT_SCORE_FRAGMENT = `fragment EmbedScore on MatchScores {
+    ... on MatchScores2019 { red { totalPoints } blue { totalPoints } }
+    ... on MatchScores2020Trad { red { totalPoints } blue { totalPoints } }
+    ... on MatchScores2021Trad { red { totalPoints } blue { totalPoints } }
+    ... on MatchScores2022 { red { totalPoints } blue { totalPoints } }
+    ... on MatchScores2023 { red { totalPoints } blue { totalPoints } }
+    ... on MatchScores2024 { red { totalPoints } blue { totalPoints } }
+    ... on MatchScores2025 { red { totalPoints } blue { totalPoints } }
+    ... on MatchScores2026 { red { totalPoints } blue { totalPoints } }
+}`;
+
+/** The GraphQL query behind GET {apiBase}/events/{season}/{code}/matches. */
+export const EVENT_MATCHES_QUERY = `query EmbedEventMatches($season: Int!, $code: String!) {
+    eventByCode(season: $season, code: $code) {
+        ${EVENT_FIELDS}
+        matches {
+            id description hasBeenPlayed scheduledStartTime actualStartTime tournamentLevel series matchNum
+            scores { ...EmbedScore }
+            teams { teamNumber alliance station surrogate noShow dq team { name } }
+        }
+    }
+}
+${EVENT_SCORE_FRAGMENT}`;
+
 /** "nlcmp" -> "NLCMP"; throws for anything that isn't an event code. */
 export function parseEventCode(code) {
     let c = String(code ?? "").trim().toUpperCase();
@@ -53,4 +77,9 @@ async function eventPreset(name, event, query, options) {
  */
 export function getEventRankings(event, options = {}) {
     return eventPreset("rankings", event, EVENT_RANKINGS_QUERY, options);
+}
+
+/** An event's match schedule and results: GET {apiBase}/events/{season}/{code}/matches. */
+export function getEventMatches(event, options = {}) {
+    return eventPreset("matches", event, EVENT_MATCHES_QUERY, options);
 }

@@ -35,6 +35,7 @@ export const EVENT_CSS = `
 .tabs button[aria-pressed="true"]{background:var(--_accent);color:var(--_accent-text)}
 .tabs button:focus-visible{outline:2px solid var(--_accent);outline-offset:1px}
 .empty{padding:14px 0 4px;color:var(--_muted)}
+.chip.upcoming{background:color-mix(in srgb,var(--_accent) 14%,transparent);color:var(--_accent)}
 .muted{color:var(--_muted)}`;
 
 /** The team numbers of the `highlight` option ("19444,16236" or [19444]). */
@@ -85,10 +86,11 @@ export function limitRows(rows, limit, isMine) {
     return mine.length ? [...top, null, ...mine] : top;
 }
 
-/** Scroll a highlighted row into view inside the widget (with maxHeight), not the page. */
-export function scrollToMine(w) {
+/** Scroll a highlighted row (or `selector`'s first) into view inside the widget (with maxHeight), not the page. */
+export function scrollToMine(w, selector = "tr.me") {
     let card = w.root.querySelector(".ftcw");
-    let row = w.root.querySelector("tr.me");
+    let row = w.root.querySelector(selector);
     if (!card || !row || card.scrollHeight <= card.clientHeight) return;
-    card.scrollTop = Math.max(0, row.offsetTop - card.clientHeight / 2);
+    let offset = row.getBoundingClientRect().top - card.getBoundingClientRect().top;
+    card.scrollTop = Math.max(0, card.scrollTop + offset - card.clientHeight / 2 + row.offsetHeight / 2);
 }

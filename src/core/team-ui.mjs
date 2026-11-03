@@ -527,12 +527,15 @@ export class TeamWidget {
         return shortDate(date, this.locale, this.options.dateFormat);
     }
 
-    /** A moment's time of day ("14:30" / "2:30 PM"), with `hourCycle` and `timeZone`. */
-    time(iso) {
+    /**
+     * A moment's time of day ("14:30" / "2:30 PM"), with `hourCycle` and `timeZone`; without a
+     * timeZone option, in `zone` (e.g. the event's own) or else the visitor's.
+     */
+    time(iso, zone = null) {
         let o = { hour: "2-digit", minute: "2-digit" };
         let cycle = String(this.options.hourCycle ?? "");
         if (cycle === "12" || cycle === "24") o.hour12 = cycle === "12";
-        if (this.options.timeZone) o.timeZone = this.options.timeZone;
+        if (this.options.timeZone || zone) o.timeZone = this.options.timeZone || zone;
         try {
             return new Date(iso).toLocaleTimeString(this.locale, o);
         } catch {

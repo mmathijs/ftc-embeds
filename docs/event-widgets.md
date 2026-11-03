@@ -5,6 +5,7 @@ Widgets about one event, for event, league and region websites. Each is a separa
 | Widget | Element | Shows |
 | --- | --- | --- |
 | [event-rankings](event-rankings.md) | `<ftc-event-rankings>` | the rankings: rank, RP, record, matches, OPR |
+| [event-matches](event-matches.md) | `<ftc-event-matches>` | the match schedule and results, the next match marked |
 
 They take an event code and a season (`event="NLCMP" season="2025"`; the season defaults to the current one), and load from FTCScout's ftc-embeds API like the team widgets (see [api.md](api.md)).
 

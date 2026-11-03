@@ -22,7 +22,7 @@ Per widget: the `apiBase` / `graphqlUrl` options, or the `api-base` / `graphql-u
 - `Access-Control-Allow-Origin: *` (widgets run on any site).
 - `Content-Type: application/json`; the body is the GraphQL result: `{ "data": { … } }`, plus `errors` if any.
 - Status codes: `200` for any GraphQL result (including a `null` event); `400` for invalid path parameters; `5xx` for server errors. The client treats a `null` event or `null` pit map as "not found", so the backend doesn't need to map those to `404` (it may).
-- Caching: `Cache-Control: public, max-age=300` (5 minutes), and 30 seconds for what the live widgets poll (`teams/{number}/matches`, `events/{season}/{code}/rankings`). FTCScout's response cache and CDN keep answers longer, until the data behind them changes.
+- Caching: `Cache-Control: public, max-age=300` (5 minutes), and 30 seconds for what the live widgets poll (`teams/{number}/matches`, `events/{season}/{code}/rankings` and `/matches`). FTCScout's response cache and CDN keep answers longer, until the data behind them changes.
 
 ## Endpoints
 
@@ -133,6 +133,7 @@ Presets of the queries in `src/core/event-api.mjs`, with variables `{ season, co
 | Endpoint | Query | Cache |
 | --- | --- | --- |
 | `GET {apiBase}/events/{season}/{code}/rankings` | `EVENT_RANKINGS_QUERY`: `relatedEvents` (divisions) and `teams { teamNumber team { name location } stats { rank rp tb1 tb2 wins losses ties qualMatchesPlayed opr } }` | 30 s (live) |
+| `GET {apiBase}/events/{season}/{code}/matches` | `EVENT_MATCHES_QUERY`: `matches { id description hasBeenPlayed scheduledStartTime actualStartTime tournamentLevel series matchNum scores { red blue } teams { teamNumber alliance station surrogate noShow dq team { name } } }` | 30 s (live) |
 
 ## Client
 
