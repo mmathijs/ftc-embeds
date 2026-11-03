@@ -30,7 +30,7 @@ export const EVENT_CSS = `
 .tbl .tm .nm{color:var(--_muted);margin-left:6px}
 .tbl tr.me td{background:color-mix(in srgb,var(--_accent) 14%,transparent)}
 .tbl tr.me td:first-child{box-shadow:inset 3px 0 0 var(--_accent)}
-.tbl .tm{overflow-wrap:break-word}
+.tbl td.tm{width:100%;max-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tbl .chip{text-transform:none;letter-spacing:normal}
 .tbl tr.gap td{border-top:0;color:var(--_muted);text-align:center;padding:4px 0;line-height:1;letter-spacing:.2em}
 .tabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
@@ -68,7 +68,8 @@ export function eventLine(w, ev) {
 
 /** A team cell: the number (a link) and, unless hidden, the name. */
 export function teamCell(w, number, name) {
-    return h("td", { class: "tm", part: "team" },
+    // One line: a long name ends in "…" (the full name on hover); the number always shows.
+    return h("td", { class: "tm", part: "team", title: name ? `${number} ${name}` : null },
         h("span", { class: "num" }, w.teamLink(number, String(number))),
         name && w.shows("names") ? h("span", { class: "nm", part: "name" }, name) : null,
     );
