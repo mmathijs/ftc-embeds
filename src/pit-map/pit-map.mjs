@@ -1701,7 +1701,9 @@ export class PitMap {
         let t0 = performance.now();
         let ease = (t) => 1 - Math.pow(1 - t, 3);
         let step = (now) => {
-            let t = Math.min(1, (now - t0) / ms);
+            // The first frame's timestamp can be from before t0: a negative t would run the curve
+            // backwards and move the view the wrong way first.
+            let t = Math.min(1, Math.max(0, (now - t0) / ms));
             let k = ease(t);
             this._setView({
                 x: from.x + (target.x - from.x) * k,
