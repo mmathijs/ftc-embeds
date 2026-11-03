@@ -74,6 +74,7 @@ export const TEAM_TEXT = {
     noRankings: "No rankings for this event.",
     noRankingsYet: "Rankings appear once matches are played.",
     rankedPerDivision: "Teams are ranked per division:",
+    teamNotRankedYet: "Team {team} hasn't been ranked at an event this season yet.",
     matches: "Matches",
     teamMatches: "Matches of {team}",
     colMatch: "Match",

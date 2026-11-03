@@ -4,7 +4,7 @@ Widgets about one event, for event, league and region websites. Each is a separa
 
 | Widget | Element | Shows |
 | --- | --- | --- |
-| [event-rankings](event-rankings.md) | `<ftc-event-rankings>` | the rankings: rank, RP, record, matches, OPR |
+| [event-rankings](event-rankings.md) | `<ftc-event-rankings>` | the rankings: rank, RP, record, matches, OPR (or with `team`: of that team's current or latest event) |
 | [event-matches](event-matches.md) | `<ftc-event-matches>` | the match schedule and results, the next match marked |
 | [event-advancement](event-advancement.md) | `<ftc-event-advancement>` | the slots, each team's advancement points, who advanced |
 | [league-standings](league-standings.md) | `<ftc-league-standings>` | a league's standings, from any of its meets |

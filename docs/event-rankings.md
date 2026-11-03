@@ -13,6 +13,12 @@ import { EventRankings } from "ftc-embeds/event-rankings";
 const widget = new EventRankings(document.getElementById("here"), { event: "NLHAQ", season: 2025, columns: "rp,tb1,record", theme: "dark" });
 ```
 
+**For a team:** give `team` instead of `event`, and it shows the rankings of the event the team is at, or else its most recent event this season (or of `season`), with the team marked. Good on a team's own site: it moves on to the next event by itself.
+
+```html
+<ftc-event-rankings team="19444" limit="8"></ftc-event-rankings>
+```
+
 Or as an iframe, or a plain link: `https://ftc-embeds.com/embed/event-rankings?event=NLHAQ&season=2025&theme=dark` (any option as a URL parameter; the page posts `{ type: "ftc-embeds:height", height }` to the parent so it can size the iframe).
 
 ## Options

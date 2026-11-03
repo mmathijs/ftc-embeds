@@ -135,7 +135,7 @@ const TEAM_WIDGETS = [
     { name: "team-awards", cls: "TeamAwards", define: "defineTeamAwardsElement", api: ["getTeamAwards", "TEAM_AWARDS_QUERY"] },
     { name: "next-match", cls: "NextMatch", define: "defineNextMatchElement", api: ["getTeamMatches", "TEAM_MATCHES_QUERY"] },
     { name: "team-season", cls: "TeamSeason", define: "defineTeamSeasonElement", api: ["getTeamResults", "getTeamMatches"] },
-    { name: "event-rankings", cls: "EventRankings", define: "defineEventRankingsElement", api: ["getEventRankings", "parseEventCode", "EVENT_RANKINGS_QUERY"] },
+    { name: "event-rankings", cls: "EventRankings", define: "defineEventRankingsElement", api: ["getEventRankings", "parseEventCode", "EVENT_RANKINGS_QUERY", "getTeamResults", "teamRankingsEvent"] },
     { name: "event-matches", cls: "EventMatches", define: "defineEventMatchesElement", api: ["getEventMatches", "matchRows", "EVENT_MATCHES_QUERY"] },
     { name: "event-advancement", cls: "EventAdvancement", define: "defineEventAdvancementElement", api: ["getEventAdvancement", "advancementRows", "EVENT_ADVANCEMENT_QUERY"] },
     { name: "league-standings", cls: "LeagueStandings", define: "defineLeagueStandingsElement", api: ["getEventLeague", "EVENT_LEAGUE_QUERY"] },
@@ -402,4 +402,13 @@ test("countdowns start at midnight in the event's time zone", async () => {
     assert.equal(new Date(zonedMidnight("2026-02-07", null)).toISOString(), "2026-02-07T00:00:00.000Z");
     assert.deepEqual(timeLeft(Date.UTC(2026, 1, 8, 1, 2, 3), Date.UTC(2026, 1, 6)), { days: 2, hours: 1, minutes: 2, seconds: 3, total: 176523 });
     assert.equal(timeLeft(0, 5000).total, 0);
+});
+
+test("rankings for a team: the event it is at, or else its latest ranked one", async () => {
+    const { teamRankingsEvent } = await import(resolve(root, "src/event-rankings/event-rankings.mjs"));
+    const e = (code, start, rank, ongoing = false) => ({ event: { code, start, ongoing }, stats: rank ? { rank } : null });
+    assert.equal(teamRankingsEvent({ events: [e("Q1", "2025-11-29", 4), e("CMP", "2026-02-07", null), e("CMPOCK1", "2026-02-07", 12)] }), "CMPOCK1");
+    assert.equal(teamRankingsEvent({ events: [e("Q1", "2025-11-29", 4), e("Q2", "2026-01-10", 3, true), e("Q3", "2026-02-07", 1)] }), "Q2");
+    assert.equal(teamRankingsEvent({ events: [e("Q9", "2026-12-01", null)] }), null);
+    assert.equal(teamRankingsEvent({ events: [] }), null);
 });

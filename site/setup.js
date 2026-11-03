@@ -19,6 +19,7 @@
         "next-match": { global: "FtcNextMatch", cls: "NextMatch", tag: "ftc-next-match", label: "Next match", text: "While you compete: your next match, the alliances and a countdown. Updates by itself.", badge: "During events", layouts: { list: "Full", compact: "Two lines" }, height: 230 },
         "team-season": { global: "FtcTeamSeason", cls: "TeamSeason", tag: "ftc-team-season", label: "Season + next match", text: "Season results, with the live next match on top while you compete.", layouts: { list: "List", strip: "Scrolling tiles" }, height: 520 },
         countdown: { global: "FtcCountdown", cls: "Countdown", tag: "ftc-countdown", label: "Countdown", text: "Days, hours and minutes to your next event, or to your next match while you compete.", layouts: { list: "Boxes", compact: "One line" }, height: 200 },
+        "event-rankings": { global: "FtcEventRankings", cls: "EventRankings", tag: "ftc-event-rankings", label: "Event rankings", text: "The rankings of the event you're at, or your latest one, with your team marked. Moves on by itself.", badge: "Live", layouts: {}, height: 560 },
     };
     // Widgets about an event. The pit map has its own steps (and library); the rest work like the
     // team widgets, with an event code instead of a team.
@@ -316,6 +317,10 @@
             if (state.skipScrimmages) o.skipTypes = "Scrimmage";
             if (state.oldest) o.order = "oldest";
         }
+        if (w == "event-rankings") {
+            if (state.columns) o.columns = state.columns;
+            if (state.eventLimit) o.limit = +state.eventLimit;
+        }
         if (w == "team-awards") {
             if (state.onlyWon) o.onlyWon = true;
             if (state.seasons) o.seasons = +state.seasons;
@@ -544,8 +549,7 @@
     }
 
     /** The "What to show" page of the event widgets. */
-    function eventContent(head) {
-        let id = state.eventWidget;
+    function eventContent(head, id) {
         let limits = (label, values) => `<div class="choices small">${choice("eventLimit", "", label)}${values.map(([v, l]) => choice("eventLimit", v, l)).join("")}</div>`;
         if (id == "event-rankings")
             return `${head}
@@ -657,7 +661,8 @@
         content: () => {
             let w = state.widget;
             let head = `<span class="kicker">What to show</span>`;
-            if (isEventWidget()) return eventContent(head);
+            if (isEventWidget()) return eventContent(head, state.eventWidget);
+            if (w == "event-rankings") return eventContent(head, w);
             if (w == "team-card")
                 return `${head}
             <h1>Which stats should the card show?</h1>
@@ -867,7 +872,7 @@
         if (SITE.apiBase || SITE.graphqlUrl) lib.configure({ apiBase: SITE.apiBase || null, graphqlUrl: SITE.graphqlUrl || null });
         let o = step == "team" ? { team: +state.team, season: state.season ? +state.season : null, stats: "opr,record,awards-total", upcoming: 0 } : teamOptions();
         // Every option goes in, so ones back at their default are reset too.
-        o = { layout: "list", season: null, theme: "auto", ...(id == "team-card" ? { stats: "opr,epa,record", upcoming: 1 } : {}), ...(id == "team-awards" ? { onlyWon: false, seasons: null } : {}), ...(id == "team-results" || id == "team-season" ? { skipTypes: null, order: "newest" } : {}), ...o };
+        o = { layout: "list", season: null, theme: "auto", ...(id == "team-card" ? { stats: "opr,epa,record", upcoming: 1 } : {}), ...(id == "team-awards" ? { onlyWon: false, seasons: null } : {}), ...(id == "team-results" || id == "team-season" ? { skipTypes: null, order: "newest" } : {}), ...(id == "event-rankings" ? { columns: lib[w.cls].defaults.columns, limit: null } : {}), ...o };
         if (widgetKey !== id || !widget) {
             widget?.destroy?.();
             box.replaceChildren();

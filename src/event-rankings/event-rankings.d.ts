@@ -19,6 +19,8 @@ export interface RankStats {
 }
 
 export interface EventRankingsData extends EventInfo {
+    /** Team mode: the team whose event this is. */
+    forTeam?: number;
     /** The championship and its divisions. */
     relatedEvents: { code: string; name: string; divisionCode: string | null }[];
     teams: { teamNumber: number; team: { name: string; location: Location } | null; stats: RankStats | null }[];
@@ -27,12 +29,16 @@ export interface EventRankingsData extends EventInfo {
 export declare const EVENT_RANKINGS_QUERY: string;
 export declare function getEventRankings(event: string, options?: ApiOptions): Promise<EventRankingsData>;
 
+/** For a team's season results: the event whose rankings to show (the one it's at, or its latest), or null. */
+export declare function teamRankingsEvent(results: { events: { event: { code: string; start: string; ongoing: boolean }; stats: { rank: number } | null }[] }): string | null;
+export { getTeamResults } from "../team-results/team-results";
+
 export interface EventRankingsOptions extends EventWidgetOptions {
     /** Which columns, in order: "rp,record,matches,opr" (default); any of rp, tb1, tb2, record, matches, opr. */
     columns?: string | string[];
 }
 
-/** An event's rankings (rank, RP, record, matches, OPR), refreshing while the event is on; championships switch between their divisions. */
+/** An event's rankings (rank, RP, record, matches, OPR), refreshing while the event is on; championships switch between their divisions. With `team` instead of `event`: the rankings of the event the team is at, or else its latest, with the team marked. */
 export declare class EventRankings extends TeamWidget<EventRankingsData, EventRankingsOptions> {}
 
 /** Registers <ftc-event-rankings> (done on import in browsers). Attributes: the shared ones plus columns, highlight, refresh. */
