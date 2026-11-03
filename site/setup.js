@@ -18,7 +18,21 @@
         "team-awards": { global: "FtcTeamAwards", cls: "TeamAwards", tag: "ftc-team-awards", label: "Awards", text: "Every award your team has won, grouped by season.", layouts: { list: "List", strip: "Trophy cards" }, height: 420 },
         "next-match": { global: "FtcNextMatch", cls: "NextMatch", tag: "ftc-next-match", label: "Next match", text: "While you compete: your next match, the alliances and a countdown. Updates by itself.", badge: "During events", layouts: { list: "Full", compact: "Two lines" }, height: 230 },
         "team-season": { global: "FtcTeamSeason", cls: "TeamSeason", tag: "ftc-team-season", label: "Season + next match", text: "Season results, with the live next match on top while you compete.", layouts: { list: "List", strip: "Scrolling tiles" }, height: 520 },
+        countdown: { global: "FtcCountdown", cls: "Countdown", tag: "ftc-countdown", label: "Countdown", text: "Days, hours and minutes to your next event, or to your next match while you compete.", layouts: { list: "Boxes", compact: "One line" }, height: 200 },
     };
+    // Widgets about an event. The pit map has its own steps (and library); the rest work like the
+    // team widgets, with an event code instead of a team.
+    const EVENT_WIDGETS = {
+        "pit-map": { label: "Pit map", text: "A map visitors can search, with walking routes to pits and fields.", badge: "Most used" },
+        "event-rankings": { global: "FtcEventRankings", cls: "EventRankings", tag: "ftc-event-rankings", label: "Rankings", text: "Rank, ranking points, record and OPR of every team. Updates itself during the event.", badge: "Live", layouts: {}, height: 560 },
+        "event-matches": { global: "FtcEventMatches", cls: "EventMatches", tag: "ftc-event-matches", label: "Match schedule", text: "Every match with its time, alliances and score, the next one marked.", badge: "Live", layouts: {}, height: 600 },
+        "event-advancement": { global: "FtcEventAdvancement", cls: "EventAdvancement", tag: "ftc-event-advancement", label: "Advancement", text: "How many teams advance and where to, each team's points, and who made it.", layouts: {}, height: 600 },
+        "league-standings": { global: "FtcLeagueStandings", cls: "LeagueStandings", tag: "ftc-league-standings", label: "League standings", text: "A league's standings, from any of its meets. Stays current all season.", layouts: {}, height: 560 },
+        countdown: { global: "FtcCountdown", cls: "Countdown", tag: "ftc-countdown", label: "Countdown", text: "Days, hours and minutes until the event starts; \"Happening now\" while it's on.", layouts: { list: "Boxes", compact: "One line" }, height: 200 },
+    };
+    /** What the event path is setting up: the pit map, or one of the other event widgets. */
+    const isMap = () => state.kind == "event" && state.eventWidget == "pit-map";
+    const isEventWidget = () => state.kind == "event" && state.eventWidget != "pit-map";
     // Colors: a family, in a light, a dark, or a follow-the-visitor version. The theme names are the
     // libraries' own ("custom" is the wizard's: the visitor's own colors, sent as tokens). Swatches
     // (background, accent) are close to each theme, for picking only.
@@ -206,6 +220,7 @@
         kind: "What for",
         team: "Your team",
         widget: "Widget",
+        eventWidget: "Widget",
         event: "Event",
         highlight: "Teams",
         look: "Look",
@@ -214,7 +229,13 @@
         site: "Your website",
         done: "Code",
     };
-    const flow = () => (state.kind == "event" ? ["kind", "event", "highlight", "look", "site", "done"] : ["kind", "team", "widget", "look", "content", "format", "site", "done"]);
+    function flow() {
+        if (state.kind != "event") return ["kind", "team", "widget", "look", "content", "format", "site", "done"];
+        if (isMap()) return ["kind", "eventWidget", "event", "highlight", "look", "site", "done"];
+        // A countdown has no teams to mark and nothing else to pick.
+        let countdown = state.eventWidget == "countdown";
+        return ["kind", "eventWidget", "event", ...(countdown ? [] : ["highlight"]), "look", ...(countdown ? [] : ["content"]), "format", "site", "done"];
+    }
 
     // ------------------------------------------------------------ answers
 
@@ -224,6 +245,8 @@
         custom: CUSTOM_DEFAULT,
         team: "", season: "", widget: "team-card", theme: "auto", shape: "", layout: "list", accent: "#2563eb", useAccent: false,
         stats: ["opr", "epa", "record"], upcoming: 1, skipScrimmages: false, oldest: false, onlyWon: false, seasons: "",
+        // event widgets: which one, and what they show ("" / "all": the widget's default)
+        eventWidget: "pit-map", columns: "", eventLimit: "", level: "all", matchState: "all", matchTeam: "",
         // pit map (same names as the /pit-map dashboard)
         source: "example", example: "FPEEUR", code: "", eventSeason: THIS_SEASON, highlight: "", mapTheme: "auto", mapShape: "", height: 600,
         // number, date and time formats (team widgets); "" / "locale" / "short": the widgets' defaults
@@ -243,6 +266,7 @@
             state = { ...DEFAULTS };
         }
         if (!WIDGETS[state.widget]) state.widget = DEFAULTS.widget;
+        if (!EVENT_WIDGETS[state.eventWidget]) state.eventWidget = DEFAULTS.eventWidget;
         // Theme names from a link: only known ones, and none the pit map doesn't have.
         const known = (name) => Object.values(FAMILIES).some((f) => Object.values(f.names).includes(name));
         if (!known(state.theme)) state.theme = "auto";
@@ -269,7 +293,7 @@
     function answered(s) {
         if (s == "kind") return !!state.kind;
         if (s == "team") return /^\d+$/.test(String(state.team).trim());
-        if (s == "event") return state.source == "example" || !!state.code.trim();
+        if (s == "event") return (isMap() && state.source == "example") || /^[a-z0-9]+$/i.test(state.code.trim());
         if (s == "site") return !!PLATFORMS[state.site];
         return true;
     }
@@ -296,6 +320,11 @@
             if (state.onlyWon) o.onlyWon = true;
             if (state.seasons) o.seasons = +state.seasons;
         }
+        return formatOptions(o);
+    }
+
+    /** The number, date and time format options (team and event widgets). */
+    function formatOptions(o) {
         if (state.locale) o.locale = state.locale;
         if (state.numberFormat != "locale") o.numberFormat = state.numberFormat;
         if (+state.decimals !== 1) o.decimals = +state.decimals;
@@ -304,30 +333,50 @@
         if (state.timeZone) o.timeZone = state.timeZone;
         return o;
     }
+
+    function eventWidgetOptions() {
+        let id = state.eventWidget;
+        let o = { event: state.code.trim().toUpperCase() || null, season: +state.eventSeason };
+        let theme = themeOption(state.theme, state.useAccent && splitTheme(state.theme)[0] != "custom" ? { accent: state.accent } : {});
+        if (theme !== "auto") o.theme = theme;
+        if (state.shape) o.shape = state.shape;
+        if (state.layout !== "list" && EVENT_WIDGETS[id].layouts?.[state.layout]) o.layout = state.layout;
+        if (id != "countdown" && teamList()) o.highlight = teamList().replace(/ /g, "");
+        if ((id == "event-rankings" || id == "event-advancement") && state.columns) o.columns = state.columns;
+        if (id == "event-matches") {
+            if (state.level != "all") o.level = state.level;
+            if (state.matchState != "all") o.state = state.matchState;
+            if (/^\d+$/.test(state.matchTeam)) o.team = +state.matchTeam;
+        }
+        if (id != "countdown" && state.eventLimit) o.limit = +state.eventLimit;
+        return formatOptions(o);
+    }
+    const eventHeight = () => (state.eventWidget == "countdown" && state.layout == "compact" ? 140 : EVENT_WIDGETS[state.eventWidget].height || 560);
     const teamHeight = () => (state.layout == "strip" ? 260 : state.layout == "compact" ? 140 : WIDGETS[state.widget].height);
 
     const kebab = (s) => s.replace(/[A-Z]/g, (c) => "-" + c.toLowerCase());
     const attrValue = (v) => (typeof v === "object" ? JSON.stringify(v) : String(v));
 
-    function teamCode(method) {
-        let w = WIDGETS[state.widget];
-        let o = teamOptions();
+    /** The code for a team or event widget (id: its module name, w: its WIDGETS entry). */
+    function widgetCode(method, id, w, o, height, elementId) {
         let custom = SITE.apiBase && window[w.global] && SITE.apiBase !== window[w.global].DEFAULT_API_BASE;
         let q = new URLSearchParams(Object.entries(o).map(([k, v]) => [k, attrValue(v)]));
-        if (method == "url") return `${ORIGIN}/embed/${state.widget}?${q}`;
-        if (method == "iframe") return `<iframe src="${esc(`${ORIGIN}/embed/${state.widget}?${q}`)}" title="${w.label}" style="width:100%;height:${teamHeight()}px;border:0" loading="lazy"></iframe>`;
+        if (method == "url") return `${ORIGIN}/embed/${id}?${q}`;
+        if (method == "iframe") return `<iframe src="${esc(`${ORIGIN}/embed/${id}?${q}`)}" title="${w.label}" style="width:100%;height:${height}px;border:0" loading="lazy"></iframe>`;
         if (method == "element") {
             let attr = (k, v) => (v === true ? ` ${kebab(k)}` : typeof v === "object" ? ` ${kebab(k)}='${JSON.stringify(v).replace(/'/g, "&#39;")}'` : ` ${kebab(k)}="${esc(String(v))}"`);
             let api = custom ? ` api-base="${SITE.apiBase}"` : "";
-            return `<script type="module" src="${ORIGIN}/lib/${state.widget}.mjs"></script>\n<${w.tag}${Object.entries(o).map(([k, v]) => attr(k, v)).join("")}${api}></${w.tag}>`;
+            return `<script type="module" src="${ORIGIN}/lib/${id}.mjs"></script>\n<${w.tag}${Object.entries(o).map(([k, v]) => attr(k, v)).join("")}${api}></${w.tag}>`;
         }
         let body = JSON.stringify(o, null, 4).replace(/"([a-zA-Z]+)":/g, "$1:");
-        return `// npm install ftc-embeds\nimport { ${custom ? `${w.cls}, configure` : w.cls} } from "ftc-embeds/${state.widget}";\n\n${custom ? `configure({ apiBase: "${SITE.apiBase}" });\n` : ""}new ${w.cls}(document.getElementById("team-widget"), ${body});`;
+        return `// npm install ftc-embeds\nimport { ${custom ? `${w.cls}, configure` : w.cls} } from "ftc-embeds/${id}";\n\n${custom ? `configure({ apiBase: "${SITE.apiBase}" });\n` : ""}new ${w.cls}(document.getElementById("${elementId}"), ${body});`;
     }
+    const teamCode = (method) => widgetCode(method, state.widget, WIDGETS[state.widget], teamOptions(), teamHeight(), "team-widget");
+    const eventCode = (method) => widgetCode(method, state.eventWidget, EVENT_WIDGETS[state.eventWidget], eventWidgetOptions(), eventHeight(), "event-widget");
 
     // ------------------------------------------------------------ options -> code (pit map)
 
-    const eventRef = () => (state.source == "example" ? `2025/${state.example}` : `${state.eventSeason}/${state.code.trim().toUpperCase()}`);
+    const eventRef = () => (isMap() && state.source == "example" ? `2025/${state.example}` : `${state.eventSeason}/${state.code.trim().toUpperCase()}`);
     const teamList = () => state.highlight.split(/[\s,;]+/).filter(Boolean).join(", ");
     const mapTheme = () => themeOption(state.mapTheme, {}, false);
     const mapOptions = () => ({ theme: mapTheme(), shape: state.mapShape || null, highlight: teamList() || null });
@@ -366,7 +415,7 @@
 
     /** The same settings in the full dashboard, to fine-tune what the wizard doesn't ask. */
     function editorLink() {
-        if (state.kind == "event") {
+        if (isMap()) {
             // The dashboard knows theme names and token overrides: custom colors and the shape go along as tokens.
             let t = mapTheme();
             let { base, ...colorTokens } = typeof t == "object" ? t : { base: t };
@@ -494,6 +543,43 @@
         return `<div class="pits" style="gap:${gap * 36}px;border-radius:${wall * 18}px">${`<i style="border-radius:${pit * 18}px"></i>`.repeat(5)}</div>`;
     }
 
+    /** The "What to show" page of the event widgets. */
+    function eventContent(head) {
+        let id = state.eventWidget;
+        let limits = (label, values) => `<div class="choices small">${choice("eventLimit", "", label)}${values.map(([v, l]) => choice("eventLimit", v, l)).join("")}</div>`;
+        if (id == "event-rankings")
+            return `${head}
+            <h1>Which columns?</h1>
+            <p class="sub">Rank and team are always there. Narrow places (a sidebar, a phone) drop the less important columns by themselves.</p>
+            <div class="choices small">
+                ${choice("columns", "", "Standard", "RP, record, matches, OPR")}${choice("columns", "rp,tb1,tb2,record,matches,opr", "With tiebreakers", "Adds TBP and TBP2")}${choice("columns", "rp,record", "Short", "RP and record")}${choice("columns", "rp,opr", "Strength", "RP and OPR")}
+            </div>
+            <p class="q">How many teams? <small>Highlighted teams lower down are shown too</small></p>
+            ${limits("All", [["8", "Top 8"], ["16", "Top 16"]])}`;
+        if (id == "event-advancement")
+            return `${head}
+            <h1>Which points?</h1>
+            <p class="sub">Each team's advancement points, by where they came from, and who advanced (from the 2025 season on).</p>
+            <div class="choices small">${choice("columns", "", "Every part", "Qualification, alliance, playoff, award, total")}${choice("columns", "total", "Total only", "For narrow places")}</div>
+            <p class="q">How many teams? <small>Highlighted teams lower down are shown too</small></p>
+            ${limits("All", [["10", "Top 10"], ["20", "Top 20"]])}`;
+        if (id == "league-standings")
+            return `${head}
+            <h1>How many teams?</h1>
+            <p class="sub">The league's standings: rank, average ranking points and record. Highlighted teams lower down are shown too.</p>
+            ${limits("All", [["8", "Top 8"], ["16", "Top 16"]])}`;
+        return `${head}
+            <h1>Which matches?</h1>
+            <p class="sub">While the event is on, the next match is marked and the list updates itself.</p>
+            <div class="choices small">${choice("level", "all", "All")}${choice("level", "quals", "Qualification")}${choice("level", "playoffs", "Playoffs")}</div>
+            <p class="q">Played or not?</p>
+            <div class="choices small">${choice("matchState", "all", "All")}${choice("matchState", "upcoming", "Still to play")}${choice("matchState", "played", "Played")}</div>
+            <p class="q">Only one team's matches? <small>Optional: a team's own schedule, with its next match marked</small></p>
+            <input type="text" inputmode="numeric" data-input="matchTeam" placeholder="e.g. 19444" autocomplete="off" aria-label="Only this team's matches" style="max-width:200px">
+            <p class="q">How many?</p>
+            ${limits("All", [["5", state.matchState == "upcoming" ? "Next 5" : "First 5"], ["10", state.matchState == "upcoming" ? "Next 10" : "First 10"]])}`;
+    }
+
     const PAGES = {
         kind: () => `
             <span class="kicker">Let's set it up</span>
@@ -501,7 +587,7 @@
             <p class="sub">A few questions, one at a time. You'll see it live as you go, and get the code with instructions for your website builder at the end.</p>
             <div class="choices two">
                 ${choice("kind", "team", "Something about my team", "A team card, season results, awards, or your next match while you compete.", '<span class="ico">◆</span>')}
-                ${choice("kind", "event", "A pit map for an event", "A map visitors can search, with walking routes to pits and fields.", '<span class="ico">▦</span>')}
+                ${choice("kind", "event", "Something about an event", "Rankings, the match schedule, advancement, league standings, a countdown, or a pit map.", '<span class="ico">▦</span>')}
             </div>`,
 
         team: () => `
@@ -524,8 +610,16 @@
                 ${Object.entries(WIDGETS).map(([id, w]) => choice("widget", id, w.label, w.text, "", "").replace("</button>", w.badge ? `<span class="tag">${w.badge}</span></button>` : "</button>")).join("")}
             </div>`,
 
+        eventWidget: () => `
+            <span class="kicker">Widget</span>
+            <h1>Which widget do you want?</h1>
+            <p class="sub">Pick one; the next step asks for the event. You can come back for another one later.</p>
+            <div class="choices">
+                ${Object.entries(EVENT_WIDGETS).map(([id, w]) => choice("eventWidget", id, w.label, w.text, "", "").replace("</button>", w.badge ? `<span class="tag">${w.badge}</span></button>` : "</button>")).join("")}
+            </div>`,
+
         look: () =>
-            state.kind == "event"
+            isMap()
                 ? `
             <span class="kicker">Look</span>
             <h1>How should the map look?</h1>
@@ -555,14 +649,15 @@
             <div class="choices">
                 ${Object.entries(TEAM_SHAPE_LABELS).map(([id, [name, text]]) => choice("shape", id, name, text, teamShapeDemo(id))).join("")}
             </div>
-            <p class="q">Arrangement</p>
-            <div class="choices small">
-                ${Object.entries(WIDGETS[state.widget].layouts).map(([v, label]) => choice("layout", v, label)).join("")}
-            </div>`,
+            ${(() => {
+                let layouts = (isEventWidget() ? EVENT_WIDGETS[state.eventWidget] : WIDGETS[state.widget]).layouts || {};
+                return Object.keys(layouts).length > 1 ? `<p class="q">Arrangement</p><div class="choices small">${Object.entries(layouts).map(([v, label]) => choice("layout", v, label)).join("")}</div>` : "";
+            })()}`,
 
         content: () => {
             let w = state.widget;
             let head = `<span class="kicker">What to show</span>`;
+            if (isEventWidget()) return eventContent(head);
             if (w == "team-card")
                 return `${head}
             <h1>Which stats should the card show?</h1>
@@ -579,6 +674,10 @@
             <label class="check"><input type="checkbox" data-check="onlyWon"> Only awards we won</label>
             <p class="q">How far back?</p>
             <div class="choices small">${choice("seasons", "", "Every season")}${choice("seasons", "1", "This season")}${choice("seasons", "3", "Last 3 seasons")}${choice("seasons", "5", "Last 5 seasons")}</div>`;
+            if (w == "countdown")
+                return `${head}
+            <h1>Nothing else to pick.</h1>
+            <p class="sub">During an event this counts down to your next match. Between events it counts down to your next event this season.</p>`;
             if (w == "next-match")
                 return `${head}
             <h1>Nothing else to pick.</h1>
@@ -593,8 +692,8 @@
         event: () => `
             <span class="kicker">Event</span>
             <h1>Which event?</h1>
-            <p class="sub">${LIVE_API ? "Your own event, by its FTC event code, or one of the examples to try things out." : "Pick one of the example events."}</p>
-            ${LIVE_API ? `<div class="choices two">${choice("source", "live", "My event", "By its event code, from FTC Events")}${choice("source", "example", "An example", "To try it out first")}</div>` : ""}
+            <p class="sub">${!isMap() ? "By its FTC event code and season." : LIVE_API ? "Your own event, by its FTC event code, or one of the examples to try things out." : "Pick one of the example events."}</p>
+            ${LIVE_API && isMap() ? `<div class="choices two">${choice("source", "live", "My event", "By its event code, from FTC Events")}${choice("source", "example", "An example", "To try it out first")}</div>` : ""}
             <div id="live-box">
                 <div class="row" style="margin-top:20px">
                     <label class="f" style="flex:1 1 200px">Event code <input class="big" type="text" data-input="code" placeholder="e.g. NLCMP" autocomplete="off" style="text-transform:uppercase"></label>
@@ -603,7 +702,7 @@
                     </label>
                 </div>
                 <div class="status" id="event-status"></div>
-                <p class="hint">The code is in the event's URL on ftc-events.firstinspires.org. No pit map yet? The <a href="/pit-map">full editor</a> can load one for you.</p>
+                <p class="hint">The code is in the event's URL on ftc-events.firstinspires.org (or FTCScout's). ${isMap() ? `No pit map yet? The <a href="/pit-map">full editor</a> can load one for you.` : state.eventWidget == "league-standings" ? "Any meet of the league (or its tournament) will do: it shows the league's current standings, all season." : "A championship with divisions? Its own code shows buttons to switch between the divisions."}</p>
             </div>
             <div id="example-box">
                 <p class="q">Example events</p>
@@ -613,7 +712,7 @@
         highlight: () => `
             <span class="kicker">Teams</span>
             <h1>Should any teams stand out?</h1>
-            <p class="sub">Highlighted pits get a color and a pulse, the rest dims. Handy on a team's own site, or for your region's teams. Leave it empty for a plain map.</p>
+            <p class="sub">${isMap() ? "Highlighted pits get a color and a pulse, the rest dims. Handy on a team's own site, or for your region's teams. Leave it empty for a plain map." : "Their rows get a color, and a scrolling widget scrolls to them. Handy on a team's own site. Leave it empty to mark none."}</p>
             <input class="big" type="text" data-input="highlight" placeholder="e.g. 19444, 16236" autocomplete="off" aria-label="Teams to highlight">
             <p class="hint">Team numbers, separated by commas.</p>`,
 
@@ -647,7 +746,7 @@
                     ${timeZones().map((z) => `<option value="${esc(z)}">${esc(z.replace(/_/g, " "))}${z == HERE ? " (yours)" : ""}</option>`).join("")}
                 </select>
             </label>
-            <p class="hint">Match times show in each visitor's own time zone. Pick one to show everyone the same clock, for example the event's.</p>`,
+            <p class="hint">${isEventWidget() ? "Match times show in the event's own time zone. Pick another to show everyone that clock instead." : "Match times show in each visitor's own time zone. Pick one to show everyone the same clock, for example the event's."}</p>`,
 
         site: () => `
             <span class="kicker">Your website</span>
@@ -659,16 +758,19 @@
 
         done: () => {
             let p = PLATFORMS[state.site] || PLATFORMS.other;
-            let what = state.kind == "event" ? `Pit map · ${state.source == "example" ? EXAMPLE_NAMES[state.example] || state.example : eventRef()}` : `${WIDGETS[state.widget].label} · team ${state.team}`;
-            let rows = state.kind == "event"
-                ? [["event", "Event", what.split(" · ")[1]], ["highlight", "Teams", teamList() || "none"], ["look", "Look", `${themeLabel(state.mapTheme)} · ${MAP_SHAPE_LABELS[state.mapShape][0]} shape · ${state.height}px`], ["site", "Website", p.label]]
+            let ew = EVENT_WIDGETS[state.eventWidget];
+            let what = isMap() ? `Pit map · ${state.source == "example" ? EXAMPLE_NAMES[state.example] || state.example : eventRef()}` : isEventWidget() ? `${ew.label} · ${eventRef()}` : `${WIDGETS[state.widget].label} · team ${state.team}`;
+            let rows = isMap()
+                ? [["eventWidget", "Widget", "Pit map"], ["event", "Event", what.split(" · ")[1]], ["highlight", "Teams", teamList() || "none"], ["look", "Look", `${themeLabel(state.mapTheme)} · ${MAP_SHAPE_LABELS[state.mapShape][0]} shape · ${state.height}px`], ["site", "Website", p.label]]
+                : isEventWidget()
+                ? [["eventWidget", "Widget", ew.label], ["event", "Event", eventRef()], ...(flow().includes("highlight") ? [["highlight", "Teams", teamList() || "none"]] : []), ["look", "Look", `${themeLabel(state.theme)} · ${TEAM_SHAPE_LABELS[state.shape][0]} shape${Object.keys(ew.layouts || {}).length > 1 ? ` · ${ew.layouts[state.layout] || Object.values(ew.layouts)[0]}` : ""}`], ["format", "Formats", formatSummary()], ["site", "Website", p.label]]
                 : [["team", "Team", `${state.team}${state.season ? `, ${seasonLabel(state.season)}` : ""}`], ["widget", "Widget", WIDGETS[state.widget].label], ["look", "Look", `${themeLabel(state.theme)} · ${TEAM_SHAPE_LABELS[state.shape][0]} shape · ${WIDGETS[state.widget].layouts[state.layout] || "List"}`], ["format", "Formats", formatSummary()], ["site", "Website", p.label]];
             return `
             <span class="kicker">Done</span>
             <h1>Here's your code.</h1>
             <p class="sub">${esc(what)}, for ${esc(p.label)}.</p>
             <dl class="recap">${rows.map(([s, k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd><dd><a href="${href(s)}" data-step="${s}">change</a></dd>`).join("")}</dl>
-            <ol class="steps">${p.steps.map((s) => `<li>${s.replace("{h}", state.kind == "event" ? state.height : teamHeight())}</li>`).join("")}</ol>
+            <ol class="steps">${p.steps.map((s) => `<li>${s.replace("{h}", isMap() ? state.height : isEventWidget() ? eventHeight() : teamHeight())}</li>`).join("")}</ol>
             ${p.note ? `<p class="hint">${p.note}</p>` : ""}
             <div class="code-head">
                 <div class="tabs" role="tablist">${Object.entries(METHODS).map(([m, label]) => `<button role="tab" data-tab="${m}">${label}${m == p.method ? " ✓" : ""}</button>`).join("")}</div>
@@ -677,7 +779,7 @@
             <div class="done-actions">
                 <button class="btn go" id="copy">Copy code</button>
                 <button class="btn" id="share">Copy link to this setup</button>
-                <a class="btn" href="${editorLink()}">Fine-tune in the full editor →</a>
+                ${isEventWidget() ? "" : `<a class="btn" href="${editorLink()}">Fine-tune in the full editor →</a>`}
             </div>
             <p class="hint" style="margin-top:22px"><a href="/setup" data-restart>Set up another widget</a></p>`;
         },
@@ -714,7 +816,8 @@
         if (solo) return;
         let box = $("preview");
 
-        if (state.kind == "event") {
+        if (isEventWidget()) return eventPreview(box);
+        if (isMap()) {
             box.classList.add("map");
             // The map's box is as tall as the height in the code; dragging its corner changes that height.
             if (!resizing) box.style.height = `${state.height}px`;
@@ -776,6 +879,44 @@
         box.classList.toggle("on-dark", step != "team" && looksDark(state.theme));
     }
 
+    function eventPreview(box) {
+        box.classList.remove("map");
+        let id = state.eventWidget;
+        let w = EVENT_WIDGETS[id];
+        let lib = window[w.global];
+        $("preview-label").textContent = "Live preview";
+        $("preview-note").textContent = `<${w.tag}>`;
+        if (!answered("event")) {
+            widget?.destroy?.();
+            widget = null;
+            widgetKey = null;
+            box.innerHTML = `<p class="hint" style="margin:0">Type an event code to see it here.</p>`;
+            box.classList.remove("on-dark");
+            return;
+        }
+        if (SITE.apiBase || SITE.graphqlUrl) lib.configure({ apiBase: SITE.apiBase || null, graphqlUrl: SITE.graphqlUrl || null });
+        // Every option goes in, so ones back at their default are reset too.
+        let o = {
+            ...lib[w.cls].defaults, theme: "auto", shape: null, layout: "list", highlight: null, limit: null, team: null,
+            locale: null, numberFormat: "locale", decimals: 1, dateFormat: "short", hourCycle: null, timeZone: null,
+            ...eventWidgetOptions(),
+        };
+        if (widgetKey !== "event:" + id || !widget) {
+            widget?.destroy?.();
+            box.replaceChildren();
+            widget = new lib[w.cls](box, o);
+            widget.on("load", ({ data }) => setEventCheck(true, null, data));
+            widget.on("error", ({ error }) => setEventCheck(false, error));
+            widgetKey = "event:" + id;
+            eventCheck = { ref: state.code, ok: null, text: "Looking it up…" };
+        } else {
+            if (eventCheck.ref !== state.code) eventCheck = { ref: state.code, ok: null, text: "Looking it up…" };
+            widget.update(o);
+        }
+        box.classList.toggle("on-dark", looksDark(state.theme));
+        eventStatus();
+    }
+
     function setTeamCheck(ok, data) {
         let card = ok && data && (data.card || data.team || data);
         let name = card && (card.name || card.team?.name);
@@ -789,16 +930,19 @@
         el.className = "status" + (current && teamCheck.ok === true ? " ok" : current && teamCheck.ok === false ? " bad" : "");
         el.textContent = current ? teamCheck.text : answered("team") ? "Looking it up…" : "";
     }
-    function setEventCheck(ok, error) {
-        if (state.source == "example") return;
-        eventCheck = { ...eventCheck, ok, text: ok ? `Found ${eventRef()}` : error?.notFound ? `${eventRef()} has no pit map (yet)` : `Couldn't load ${eventRef()}` };
+    function setEventCheck(ok, error, data) {
+        if (isMap() && state.source == "example") return;
+        let ref = eventRef();
+        let found = data?.name ? `${data.name} (${ref})` : `Found ${ref}`;
+        let missing = isMap() ? `${ref} has no pit map (yet)` : `There's no event ${ref}. Check the code and season?`;
+        eventCheck = { ...eventCheck, ok, text: ok ? found : error?.notFound ? missing : `Couldn't load ${ref}` };
         eventStatus();
     }
     function eventStatus() {
         let el = $("event-status");
         if (!el) return;
         el.className = "status" + (eventCheck.ok === true ? " ok" : eventCheck.ok === false ? " bad" : "");
-        el.textContent = state.source == "live" && answered("event") ? eventCheck.text : "";
+        el.textContent = (!isMap() || state.source == "live") && answered("event") ? eventCheck.text : "";
     }
 
     // ------------------------------------------------------------ rendering
@@ -849,7 +993,7 @@
             input.checked = i >= 0;
             input.parentElement.dataset.order = i >= 0 ? i + 1 : "";
         }
-        let field = state.kind == "event" ? "mapTheme" : "theme";
+        let field = isMap() ? "mapTheme" : "theme";
         let [family, mode] = splitTheme(state[field]);
         if ($("custom-box")) {
             $("custom-box").hidden = family != "custom";
@@ -874,11 +1018,11 @@
             el.textContent = example(kind, value);
         }
         if ($("locale-status")) $("locale-status").textContent = state.locale && !localeOf(state.locale) ? `"${state.locale}" isn't a language tag the browser knows: the visitor's own is used.` : "";
-        if ($("live-box")) $("live-box").hidden = state.source != "live";
-        if ($("example-box")) $("example-box").hidden = state.source != "example";
+        if ($("live-box")) $("live-box").hidden = isMap() && state.source != "live";
+        if ($("example-box")) $("example-box").hidden = !isMap() || state.source != "example";
         if ($("code")) {
             let method = tab || (PLATFORMS[state.site] || PLATFORMS.other).method;
-            $("code").textContent = state.kind == "event" ? mapCode(method) : teamCode(method);
+            $("code").textContent = isMap() ? mapCode(method) : isEventWidget() ? eventCode(method) : teamCode(method);
             for (let b of ask.querySelectorAll("[data-tab]")) b.setAttribute("aria-selected", b.dataset.tab == method);
         }
         for (let a of document.querySelectorAll("a[data-step]")) a.href = href(a.dataset.step);
@@ -901,6 +1045,7 @@
     function set(patch) {
         state = { ...state, ...patch };
         if (patch.widget && !WIDGETS[state.widget].layouts[state.layout]) state.layout = "list";
+        if (patch.eventWidget && !EVENT_WIDGETS[state.eventWidget].layouts?.[state.layout]) state.layout = "list";
         sync();
     }
 
@@ -1011,7 +1156,7 @@
 
     /** Use these custom colors (and the Custom family, keeping light/dark/follow). */
     function setCustom(custom) {
-        let field = state.kind == "event" ? "mapTheme" : "theme";
+        let field = isMap() ? "mapTheme" : "theme";
         set({ custom, [field]: FAMILIES.custom.names[splitTheme(state[field])[1]] });
     }
 
