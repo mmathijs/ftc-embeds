@@ -1,7 +1,7 @@
 {
     "name": "ftc-embeds",
     "version": "0.4.0",
-    "description": "Embeddable FIRST Tech Challenge widgets (pit maps, team cards, season results, awards). Zero dependencies; works with any framework.",
+    "description": "Embeddable FIRST Tech Challenge widgets (pit maps, team cards, season results, awards, next match). Zero dependencies; works with any framework.",
     "license": "MIT",
     "repository": {
         "type": "git",
@@ -36,6 +36,12 @@
             "require": "./dist/team-awards.umd.js"
         },
         "./team-awards/umd": "./dist/team-awards.umd.min.js",
+        "./next-match": {
+            "types": "./src/next-match/next-match.d.ts",
+            "import": "./src/next-match/next-match.mjs",
+            "require": "./dist/next-match.umd.js"
+        },
+        "./next-match/umd": "./dist/next-match.umd.min.js",
         "./package.json": "./package.json"
     },
     "typesVersions": {
@@ -51,6 +57,9 @@
             ],
             "team-awards": [
                 "./src/team-awards/team-awards.d.ts"
+            ],
+            "next-match": [
+                "./src/next-match/next-match.d.ts"
             ]
         }
     },
@@ -76,7 +85,7 @@
     "scripts": {
         "build": "node scripts/build.mjs",
         "test": "node --test scripts/test.mjs",
-        "typecheck": "npx -y -p typescript@5.4.5 tsc --noEmit --strict --lib es2020,dom src/pit-map/pit-map.d.ts src/team-card/team-card.d.ts src/team-results/team-results.d.ts src/team-awards/team-awards.d.ts",
+        "typecheck": "npx -y -p typescript@5.4.5 tsc --noEmit --strict --lib es2020,dom src/pit-map/pit-map.d.ts src/team-card/team-card.d.ts src/team-results/team-results.d.ts src/team-awards/team-awards.d.ts src/next-match/next-match.d.ts",
         "prepare": "node scripts/build.mjs"
     },
     "devDependencies": {
