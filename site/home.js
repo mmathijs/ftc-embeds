@@ -1,4 +1,4 @@
-// Homepage: one live team card, the team widgets as a list, and a live pit map.
+// Homepage: one live team card, the team and event widgets as lists, and a live pit map.
 (() => {
     const SITE = window.FTC_EMBEDS_SITE || {};
     const TEAM = SITE.demoTeam || 19444;
@@ -26,21 +26,35 @@
         ["Awards", "every award, as a list or trophy cards", { widget: "team-awards", layout: "strip" }],
         ["Next match", "during events: your next match, live", { widget: "next-match" }],
         ["Season + next match", "both in one, for a team homepage", { widget: "team-season" }],
+        ["Event rankings", "your current event's rankings, you marked", { widget: "event-rankings", team: String(TEAM) }],
+        ["Countdown", "to your next event or match", { widget: "countdown" }],
     ];
-    for (let [name, text, settings] of WIDGETS) {
-        let a = document.createElement("a");
-        a.href = builder(settings);
-        let b = document.createElement("b");
-        b.textContent = name;
-        let span = document.createElement("span");
-        span.textContent = text;
-        let i = document.createElement("i");
-        i.textContent = "Configure →";
-        a.append(b, span, i);
-        let li = document.createElement("li");
-        li.append(a);
-        $("team-widgets").append(li);
-    }
+    // The event widgets start from an example event.
+    const EVENT_WIDGETS = [
+        ["Rankings", "live, with divisions and your teams marked", { widget: "event-rankings", event: "NLHAQ", season: "2025" }],
+        ["Match schedule", "times, alliances, scores; the next match marked", { widget: "event-matches", event: "NLHAQ", season: "2025" }],
+        ["Advancement", "the slots, each team's points, who advanced", { widget: "event-advancement", event: "NLCMP", season: "2025" }],
+        ["League standings", "from any meet, current all season", { widget: "league-standings", event: "NLBNM7", season: "2023" }],
+        ["Countdown", "to the first day or the first match", { widget: "countdown", event: "FTCCMP1" }],
+    ];
+    const list = (id, widgets) => {
+        for (let [name, text, settings] of widgets) {
+            let a = document.createElement("a");
+            a.href = builder(settings);
+            let b = document.createElement("b");
+            b.textContent = name;
+            let span = document.createElement("span");
+            span.textContent = text;
+            let i = document.createElement("i");
+            i.textContent = "Configure →";
+            a.append(b, span, i);
+            let li = document.createElement("li");
+            li.append(a);
+            $(id).append(li);
+        }
+    };
+    list("team-widgets", WIDGETS);
+    list("event-widgets", EVENT_WIDGETS);
 
     // The pit map: the example event, with the demo team's pit highlighted.
     fetch("examples/FPEEUR.json")

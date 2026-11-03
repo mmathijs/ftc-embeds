@@ -204,7 +204,7 @@
     <nav>
         <a href="/setup">setup</a>
         <a href="/pit-map">pit map</a>
-        <a href="/team">team widgets</a>
+        <a href="/team">widgets</a>
         <a href="https://github.com/mmathijs/ftc-embeds#readme">docs</a>
         <a href="https://www.npmjs.com/package/ftc-embeds">npm</a>
         <a href="https://github.com/mmathijs/ftc-embeds">source</a>
@@ -226,7 +226,7 @@
         <p>Free widgets for <i>FIRST</i> Tech Challenge teams and events. They stay up to date by themselves and fit your site's look.</p>
         <div class="cta">
             <a class="go" href="/setup">Set it up step by step</a>
-            <a href="/team">Widgets for your team</a>
+            <a href="/team">Every widget and option</a>
             <a href="/pit-map">A pit map for your event</a>
         </div>
     </div>
@@ -244,9 +244,10 @@
         <ul class="wlist" id="team-widgets"></ul>
     </section>
     <section class="path">
-        <span class="eyebrow">For events</span>
-        <h2>A pit map visitors can search</h2>
-        <p>Your event's pit map on your own page: zoom in, search a team, and get walking routes to the fields.</p>
+        <span class="eyebrow">For events and leagues</span>
+        <h2>Your event, live</h2>
+        <p>Rankings, the match schedule and who advances, updating during the event, and a pit map visitors can search.</p>
+        <ul class="wlist" id="event-widgets"></ul>
         <div class="pm" id="pit-map"></div>
         <a class="go-link" href="/pit-map">Make a pit map →</a>
     </section>
@@ -257,7 +258,7 @@
 <section class="details">
     <div class="d-head">
         <h2>Each widget</h2>
-        <p>Every widget comes as an iframe, an HTML element and an npm package, with light, dark, FTCScout, FTC Events and trophy-case themes, and your own colors, corners, texts and links.</p>
+        <p>Every widget comes as an iframe, an HTML element and an npm package, with light, dark, FTCScout, FTC Events and trophy-case themes, shapes, and your own colors, corners, texts, number and date formats and links.</p>
     </div>
     <div class="d-grid">
         <article class="d-card">
@@ -285,7 +286,7 @@
             <span class="eyebrow">For teams</span>
             <h3>Awards</h3>
             <p>Every award your team has won, from the first season on.</p>
-            <ul><li>Grouped by season</li><li>A list, or a strip of trophy cards</li><li>Only the awards won, or only some types</li></ul>
+            <ul><li>Grouped by season</li><li>A list, trophy cards, or FTC-style banners</li><li>Only the awards won, or only some types</li></ul>
             <div class="d-foot"><a class="go-link" href="/team#%7B%22widget%22%3A%22team-awards%22%2C%22layout%22%3A%22strip%22%7D">Configure →</a><code>&lt;ftc-team-awards&gt;</code></div>
         </article>
         <article class="d-card">
@@ -301,6 +302,41 @@
             <p>Season results with the live match on top during events.</p>
             <ul><li>One widget for a team homepage</li><li>Live part only shows while you compete</li><li>Same options as both widgets</li></ul>
             <div class="d-foot"><a class="go-link" href="/team#%7B%22widget%22%3A%22team-season%22%7D">Configure →</a><code>&lt;ftc-team-season&gt;</code></div>
+        </article>
+        <article class="d-card">
+            <span class="eyebrow">For teams and events</span>
+            <h3>Countdown</h3>
+            <p>Days, hours and minutes to an event, or to your team&#x27;s next match.</p>
+            <ul><li>To the first day, or the first match</li><li>&quot;Happening now&quot; with the livestream while it&#x27;s on</li><li>Boxes, or one line</li></ul>
+            <div class="d-foot"><a class="go-link" href="/team#%7B%22widget%22%3A%22countdown%22%2C%22event%22%3A%22FTCCMP1%22%7D">Configure →</a><code>&lt;ftc-countdown&gt;</code></div>
+        </article>
+        <article class="d-card">
+            <span class="eyebrow">For events and teams</span>
+            <h3>Event rankings</h3>
+            <p>An event&#x27;s rankings, live during the event.</p>
+            <ul><li>Choose the columns: RP, record, win %, OPR, EPA, …</li><li>Divisions to switch between</li><li>For a team: its current event, or a tab per event</li></ul>
+            <div class="d-foot"><a class="go-link" href="/team#%7B%22widget%22%3A%22event-rankings%22%2C%22event%22%3A%22NLHAQ%22%2C%22season%22%3A%222025%22%7D">Configure →</a><code>&lt;ftc-event-rankings&gt;</code></div>
+        </article>
+        <article class="d-card">
+            <span class="eyebrow">For events</span>
+            <h3>Match schedule</h3>
+            <p>Every match with its time, alliances and score.</p>
+            <ul><li>The next match marked, updating by itself</li><li>Quals or playoffs, played or to play</li><li>One team&#x27;s own schedule</li></ul>
+            <div class="d-foot"><a class="go-link" href="/team#%7B%22widget%22%3A%22event-matches%22%2C%22event%22%3A%22NLHAQ%22%2C%22season%22%3A%222025%22%7D">Configure →</a><code>&lt;ftc-event-matches&gt;</code></div>
+        </article>
+        <article class="d-card">
+            <span class="eyebrow">For events</span>
+            <h3>Advancement</h3>
+            <p>Who advances from an event, and how.</p>
+            <ul><li>The slots and where they lead</li><li>Each team&#x27;s points: qualification, alliance, playoff, award</li><li>Who advanced, and who couldn&#x27;t</li></ul>
+            <div class="d-foot"><a class="go-link" href="/team#%7B%22widget%22%3A%22event-advancement%22%2C%22event%22%3A%22NLCMP%22%2C%22season%22%3A%222025%22%7D">Configure →</a><code>&lt;ftc-event-advancement&gt;</code></div>
+        </article>
+        <article class="d-card">
+            <span class="eyebrow">For leagues</span>
+            <h3>League standings</h3>
+            <p>A league&#x27;s standings, current all season.</p>
+            <ul><li>From any of its meets, or its tournament</li><li>Rank, average RP and record</li><li>Your teams highlighted</li></ul>
+            <div class="d-foot"><a class="go-link" href="/team#%7B%22widget%22%3A%22league-standings%22%2C%22event%22%3A%22NLBNM7%22%2C%22season%22%3A%222023%22%7D">Configure →</a><code>&lt;ftc-league-standings&gt;</code></div>
         </article>
     </div>
 </section>
