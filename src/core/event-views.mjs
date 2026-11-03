@@ -13,6 +13,7 @@ export const EVENT_CSS = `
 .evline{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;margin:-6px 0 12px;font-size:var(--_small-size);color:var(--_muted)}
 .evline .ev-name{font-weight:600;color:var(--_text)}
 .tbl-wrap{overflow-x:auto}
+.ftcw:not(.bare) .tbl-wrap{margin:0 -8px}
 .tbl{width:100%;border-collapse:collapse;font-size:var(--_font-size)}
 .ftcw[style*="max-height"] .tbl-wrap{overflow:visible}
 .ftcw[style*="max-height"] .tbl thead th{position:sticky;top:calc(var(--_padding) * -1);z-index:1;background:var(--_bg);box-shadow:inset 0 -1px 0 var(--_border)}
@@ -20,16 +21,15 @@ export const EVENT_CSS = `
 @container (max-width:400px){.tbl .c-tb1,.tbl .c-opr{display:none}}
 .tbl th{font-size:calc(var(--_small-size) - .5px);font-weight:600;color:var(--_muted);text-transform:var(--_label-transform);letter-spacing:var(--_label-letter-spacing);text-align:left;padding:0 6px 6px;white-space:nowrap}
 .tbl td{padding:calc(var(--_row-padding) / 2) 6px;border-top:var(--_separator-width) solid var(--_border);vertical-align:middle}
-.tbl th:first-child,.tbl td:first-child{padding-left:0}
-.tbl th:last-child,.tbl td:last-child{padding-right:0}
+.tbl th:first-child,.tbl td:first-child{padding-left:8px}
+.tbl th:last-child,.tbl td:last-child{padding-right:8px}
 .tbl .n{text-align:right;white-space:nowrap}
 .tbl .rk{font-weight:var(--_value-weight);width:1%;white-space:nowrap}
 .tbl .tm{min-width:0}
 .tbl .tm .num{font-weight:600}
 .tbl .tm .nm{color:var(--_muted);margin-left:6px}
 .tbl tr.me td{background:color-mix(in srgb,var(--_accent) 14%,transparent)}
-.tbl tr.me td:first-child{box-shadow:inset 3px 0 0 var(--_accent);padding-left:8px}
-.tbl tr.me td:last-child{padding-right:8px}
+.tbl tr.me td:first-child{box-shadow:inset 3px 0 0 var(--_accent)}
 .tbl .tm{overflow-wrap:break-word}
 .tbl .chip{text-transform:none;letter-spacing:normal}
 .tbl tr.gap td{border-top:0;color:var(--_muted);text-align:center;padding:4px 0;line-height:1;letter-spacing:.2em}
