@@ -45,6 +45,7 @@ npm ci             # installs esbuild (only used to minify the builds)
 npm run build      # dist/<widget>.mjs and .umd.js, minified .min.mjs and .umd.min.js, <widget>-demo.html
 npm test           # tests (after a build)
 npm run typecheck  # checks the .d.ts files
+npm run dev        # the website at http://localhost:8080 (after a build), pages served live from site/
 ```
 
 CI builds and tests every push and pull request. To release, run `npm version minor` (or `patch`, or an exact version): it bumps `version` in `package.json`, commits and tags `v<version>`. Then push the commit and the tag (`git push --atomic origin main v0.9.0`). The release workflow builds and tests, publishes the package to npm (with provenance) and creates a GitHub release with the built files.
@@ -57,7 +58,7 @@ Open `dist/pit-map-demo.html` (self-contained) or `demo/pit-map/index.html` afte
 
 ## Website
 
-[ftc-embeds.com](https://ftc-embeds.com) hosts the homepage (`site/index.html`), the configuration dashboards (`site/pit-map.html`, `site/team.html`), the iframe embed pages (`site/embed/`), the libraries (`/lib/<widget>.mjs` and `.umd.js`) and example data. `npm run build` builds it into `dist/site`; `scripts/deploy.sh [ssh host]` (default `ftc-embeds-server`) uploads it to `/opt/ftc-embeds` on the server, where the `ftc-embeds-web` container (`deploy/docker-compose.yml`, `deploy/Caddyfile`) serves it. The server's edge Caddy terminates TLS and forwards ftc-embeds.com to that container (`deploy/edge.Caddyfile`, added to it once by hand). `site/config.js` sets the embeds API (`apiBase`) and the team the homepage shows (`demoTeam`, `demoSeason`).
+[ftc-embeds.com](https://ftc-embeds.com) hosts the homepage (`site/index.html`), the guided setup (`site/setup.html`: one question per page, then the code with steps for the visitor's website builder), the configuration dashboards (`site/pit-map.html`, `site/team.html`), the iframe embed pages (`site/embed/`), the libraries (`/lib/<widget>.mjs` and `.umd.js`) and example data. `npm run build` builds it into `dist/site`; `scripts/deploy.sh [ssh host]` (default `ftc-embeds-server`) uploads it to `/opt/ftc-embeds` on the server, where the `ftc-embeds-web` container (`deploy/docker-compose.yml`, `deploy/Caddyfile`) serves it. The server's edge Caddy terminates TLS and forwards ftc-embeds.com to that container (`deploy/edge.Caddyfile`, added to it once by hand). `site/config.js` sets the embeds API (`apiBase`) and the team the homepage shows (`demoTeam`, `demoSeason`).
 
 The site counts how often the embeds are loaded per website, using the Referer header browsers send; it stores no IP addresses and sets no cookies. The numbers are public at [ftc-embeds.com/stats](https://ftc-embeds.com/stats). Caddy writes the log (`deploy/stats/stats.caddy`), `embed-stats.py` turns it into the `stats.json` behind the page every 10 minutes, and `scripts/stats.sh install` sets all of that up on the server. Sites that install the npm package never load anything from ftc-embeds.com, so the API server counts the embeds API calls per website as well: `api-usage.py` reads its nginx log into `embeds-usage.json` every 10 minutes (`scripts/stats.sh install-api`), and `embed-stats.py` merges that in. `scripts/stats.sh [--days N]` prints the numbers in your terminal.
 
@@ -76,6 +77,7 @@ site/                         ftc-embeds.com: homepage, pit map and team dashboa
 deploy/                       ftc-embeds-web container (compose + Caddyfile) and the edge Caddy site block
 deploy/stats/                 embed statistics: Caddy logging, embed-stats.py, api-usage.py and the /stats page
 scripts/build.mjs             builds every widget and the site into dist/
+scripts/dev.mjs               local server for the site (clean URLs like production)
 scripts/deploy.sh             uploads dist/site to the server
 scripts/stats.sh              installs the statistics on the server, or prints them
 ```
