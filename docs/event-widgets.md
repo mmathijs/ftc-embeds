@@ -36,7 +36,7 @@ While the event is on, the live event widgets refresh every 30 seconds (`refresh
 
 ## Iframes
 
-Every widget has an iframe page (`https://ftc-embeds.com/embed/<widget>?event=…`), with any option as a URL parameter. It posts `{ type: "ftc-embeds:height", page: "event-rankings", widget: "EventRankings", height }` to the parent whenever its height changes, so the parent can size the iframe.
+Every widget has an iframe page (`https://ftc-embeds.com/embed/<widget>?event=…`), with any option as a URL parameter. It posts `{ type: "ftc-embeds:height", page: "event-rankings", widget: "EventRankings", height }` to the parent whenever its height changes. Add `<script src="https://ftc-embeds.com/embed/resize.js" async></script>` once to the page and the iframes size themselves to their widget (`data-ftc-height="fixed"` on an iframe opts out). With `max-height` the widget scrolls inside, and to the highlighted team or the next match.
 
 ## Divisions
 

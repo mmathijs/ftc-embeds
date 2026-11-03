@@ -247,7 +247,7 @@
         team: "", season: "", widget: "team-card", theme: "auto", shape: "", layout: "list", accent: "#2563eb", useAccent: false,
         stats: ["opr", "epa", "record"], upcoming: 1, skipScrimmages: false, oldest: false, onlyWon: false, seasons: "",
         // event widgets: which one, and what they show ("" / "all": the widget's default)
-        eventWidget: "pit-map", columns: "", eventLimit: "", level: "all", matchState: "all", matchTeam: "",
+        eventWidget: "pit-map", columns: "", eventLimit: "", level: "all", matchState: "all", matchTeam: "", maxHeight: "",
         // pit map (same names as the /pit-map dashboard)
         source: "example", example: "FPEEUR", code: "", eventSeason: THIS_SEASON, highlight: "", mapTheme: "auto", mapShape: "", height: 600,
         // number, date and time formats (team widgets); "" / "locale" / "short": the widgets' defaults
@@ -320,6 +320,7 @@
         if (w == "event-rankings") {
             if (state.columns) o.columns = state.columns;
             if (state.eventLimit) o.limit = +state.eventLimit;
+            if (state.maxHeight) o.maxHeight = state.maxHeight;
         }
         if (w == "team-awards") {
             if (state.onlyWon) o.onlyWon = true;
@@ -354,10 +355,14 @@
             if (/^\d+$/.test(state.matchTeam)) o.team = +state.matchTeam;
         }
         if (id != "countdown" && state.eventLimit) o.limit = +state.eventLimit;
+        if (id != "countdown" && state.maxHeight) o.maxHeight = state.maxHeight;
         return formatOptions(o);
     }
-    const eventHeight = () => (state.eventWidget == "countdown" && state.layout == "compact" ? 140 : EVENT_WIDGETS[state.eventWidget].height || 560);
-    const teamHeight = () => (state.layout == "strip" ? 260 : state.layout == "compact" ? 140 : WIDGETS[state.widget].height);
+    const scrollHeight = () => (state.maxHeight ? parseInt(state.maxHeight) + 4 : null);
+    const eventHeight = () => (state.eventWidget == "countdown" ? (state.layout == "compact" ? 140 : 200) : scrollHeight() || EVENT_WIDGETS[state.eventWidget].height || 560);
+    /** Where the code may load a script: there the iframe sizes itself to the widget (embed/resize.js). */
+    const autoHeight = () => !["wix", "google-sites"].includes(state.site) && !state.maxHeight;
+    const teamHeight = () => (state.widget == "event-rankings" && scrollHeight() ? scrollHeight() : state.layout == "strip" ? 260 : state.layout == "compact" ? 140 : WIDGETS[state.widget].height);
 
     const kebab = (s) => s.replace(/[A-Z]/g, (c) => "-" + c.toLowerCase());
     const attrValue = (v) => (typeof v === "object" ? JSON.stringify(v) : String(v));
@@ -367,7 +372,11 @@
         let custom = SITE.apiBase && window[w.global] && SITE.apiBase !== window[w.global].DEFAULT_API_BASE;
         let q = new URLSearchParams(Object.entries(o).map(([k, v]) => [k, attrValue(v)]));
         if (method == "url") return `${ORIGIN}/embed/${id}?${q}`;
-        if (method == "iframe") return `<iframe src="${esc(`${ORIGIN}/embed/${id}?${q}`)}" title="${w.label}" style="width:100%;height:${height}px;border:0" loading="lazy"></iframe>`;
+        if (method == "iframe") {
+            let frame = `<iframe src="${esc(`${ORIGIN}/embed/${id}?${q}`)}" title="${w.label}" style="width:100%;height:${height}px;border:0" loading="lazy"></iframe>`;
+            // Where scripts are allowed, the iframe grows and shrinks with the widget.
+            return autoHeight() ? `${frame}\n<script src="${ORIGIN}/embed/resize.js" async></script>` : frame;
+        }
         if (method == "element") {
             let attr = (k, v) => (v === true ? ` ${kebab(k)}` : typeof v === "object" ? ` ${kebab(k)}='${JSON.stringify(v).replace(/'/g, "&#39;")}'` : ` ${kebab(k)}="${esc(String(v))}"`);
             let api = custom ? ` api-base="${SITE.apiBase}"` : "";
@@ -550,6 +559,8 @@
 
     /** The "What to show" page of the event widgets. */
     function eventContent(head, id) {
+        let tall = `<p class="q">How tall? <small>A fixed height scrolls inside the widget, to ${id == "event-matches" ? "the next match" : "your team"}</small></p>
+            <div class="choices small">${choice("maxHeight", "", "Fit everything", "As long as the list")}${choice("maxHeight", "400px", "400px", "Scrolls inside")}${choice("maxHeight", "600px", "600px", "Scrolls inside")}</div>`;
         let limits = (label, values) => `<div class="choices small">${choice("eventLimit", "", label)}${values.map(([v, l]) => choice("eventLimit", v, l)).join("")}</div>`;
         if (id == "event-rankings")
             return `${head}
@@ -559,19 +570,22 @@
                 ${choice("columns", "", "Standard", "RP, record, matches, OPR")}${choice("columns", "rp,tb1,tb2,record,matches,opr", "With tiebreakers", "Adds TBP and TBP2")}${choice("columns", "rp,record", "Short", "RP and record")}${choice("columns", "rp,opr", "Strength", "RP and OPR")}
             </div>
             <p class="q">How many teams? <small>Highlighted teams lower down are shown too</small></p>
-            ${limits("All", [["8", "Top 8"], ["16", "Top 16"]])}`;
+            ${limits("All", [["8", "Top 8"], ["16", "Top 16"]])}
+            ${tall}`;
         if (id == "event-advancement")
             return `${head}
             <h1>Which points?</h1>
             <p class="sub">Each team's advancement points, by where they came from, and who advanced (from the 2025 season on).</p>
             <div class="choices small">${choice("columns", "", "Every part", "Qualification, alliance, playoff, award, total")}${choice("columns", "total", "Total only", "For narrow places")}</div>
             <p class="q">How many teams? <small>Highlighted teams lower down are shown too</small></p>
-            ${limits("All", [["10", "Top 10"], ["20", "Top 20"]])}`;
+            ${limits("All", [["10", "Top 10"], ["20", "Top 20"]])}
+            ${tall}`;
         if (id == "league-standings")
             return `${head}
             <h1>How many teams?</h1>
             <p class="sub">The league's standings: rank, average ranking points and record. Highlighted teams lower down are shown too.</p>
-            ${limits("All", [["8", "Top 8"], ["16", "Top 16"]])}`;
+            ${limits("All", [["8", "Top 8"], ["16", "Top 16"]])}
+            ${tall}`;
         return `${head}
             <h1>Which matches?</h1>
             <p class="sub">While the event is on, the next match is marked and the list updates itself.</p>
@@ -581,7 +595,8 @@
             <p class="q">Only one team's matches? <small>Optional: a team's own schedule, with its next match marked</small></p>
             <input type="text" inputmode="numeric" data-input="matchTeam" placeholder="e.g. 19444" autocomplete="off" aria-label="Only this team's matches" style="max-width:200px">
             <p class="q">How many?</p>
-            ${limits("All", [["5", state.matchState == "upcoming" ? "Next 5" : "First 5"], ["10", state.matchState == "upcoming" ? "Next 10" : "First 10"]])}`;
+            ${limits("All", [["5", state.matchState == "upcoming" ? "Next 5" : "First 5"], ["10", state.matchState == "upcoming" ? "Next 10" : "First 10"]])}
+            ${tall}`;
     }
 
     const PAGES = {
@@ -872,7 +887,7 @@
         if (SITE.apiBase || SITE.graphqlUrl) lib.configure({ apiBase: SITE.apiBase || null, graphqlUrl: SITE.graphqlUrl || null });
         let o = step == "team" ? { team: +state.team, season: state.season ? +state.season : null, stats: "opr,record,awards-total", upcoming: 0 } : teamOptions();
         // Every option goes in, so ones back at their default are reset too.
-        o = { layout: "list", season: null, theme: "auto", ...(id == "team-card" ? { stats: "opr,epa,record", upcoming: 1 } : {}), ...(id == "team-awards" ? { onlyWon: false, seasons: null } : {}), ...(id == "team-results" || id == "team-season" ? { skipTypes: null, order: "newest" } : {}), ...(id == "event-rankings" ? { columns: lib[w.cls].defaults.columns, limit: null } : {}), ...o };
+        o = { layout: "list", season: null, theme: "auto", ...(id == "team-card" ? { stats: "opr,epa,record", upcoming: 1 } : {}), ...(id == "team-awards" ? { onlyWon: false, seasons: null } : {}), ...(id == "team-results" || id == "team-season" ? { skipTypes: null, order: "newest" } : {}), ...(id == "event-rankings" ? { columns: lib[w.cls].defaults.columns, limit: null, maxHeight: null } : {}), ...o };
         if (widgetKey !== id || !widget) {
             widget?.destroy?.();
             box.replaceChildren();
@@ -884,28 +899,36 @@
         box.classList.toggle("on-dark", step != "team" && looksDark(state.theme));
     }
 
+    // What the preview shows before an event is picked: an example per widget ([season, code]).
+    const DEMO_EVENTS = {
+        "event-rankings": [2025, "NLHAQ"],
+        "event-matches": [2025, "NLHAQ"],
+        "event-advancement": [2025, "NLCMP"],
+        "league-standings": [2023, "NLBNM7"],
+        // The World Championship is always ahead during the season.
+        countdown: [THIS_SEASON, "FTCCMP1"],
+    };
+
     function eventPreview(box) {
         box.classList.remove("map");
         let id = state.eventWidget;
         let w = EVENT_WIDGETS[id];
         let lib = window[w.global];
-        $("preview-label").textContent = "Live preview";
+        let demo = !answered("event");
+        $("preview-label").textContent = demo ? "Example (pick your event next)" : "Live preview";
         $("preview-note").textContent = `<${w.tag}>`;
-        if (!answered("event")) {
-            widget?.destroy?.();
-            widget = null;
-            widgetKey = null;
-            box.innerHTML = `<p class="hint" style="margin:0">Type an event code to see it here.</p>`;
-            box.classList.remove("on-dark");
-            return;
-        }
         if (SITE.apiBase || SITE.graphqlUrl) lib.configure({ apiBase: SITE.apiBase || null, graphqlUrl: SITE.graphqlUrl || null });
         // Every option goes in, so ones back at their default are reset too.
         let o = {
-            ...lib[w.cls].defaults, theme: "auto", shape: null, layout: "list", highlight: null, limit: null, team: null,
+            ...lib[w.cls].defaults, theme: "auto", shape: null, layout: "list", highlight: null, limit: null, team: null, maxHeight: null,
             locale: null, numberFormat: "locale", decimals: 1, dateFormat: "short", hourCycle: null, timeZone: null,
             ...eventWidgetOptions(),
         };
+        if (demo) {
+            let [season, code] = DEMO_EVENTS[id];
+            Object.assign(o, { event: code, season, team: null });
+            if (!o.highlight && id != "countdown" && SITE.demoTeam) o.highlight = String(SITE.demoTeam);
+        }
         if (widgetKey !== "event:" + id || !widget) {
             widget?.destroy?.();
             box.replaceChildren();
@@ -936,7 +959,7 @@
         el.textContent = current ? teamCheck.text : answered("team") ? "Looking it up…" : "";
     }
     function setEventCheck(ok, error, data) {
-        if (isMap() && state.source == "example") return;
+        if ((isMap() && state.source == "example") || (!isMap() && !answered("event"))) return;
         let ref = eventRef();
         let found = data?.name ? `${data.name} (${ref})` : `Found ${ref}`;
         let missing = isMap() ? `${ref} has no pit map (yet)` : `There's no event ${ref}. Check the code and season?`;
