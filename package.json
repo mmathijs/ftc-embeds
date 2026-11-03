@@ -1,6 +1,6 @@
 {
     "name": "ftc-embeds",
-    "version": "0.9.0",
+    "version": "0.10.0",
     "description": "Embeddable FIRST Tech Challenge widgets (pit maps, team cards, season results, awards, next match, season + live). Zero dependencies; works with any framework.",
     "license": "MIT",
     "repository": {
