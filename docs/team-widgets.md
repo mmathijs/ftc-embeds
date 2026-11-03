@@ -2,7 +2,9 @@
 
 Widgets about one team, each a separate module, web component and iframe page:
 
-(The widgets follow in the next versions.)
+| Widget | Element | Shows |
+| --- | --- | --- |
+| [team-card](team-card.md) | `<ftc-team-card>` | name, location, chosen stats, next/upcoming events |
 
 They load from the ftc-embeds REST API: `configure({ apiBase: "https://ftcscout-api.mmathijs.nl/rest/embeds/v1" })` once per page, or the `api-base` attribute per widget (see [api.md](api.md)). The iframe pages on ftc-embeds.com already know it, and so does the builder at [ftc-embeds.com/team](https://ftc-embeds.com/team), which writes the code for you.
 

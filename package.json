@@ -1,7 +1,7 @@
 {
     "name": "ftc-embeds",
     "version": "0.1.4",
-    "description": "Embeddable FIRST Tech Challenge widgets (pit maps, more to come). Zero dependencies; works with any framework.",
+    "description": "Embeddable FIRST Tech Challenge widgets (pit maps, team cards). Zero dependencies; works with any framework.",
     "license": "MIT",
     "repository": {
         "type": "git",
@@ -18,12 +18,21 @@
             "require": "./dist/pit-map.umd.js"
         },
         "./pit-map/umd": "./dist/pit-map.umd.min.js",
+        "./team-card": {
+            "types": "./src/team-card/team-card.d.ts",
+            "import": "./src/team-card/team-card.mjs",
+            "require": "./dist/team-card.umd.js"
+        },
+        "./team-card/umd": "./dist/team-card.umd.min.js",
         "./package.json": "./package.json"
     },
     "typesVersions": {
         "*": {
             "pit-map": [
                 "./src/pit-map/pit-map.d.ts"
+            ],
+            "team-card": [
+                "./src/team-card/team-card.d.ts"
             ]
         }
     },
@@ -49,7 +58,7 @@
     "scripts": {
         "build": "node scripts/build.mjs",
         "test": "node --test scripts/test.mjs",
-        "typecheck": "npx -y -p typescript@5.4.5 tsc --noEmit --strict --lib es2020,dom src/pit-map/pit-map.d.ts",
+        "typecheck": "npx -y -p typescript@5.4.5 tsc --noEmit --strict --lib es2020,dom src/pit-map/pit-map.d.ts src/team-card/team-card.d.ts",
         "prepare": "node scripts/build.mjs"
     },
     "devDependencies": {
@@ -61,6 +70,9 @@
         "first-tech-challenge",
         "pit-map",
         "embed",
-        "web-component"
+        "web-component",
+        "team",
+        "awards",
+        "ftcscout"
     ]
 }

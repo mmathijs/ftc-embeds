@@ -112,6 +112,36 @@ test("identical requests at the same time share one fetch", async () => {
     assert.equal(calls.length, 1);
 });
 
+
+
+
+
+
+
+
+
+// ------------------------------------------------------------------ team widgets
+
+const TEAM_WIDGETS = [
+    { name: "team-card", cls: "TeamCard", define: "defineTeamCardElement", api: ["getTeamCard", "getTeamStats", "TEAM_CARD_QUERY"] },
+];
+
+for (const w of TEAM_WIDGETS) {
+    for (const [label, load] of [
+        ["source", () => import(resolve(root, `src/${w.name}/${w.name}.mjs`))],
+        ["dist ES module", () => import(resolve(root, `dist/${w.name}.mjs`))],
+        ["minified ES module", () => import(resolve(root, `dist/${w.name}.min.mjs`))],
+        ["minified UMD", async () => require(resolve(root, `dist/${w.name}.umd.min.js`))],
+    ]) {
+        test(`${w.name}: ${label} loads without a DOM and has its exports`, async () => {
+            const m = await load();
+            for (const name of [w.cls, w.define, "configure", "EmbedsApiError", "TEAM_THEMES", "ICONS", "TEAM_TEXT", ...w.api]) assert.ok(name in m, `missing export ${name}`);
+            assert.equal(typeof m[w.cls], "function");
+            assert.ok(m.TEAM_THEMES.trophy && m.TEAM_THEMES.light, "themes");
+        });
+    }
+}
+
 test("team presets use REST paths, with the season only when given", async () => {
     const api = await import(resolve(root, "src/core/team-api.mjs"));
     const team = { number: 3977, name: "T", events: [], awards: [], matches: [] };

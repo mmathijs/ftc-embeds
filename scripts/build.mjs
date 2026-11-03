@@ -11,6 +11,7 @@ import { fileURLToPath } from "node:url";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const WIDGETS = [
     { name: "pit-map", global: "FtcPitMap" },
+    { name: "team-card", global: "FtcTeamCard" },
 ];
 
 const IMPORT_RE = /^import\s*\{[^}]*\}\s*from\s*"(\.{1,2}\/[^"]+)";\s*$/gm;
