@@ -8,6 +8,7 @@ Widgets about one event, for event, league and region websites. Each is a separa
 | [event-matches](event-matches.md) | `<ftc-event-matches>` | the match schedule and results, the next match marked |
 | [event-advancement](event-advancement.md) | `<ftc-event-advancement>` | the slots, each team's advancement points, who advanced |
 | [league-standings](league-standings.md) | `<ftc-league-standings>` | a league's standings, from any of its meets |
+| [countdown](countdown.md) | `<ftc-countdown>` | a countdown to the event (or with `team`: to a team's next match or event) |
 
 They take an event code and a season (`event="NLCMP" season="2025"`; the season defaults to the current one), and load from FTCScout's ftc-embeds API like the team widgets (see [api.md](api.md)).
 

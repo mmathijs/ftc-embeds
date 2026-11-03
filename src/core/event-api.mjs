@@ -20,6 +20,11 @@ const RANK_STATS_FRAGMENT = `fragment EmbedRankStats on TeamEventStats {
     ... on TeamEventStats2026 { rank rp tb1 tb2 wins losses ties dqs qualMatchesPlayed opr { totalPointsNp } }
 }`;
 
+/** The GraphQL query behind GET {apiBase}/events/{season}/{code}/info. */
+export const EVENT_INFO_QUERY = `query EmbedEventInfo($season: Int!, $code: String!) {
+    eventByCode(season: $season, code: $code) { ${EVENT_FIELDS} website liveStreamURL }
+}`;
+
 /** The GraphQL query behind GET {apiBase}/events/{season}/{code}/rankings. */
 export const EVENT_RANKINGS_QUERY = `query EmbedEventRankings($season: Int!, $code: String!) {
     eventByCode(season: $season, code: $code) {
@@ -131,4 +136,9 @@ export function getEventAdvancement(event, options = {}) {
  */
 export function getEventLeague(event, options = {}) {
     return eventPreset("league", event, EVENT_LEAGUE_QUERY, options);
+}
+
+/** An event's details (dates, time zone, place, website, livestream): GET {apiBase}/events/{season}/{code}/info. */
+export function getEventInfo(event, options = {}) {
+    return eventPreset("info", event, EVENT_INFO_QUERY, options);
 }

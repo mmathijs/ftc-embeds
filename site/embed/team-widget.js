@@ -1,6 +1,7 @@
-// Renders one team widget from URL parameters, for the iframe pages (embed/team-card.html etc.).
-// The parameters mirror the web components' attributes: team, season, theme (name or JSON),
-// layout, density, hide, limit, max-height, stats, ... (see the docs of each widget).
+// Renders one team or event widget from URL parameters, for the iframe pages (embed/team-card.html,
+// embed/event-rankings.html etc.). The parameters mirror the web components' attributes: team or
+// event, season, theme (name or JSON), layout, density, hide, limit, max-height, stats, highlight,
+// ... (see the docs of each widget).
 (() => {
     const page = document.currentScript.dataset;
     const lib = window[page.global];

@@ -139,6 +139,7 @@ const TEAM_WIDGETS = [
     { name: "event-matches", cls: "EventMatches", define: "defineEventMatchesElement", api: ["getEventMatches", "matchRows", "EVENT_MATCHES_QUERY"] },
     { name: "event-advancement", cls: "EventAdvancement", define: "defineEventAdvancementElement", api: ["getEventAdvancement", "advancementRows", "EVENT_ADVANCEMENT_QUERY"] },
     { name: "league-standings", cls: "LeagueStandings", define: "defineLeagueStandingsElement", api: ["getEventLeague", "EVENT_LEAGUE_QUERY"] },
+    { name: "countdown", cls: "Countdown", define: "defineCountdownElement", api: ["getEventInfo", "getTeamMatches", "zonedMidnight", "timeLeft", "EVENT_INFO_QUERY"] },
 ];
 
 for (const w of TEAM_WIDGETS) {
@@ -391,4 +392,14 @@ test("advancement runs by points, with teams without points last", async () => {
     const rows = advancementRows({ advancement: [a(5, null, null), a(3, 2, null), a(1, 1, 1), a(2, 3, 2)] });
     assert.deepEqual(rows.map((r) => r.teamNumber), [1, 3, 2, 5]);
     assert.deepEqual(advancementRows({ advancement: [] }), []);
+});
+
+test("countdowns start at midnight in the event's time zone", async () => {
+    const { zonedMidnight, timeLeft } = await import(resolve(root, "src/countdown/countdown.mjs"));
+    assert.equal(new Date(zonedMidnight("2026-02-07", "Europe/Amsterdam")).toISOString(), "2026-02-06T23:00:00.000Z");
+    assert.equal(new Date(zonedMidnight("2026-06-17", "Europe/Amsterdam")).toISOString(), "2026-06-16T22:00:00.000Z");
+    assert.equal(new Date(zonedMidnight("2026-03-08", "America/New_York")).toISOString(), "2026-03-08T05:00:00.000Z");
+    assert.equal(new Date(zonedMidnight("2026-02-07", null)).toISOString(), "2026-02-07T00:00:00.000Z");
+    assert.deepEqual(timeLeft(Date.UTC(2026, 1, 8, 1, 2, 3), Date.UTC(2026, 1, 6)), { days: 2, hours: 1, minutes: 2, seconds: 3, total: 176523 });
+    assert.equal(timeLeft(0, 5000).total, 0);
 });
