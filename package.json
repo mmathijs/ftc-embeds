@@ -48,6 +48,7 @@
     ],
     "sideEffects": [
         "./src/pit-map/pit-map.mjs",
+        "./src/team-card/team-card.mjs",
         "./dist/*.js",
         "./dist/*.mjs"
     ],
