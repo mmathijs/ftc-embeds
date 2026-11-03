@@ -15,6 +15,7 @@ const WIDGETS = [
     { name: "team-results", global: "FtcTeamResults" },
     { name: "team-awards", global: "FtcTeamAwards" },
     { name: "next-match", global: "FtcNextMatch" },
+    { name: "team-season", global: "FtcTeamSeason" },
 ];
 
 const IMPORT_RE = /^import\s*\{[^}]*\}\s*from\s*"(\.{1,2}\/[^"]+)";\s*$/gm;

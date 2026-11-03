@@ -127,6 +127,7 @@ const TEAM_WIDGETS = [
     { name: "team-results", cls: "TeamResults", define: "defineTeamResultsElement", api: ["getTeamResults", "TEAM_RESULTS_QUERY"] },
     { name: "team-awards", cls: "TeamAwards", define: "defineTeamAwardsElement", api: ["getTeamAwards", "TEAM_AWARDS_QUERY"] },
     { name: "next-match", cls: "NextMatch", define: "defineNextMatchElement", api: ["getTeamMatches", "TEAM_MATCHES_QUERY"] },
+    { name: "team-season", cls: "TeamSeason", define: "defineTeamSeasonElement", api: ["getTeamResults", "getTeamMatches"] },
 ];
 
 for (const w of TEAM_WIDGETS) {

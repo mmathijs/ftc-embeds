@@ -9,6 +9,7 @@ Embeddable widgets for FIRST Tech Challenge events and teams. Each widget is a s
 | Season results | `ftc-embeds/team-results` | [docs/team-results.md](docs/team-results.md) |
 | Awards | `ftc-embeds/team-awards` | [docs/team-awards.md](docs/team-awards.md) |
 | Next match | `ftc-embeds/next-match` | [docs/next-match.md](docs/next-match.md) |
+| Season + next match | `ftc-embeds/team-season` | [docs/team-season.md](docs/team-season.md) |
 
 The team widgets share their options, themes (including a trophy-case look), icons and styling hooks: see [docs/team-widgets.md](docs/team-widgets.md).
 
@@ -28,7 +29,7 @@ configure({ apiBase: "https://ftcscout-api.mmathijs.nl/rest/embeds/v1" });
 new PitMap(document.getElementById("map"), { event: "2025/FPEEUR", theme: "ftcscout", highlight: "19444" });
 ```
 
-Without a bundler: `<script src="https://ftc-embeds.com/lib/<widget>.umd.js"></script>` (globals `FtcPitMap`, `FtcTeamCard`, `FtcTeamResults`, `FtcTeamAwards`, `FtcNextMatch`), or `dist/<widget>.umd.js` from a build.
+Without a bundler: `<script src="https://ftc-embeds.com/lib/<widget>.umd.js"></script>` (globals `FtcPitMap`, `FtcTeamCard`, `FtcTeamResults`, `FtcTeamAwards`, `FtcNextMatch`, `FtcTeamSeason`), or `dist/<widget>.umd.js` from a build.
 
 ## Install
 

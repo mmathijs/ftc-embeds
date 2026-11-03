@@ -1,6 +1,6 @@
 # Team widgets
 
-Widgets about one team, each a separate module, web component and iframe page:
+Five widgets about one team, each a separate module, web component and iframe page:
 
 | Widget | Element | Shows |
 | --- | --- | --- |
@@ -8,6 +8,7 @@ Widgets about one team, each a separate module, web component and iframe page:
 | [team-results](team-results.md) | `<ftc-team-results>` | a season's events: rank, record, awards, advancement |
 | [team-awards](team-awards.md) | `<ftc-team-awards>` | every award, by season |
 | [next-match](next-match.md) | `<ftc-next-match>` | the next match and last result during an event |
+| [team-season](team-season.md) | `<ftc-team-season>` | team-results + next-match in one |
 
 They load from the ftc-embeds REST API: `configure({ apiBase: "https://ftcscout-api.mmathijs.nl/rest/embeds/v1" })` once per page, or the `api-base` attribute per widget (see [api.md](api.md)). The iframe pages on ftc-embeds.com already know it, and so does the builder at [ftc-embeds.com/team](https://ftc-embeds.com/team), which writes the code for you.
 
