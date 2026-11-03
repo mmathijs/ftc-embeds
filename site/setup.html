@@ -164,9 +164,12 @@
     .side { padding: 40px 28px; min-width: 0; }
     .side-inner { position: sticky; top: calc(var(--masthead, 92px) + 20px); }
     .side .label { font: 11px var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--ink-2); margin-bottom: 10px; display: flex; justify-content: space-between; }
-    .preview { border: 2px solid var(--ink); background: var(--field); padding: 20px; min-height: 240px; max-height: 70vh; overflow: auto; }
+    /* Resizable from its corner, to try the widget at other sizes; once dragged it keeps that height. */
+    .preview { border: 2px solid var(--ink); background: var(--field); padding: 20px; min-height: 160px; max-height: 70vh; overflow: auto; resize: both; max-width: 100%; min-width: 200px; }
+    .preview[style*="height"] { max-height: none; }
+    .preview-hint { margin: 8px 0 0; font-size: 12.5px; color: var(--ink-2); }
     .preview.on-dark { background: #11151c; }
-    .preview.map { padding: 0; height: 520px; overflow: hidden; position: relative; }
+    .preview.map { padding: 0; height: 520px; min-height: 240px; overflow: hidden; position: relative; }
 
     /* Last step */
     .steps { counter-reset: s; list-style: none; margin: 0 0 22px; padding: 0; }
@@ -221,6 +224,7 @@
         <div class="side-inner">
             <div class="label"><span id="preview-label">Live preview</span><span id="preview-note"></span></div>
             <div class="preview" id="preview"></div>
+            <p class="preview-hint" id="preview-hint"></p>
         </div>
     </aside>
 </div>

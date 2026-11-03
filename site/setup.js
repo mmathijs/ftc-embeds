@@ -534,7 +534,7 @@
             <div class="choices">
                 ${Object.entries(MAP_SHAPE_LABELS).map(([id, [name, text]]) => choice("mapShape", id, name, text, mapShapeDemo(id))).join("")}
             </div>
-            <p class="q">How tall?</p>
+            <p class="q">How tall? <small>Or drag the preview's corner</small></p>
             <div class="choices small">
                 ${choice("height", 450, "Short", "450px")}${choice("height", 600, "Normal", "600px")}${choice("height", 800, "Tall", "800px")}
             </div>`
@@ -686,6 +686,24 @@
     let widget = null;
     let widgetKey = null;
 
+    // Dragging the pit map preview's corner sets the map's height (to the nearest 10px) once the drag
+    // settles; until then the box is left alone.
+    let resizing = null;
+    if (window.ResizeObserver) {
+        let seen = null;
+        new ResizeObserver(() => {
+            let box = $("preview");
+            if (state.kind != "event" || step == "kind" || !box.classList.contains("map")) return;
+            let h = Math.max(240, Math.round(box.offsetHeight / 10) * 10);
+            if (seen === null || h == state.height) return void (seen = h);
+            clearTimeout(resizing);
+            resizing = setTimeout(() => {
+                resizing = null;
+                set({ height: h });
+            }, 300);
+        }).observe($("preview"));
+    }
+
     function preview() {
         let side = $("side");
         let solo = step == "kind";
@@ -696,6 +714,9 @@
 
         if (state.kind == "event") {
             box.classList.add("map");
+            // The map's box is as tall as the height in the code; dragging its corner changes that height.
+            if (!resizing) box.style.height = `${state.height}px`;
+            $("preview-hint").textContent = `Drag the corner to resize. The height goes into the code: ${state.height}px.`;
             box.classList.toggle("on-dark", looksDark(state.mapTheme));
             $("preview-label").textContent = "Live preview";
             $("preview-note").textContent = eventRef();
@@ -722,6 +743,8 @@
         }
 
         box.classList.remove("map");
+        $("preview-hint").textContent = "Drag the corner to try other sizes: the widget fits the width it gets.";
+        if (widgetKey == "map") box.style.removeProperty("height");
         // Before the widget question, show the team card: it confirms the team number.
         let id = step == "team" ? "team-card" : state.widget;
         let w = WIDGETS[id];
