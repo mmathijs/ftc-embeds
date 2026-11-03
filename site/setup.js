@@ -153,6 +153,9 @@
     };
     // The season that's on now (FTC seasons start in September), as the widgets work it out.
     const THIS_SEASON = window.FtcTeamCard?.seasonOf?.() ?? (new Date().getMonth() >= 8 ? new Date().getFullYear() : new Date().getFullYear() - 1);
+    // Every season the widgets have data for: FTCScout's start with 2019–20.
+    const FIRST_SEASON = 2019;
+    const SEASONS = Array.from({ length: THIS_SEASON - FIRST_SEASON + 1 }, (_, i) => THIS_SEASON - i);
 
     // Website builders: which code fits, and how to paste it there. {h} is the suggested height.
     const PLATFORMS = {
@@ -508,7 +511,7 @@
             <p class="q">Which season? <small>Most people keep "current": it moves on by itself.</small></p>
             <div class="choices small">
                 ${choice("season", "", "Current")}
-                ${Array.from({ length: 4 }, (_, i) => THIS_SEASON - i).map((y) => choice("season", String(y), `${y}–${String(y + 1).slice(2)}`)).join("")}
+                ${SEASONS.map((y) => choice("season", String(y), `${y}–${String(y + 1).slice(2)}`)).join("")}
             </div>`,
 
         widget: () => `
@@ -594,7 +597,7 @@
                 <div class="row" style="margin-top:20px">
                     <label class="f" style="flex:1 1 200px">Event code <input class="big" type="text" data-input="code" placeholder="e.g. NLCMP" autocomplete="off" style="text-transform:uppercase"></label>
                     <label class="f" style="flex:0 0 140px">Season
-                        <select data-select="eventSeason">${Array.from({ length: 4 }, (_, i) => THIS_SEASON - i).map((y) => `<option value="${y}">${y}–${String(y + 1).slice(2)}</option>`).join("")}</select>
+                        <select data-select="eventSeason">${SEASONS.map((y) => `<option value="${y}">${y}–${String(y + 1).slice(2)}</option>`).join("")}</select>
                     </label>
                 </div>
                 <div class="status" id="event-status"></div>
