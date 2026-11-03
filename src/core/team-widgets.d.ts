@@ -1,6 +1,8 @@
 // Types shared by the team widgets (team-card, team-results, team-awards, next-match, team-season).
 
-export type TeamThemeName = "auto" | "light" | "dark" | "ftcscout" | "ftcscout-dark" | "ftc-events" | "trophy";
+/** The themes that follow the visitor's light or dark mode (see TEAM_THEME_MODES). */
+export type TeamThemeModeName = "auto" | "ftcscout-auto" | "ftc-events-auto" | "trophy-auto";
+export type TeamThemeName = TeamThemeModeName | "light" | "dark" | "ftcscout" | "ftcscout-dark" | "ftc-events" | "ftc-events-dark" | "trophy" | "trophy-light";
 
 /** Theme tokens; each can also be set from the page with --ftcw-<kebab-name> (e.g. --ftcw-accent). */
 export interface TeamTheme {
@@ -173,7 +175,9 @@ export declare class EmbedsApiError extends Error {
     readonly notFound: boolean;
 }
 
-export declare const TEAM_THEMES: Record<Exclude<TeamThemeName, "auto">, TeamTheme>;
+export declare const TEAM_THEMES: Record<Exclude<TeamThemeName, TeamThemeModeName>, TeamTheme>;
+/** Each theme that follows light/dark mode, with the [light, dark] themes it switches between. */
+export declare const TEAM_THEME_MODES: Record<TeamThemeModeName, [Exclude<TeamThemeName, TeamThemeModeName>, Exclude<TeamThemeName, TeamThemeModeName>]>;
 export declare const ICONS: Record<IconName, string>;
 
 /** The FTC season a date falls in (seasons start in September). */

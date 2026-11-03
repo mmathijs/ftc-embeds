@@ -149,7 +149,9 @@ export interface Theme {
     uiRadius: number;
 }
 
-export type ThemeName = "auto" | "light" | "dark" | "ftcscout" | "ftcscout-dark" | "ftc-events";
+/** The themes that follow the visitor's light or dark mode (see THEME_MODES). */
+export type ThemeModeName = "auto" | "ftcscout-auto" | "ftc-events-auto";
+export type ThemeName = ThemeModeName | "light" | "dark" | "ftcscout" | "ftcscout-dark" | "ftc-events" | "ftc-events-dark";
 /** A preset name, or tokens layered over a preset ({ base: "ftc-events", pitRadius: 0.2 }). */
 export type ThemeOption = ThemeName | (Partial<Theme> & { base?: ThemeName; extends?: ThemeName });
 
@@ -395,7 +397,9 @@ export declare class PitMap {
 }
 
 export declare const CELL_TYPES: CellType[];
-export declare const THEMES: Record<Exclude<ThemeName, "auto">, Theme>;
+export declare const THEMES: Record<Exclude<ThemeName, ThemeModeName>, Theme>;
+/** Each theme that follows light/dark mode, with the [light, dark] themes it switches between. */
+export declare const THEME_MODES: Record<ThemeModeName, [Exclude<ThemeName, ThemeModeName>, Exclude<ThemeName, ThemeModeName>]>;
 export declare function normalizePitMap(raw: unknown): {
     minX: number;
     minY: number;

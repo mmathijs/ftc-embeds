@@ -19,17 +19,86 @@
         "next-match": { global: "FtcNextMatch", cls: "NextMatch", tag: "ftc-next-match", label: "Next match", text: "While you compete: your next match, the alliances and a countdown. Updates by itself.", badge: "During events", layouts: { list: "Full", compact: "Two lines" }, height: 230 },
         "team-season": { global: "FtcTeamSeason", cls: "TeamSeason", tag: "ftc-team-season", label: "Season + next match", text: "Season results, with the live next match on top while you compete.", layouts: { list: "List", strip: "Scrolling tiles" }, height: 520 },
     };
-    // Swatches: background, surface, text, accent (close to each theme, for picking only).
-    const TEAM_THEMES = {
-        auto: ["Follows the visitor", "Light or dark, like their device", ["#ffffff", "#f1f5f9", "#0f172a", "#111827"]],
-        light: ["Light", "White with blue accents", ["#ffffff", "#f1f5f9", "#0f172a", "#2563eb"]],
-        dark: ["Dark", "For dark websites", ["#0f172a", "#1e293b", "#e2e8f0", "#60a5fa"]],
-        trophy: ["Trophy case", "Dark and metallic", ["#15130f", "#24201a", "#f2e8d5", "#d4a73c"]],
-        ftcscout: ["FTCScout", "Looks like FTCScout", ["#ffffff", "#f3f4f6", "#111827", "#3b82f6"]],
-        "ftcscout-dark": ["FTCScout dark", "FTCScout's dark mode", ["#1f2937", "#111827", "#f9fafb", "#60a5fa"]],
-        "ftc-events": ["FTC Events", "Looks like FIRST's site", ["#ffffff", "#eef2f6", "#1d1d1b", "#0066b3"]],
+    // Colors: a family, in a light, a dark, or a follow-the-visitor version. The theme names are the
+    // libraries' own. Swatches (background, accent) are close to each theme, for picking only.
+    const FAMILIES = {
+        default: { label: "Default", text: "Clean, with blue accents", names: { auto: "auto", light: "light", dark: "dark" }, light: ["#ffffff", "#2563eb"], dark: ["#16191e", "#6b9cff"] },
+        trophy: { label: "Trophy case", text: "Metallic cards, amber for wins", names: { auto: "trophy-auto", light: "trophy-light", dark: "trophy" }, light: ["#f7f5f0", "#d97706"], dark: ["#2b313d", "#fbbf24"], teamOnly: true },
+        ftcscout: { label: "FTCScout", text: "Looks like FTCScout", names: { auto: "ftcscout-auto", light: "ftcscout", dark: "ftcscout-dark" }, light: ["#ffffff", "#2c666e"], dark: ["#2d2d2d", "#39848e"] },
+        "ftc-events": { label: "FTC Events", text: "Looks like FIRST's site", names: { auto: "ftc-events-auto", light: "ftc-events", dark: "ftc-events-dark" }, light: ["#ffffff", "#0066b3"], dark: ["#212529", "#4d9fe0"] },
     };
-    const MAP_THEMES = ["auto", "light", "dark", "ftcscout", "ftcscout-dark", "ftc-events"];
+    const MODES = { auto: ["Follow the visitor", "Light or dark, like their device"], light: ["Light", "For light websites"], dark: ["Dark", "For dark websites"] };
+    /** [family, mode] of a theme name; unknown names count as the default family. */
+    function splitTheme(name) {
+        for (let [f, fam] of Object.entries(FAMILIES)) for (let [m, n] of Object.entries(fam.names)) if (n == name) return [f, m];
+        return ["default", "auto"];
+    }
+    const themeLabel = (name) => {
+        let [f, m] = splitTheme(name);
+        return `${FAMILIES[f].label}, ${m == "auto" ? "following the visitor" : m}`;
+    };
+    const DARK_MQ = matchMedia("(prefers-color-scheme: dark)");
+    const looksDark = (name) => {
+        let m = splitTheme(name)[1];
+        return m == "dark" || (m == "auto" && DARK_MQ.matches);
+    };
+    // Choice keys that aren't stored as such: family and mode of the team (theme) or map (mapTheme) colors.
+    const VIRTUAL = {
+        family: ["theme", 0], mode: ["theme", 1],
+        mapFamily: ["mapTheme", 0], mapMode: ["mapTheme", 1],
+    };
+    const virtualGet = (key) => splitTheme(state[VIRTUAL[key][0]])[VIRTUAL[key][1]];
+    function virtualSet(key, value) {
+        let [field, i] = VIRTUAL[key];
+        let parts = splitTheme(state[field]);
+        parts[i] = value;
+        return { [field]: FAMILIES[parts[0]].names[parts[1]] };
+    }
+
+    // Shape & spacing, separate from the colors: each preset sets every shape token, so it looks the
+    // same on any color theme ("" keeps the color theme's own shape). Only the tokens that differ from
+    // the picked color theme end up in the code.
+    const SHAPE_DEFAULTS = {
+        radius: "12px", innerRadius: "8px", chipRadius: "999px", avatarRadius: "4px", avatarSize: "44px", padding: "16px", gap: "8px", rowPadding: "10px",
+        tileWidth: "176px", cardHeight: "150px", fontSize: "14px", titleSize: "16px", titleWeight: "650", titleTransform: "none", titleLetterSpacing: "normal",
+        valueSize: "19px", valueWeight: "700", labelLetterSpacing: ".04em", nameSize: "18px", nameWeight: "700", chipFontSize: "11.5px", chipWeight: "550", chipPadding: "2px 8px",
+    };
+    const TEAM_SHAPES = {
+        "": ["Theme's own", "Whatever the colors come with", null],
+        rounded: ["Rounded", "Soft corners, normal spacing", {}],
+        square: ["Square", "Sharp corners, flat", { radius: "0", innerRadius: "0", chipRadius: "0", avatarRadius: "0" }],
+        compact: ["Compact", "Tight, for sidebars", { radius: "6px", innerRadius: "4px", chipRadius: "4px", avatarSize: "36px", padding: "10px", gap: "6px", rowPadding: "6px", fontSize: "13px", titleSize: "15px", valueSize: "17px", nameSize: "16px", tileWidth: "156px" }],
+        spacious: ["Spacious", "More room to breathe", { radius: "16px", innerRadius: "12px", avatarRadius: "10px", avatarSize: "52px", padding: "24px", gap: "14px", rowPadding: "14px", tileWidth: "196px", fontSize: "15px", titleSize: "18px" }],
+        bubbly: ["Bubbly", "Round everything", { radius: "24px", innerRadius: "18px", avatarRadius: "50%", padding: "20px", gap: "10px", rowPadding: "12px" }],
+        showcase: ["Showcase", "Big, bold type", { radius: "14px", innerRadius: "12px", padding: "20px", gap: "12px", tileWidth: "200px", cardHeight: "264px", titleSize: "20px", titleWeight: "800", titleTransform: "uppercase", titleLetterSpacing: ".01em", valueSize: "26px", valueWeight: "850", labelLetterSpacing: ".06em", nameSize: "24px", nameWeight: "850", chipFontSize: "10.5px", chipWeight: "700", chipPadding: "3px 9px" }],
+    };
+    const MAP_SHAPE_KEYS = ["pitRadius", "pitGap", "objectRadius", "fieldRadius", "wallRadius"];
+    const MAP_SHAPES = {
+        "": ["Theme's own", "Whatever the colors come with", null],
+        rounded: ["Rounded", "Soft pits with gaps", [0.3, 0.08, 0.25, 0.3, 0.12]],
+        soft: ["Subtle", "Slightly rounded", [0.16, 0.07, 0.16, 0.16, 0.06]],
+        square: ["Square", "Sharp, with gaps", [0, 0.07, 0, 0, 0]],
+        blocks: ["Blocks", "Sharp, pits touching", [0, 0, 0, 0, 0]],
+        bubbly: ["Bubbly", "Round pits, round walls", [0.5, 0.1, 0.45, 0.4, 0.3]],
+    };
+    /** The picked color theme's own token values (light for "auto"). */
+    // A follow-the-visitor theme compares as its light version: both versions have the same shape.
+    const lightOf = (name) => FAMILIES[splitTheme(name)[0]].names.light;
+    const teamBase = () => (window.FtcTeamCard?.TEAM_THEMES || {})[lightOf(state.theme)] || {};
+    const mapBase = () => (window.FtcPitMap?.THEMES || {})[lightOf(state.mapTheme)] || {};
+    function shapeTokens() {
+        let preset = TEAM_SHAPES[state.shape]?.[2];
+        if (!preset) return {};
+        let full = { ...SHAPE_DEFAULTS, ...preset };
+        let base = teamBase();
+        return Object.fromEntries(Object.entries(full).filter(([k, v]) => String(base[k]) !== v));
+    }
+    function mapShapeTokens() {
+        let preset = MAP_SHAPES[state.mapShape]?.[2];
+        if (!preset) return {};
+        let base = mapBase();
+        return Object.fromEntries(MAP_SHAPE_KEYS.map((k, i) => [k, preset[i]]).filter(([k, v]) => base[k] !== v));
+    }
     const STATS = { opr: "OPR", epa: "EPA", "region-rank": "Rank in region", record: "Season record", "record-total": "All-time record", "win-rate": "Win rate", awards: "Season awards", "awards-total": "All awards", matches: "Season matches", events: "Season events", seasons: "Seasons", rookie: "Since" };
     const EXAMPLE_NAMES = {
         FPEEUR: "European Premier Event", NLCMP: "Netherlands Championship", FTCCMP1: "FIRST Championship",
@@ -99,10 +168,10 @@
     const DEFAULTS = {
         kind: "",
         // team widgets (same names as the /team builder)
-        team: "", season: "", widget: "team-card", theme: "auto", layout: "list", accent: "#2563eb", useAccent: false, radius: -1,
+        team: "", season: "", widget: "team-card", theme: "auto", shape: "", layout: "list", accent: "#2563eb", useAccent: false,
         stats: ["opr", "epa", "record"], upcoming: 1, skipScrimmages: false, oldest: false, onlyWon: false, seasons: "",
         // pit map (same names as the /pit-map dashboard)
-        source: "example", example: "FPEEUR", code: "", eventSeason: THIS_SEASON, highlight: "", mapTheme: "auto", height: 600,
+        source: "example", example: "FPEEUR", code: "", eventSeason: THIS_SEASON, highlight: "", mapTheme: "auto", mapShape: "", height: 600,
         site: "",
     };
     let state = { ...DEFAULTS };
@@ -118,6 +187,12 @@
             state = { ...DEFAULTS };
         }
         if (!WIDGETS[state.widget]) state.widget = DEFAULTS.widget;
+        // Theme names from a link: only known ones, and none the pit map doesn't have.
+        const known = (name) => Object.values(FAMILIES).some((f) => Object.values(f.names).includes(name));
+        if (!known(state.theme)) state.theme = "auto";
+        if (!known(state.mapTheme) || FAMILIES[splitTheme(state.mapTheme)[0]].teamOnly) state.mapTheme = "auto";
+        if (!TEAM_SHAPES[state.shape]) state.shape = "";
+        if (!MAP_SHAPES[state.mapShape]) state.mapShape = "";
         if (!EXAMPLES[state.example]) state.example = Object.keys(EXAMPLES)[0] || DEFAULTS.example;
         if (!LIVE_API) state.source = "example";
         let s = new URLSearchParams(location.search).get("step") || "kind";
@@ -146,9 +221,8 @@
     function teamOptions() {
         let o = { team: +state.team || null };
         if (state.season) o.season = +state.season;
-        let tokens = {};
+        let tokens = shapeTokens();
         if (state.useAccent) tokens.accent = state.accent;
-        if (state.radius >= 0) Object.assign(tokens, { radius: `${state.radius}px`, innerRadius: `${Math.max(0, state.radius - 4)}px` });
         if (Object.keys(tokens).length) o.theme = { base: state.theme, ...tokens };
         else if (state.theme !== "auto") o.theme = state.theme;
         if (state.layout !== "list" && WIDGETS[state.widget].layouts[state.layout]) o.layout = state.layout;
@@ -192,12 +266,16 @@
 
     const eventRef = () => (state.source == "example" ? `2025/${state.example}` : `${state.eventSeason}/${state.code.trim().toUpperCase()}`);
     const teamList = () => state.highlight.split(/[\s,;]+/).filter(Boolean).join(", ");
-    const mapOptions = () => ({ theme: state.mapTheme, highlight: teamList() || null });
+    /** "auto", a theme name, or { base, ...shape tokens }. */
+    const mapTheme = () => (Object.keys(mapShapeTokens()).length ? { base: state.mapTheme, ...mapShapeTokens() } : state.mapTheme);
+    const mapOptions = () => ({ theme: mapTheme(), highlight: teamList() || null });
 
     function mapCode(method) {
+        let theme = mapTheme();
+        let themeText = typeof theme == "string" ? theme : JSON.stringify(theme);
         let p = new URLSearchParams({ event: eventRef() });
         if (state.source == "example") p.set("source", "example");
-        if (state.mapTheme != "auto") p.set("theme", state.mapTheme);
+        if (theme != "auto") p.set("theme", themeText);
         if (teamList()) p.set("highlight", teamList());
         let url = `${ORIGIN}/embed/pit-map?${p}`;
         if (method == "url") return url;
@@ -206,13 +284,14 @@
         if (method == "element") {
             let attrs = state.source == "example" ? [["src", `${ORIGIN}/examples/${state.example}.json`]] : [["event", eventRef()]];
             if (state.source == "live" && custom) attrs.push(SITE.apiBase ? ["api-base", SITE.apiBase] : ["graphql-url", SITE.graphqlUrl]);
-            if (state.mapTheme != "auto") attrs.push(["theme", state.mapTheme]);
+            if (theme != "auto") attrs.push(["theme", themeText]);
             if (teamList()) attrs.push(["highlight", teamList()]);
-            let lines = attrs.map(([k, v]) => `    ${k}="${esc(v)}"`).concat(`    style="display: block; height: ${state.height}px;"`);
+            // JSON goes in single quotes, so it stays readable.
+            let lines = attrs.map(([k, v]) => (v.includes('"') ? `    ${k}='${v.replace(/'/g, "&#39;")}'` : `    ${k}="${esc(v)}"`)).concat(`    style="display: block; height: ${state.height}px;"`);
             return `<script src="${ORIGIN}/lib/pit-map.umd.js"></script>\n<ftc-pit-map\n${lines.join("\n")}\n></ftc-pit-map>`;
         }
         let opts = [];
-        if (state.mapTheme != "auto") opts.push(`    theme: "${state.mapTheme}",`);
+        if (theme != "auto") opts.push(`    theme: ${JSON.stringify(theme).replace(/"([a-zA-Z]+)":/g, "$1: ").replace(/,(?=\S)/g, ", ")},`);
         if (teamList()) opts.push(`    highlight: "${teamList()}",`);
         let head = `// npm install ftc-embeds\nimport { PitMap${state.source == "live" && custom ? ", configure" : ""} } from "ftc-embeds/pit-map";\n\n`;
         if (state.source == "example") return `${head}const data = await fetch("${ORIGIN}/examples/${state.example}.json").then((r) => r.json());\nnew PitMap(document.getElementById("pit-map"), {\n    data,\n${opts.join("\n")}\n});`;
@@ -223,13 +302,16 @@
     /** The same settings in the full dashboard, to fine-tune what the wizard doesn't ask. */
     function editorLink() {
         if (state.kind == "event") {
-            let s = { source: state.source, example: state.example, season: state.eventSeason, code: state.code, highlight: state.highlight, theme: state.mapTheme, height: state.height };
-            let d = { source: "example", example: "FPEEUR", season: 2025, code: "", highlight: "", theme: "auto", height: 600 };
+            let s = { source: state.source, example: state.example, season: state.eventSeason, code: state.code, highlight: state.highlight, theme: state.mapTheme, overrides: mapShapeTokens(), height: state.height };
+            let d = { source: "example", example: "FPEEUR", season: 2025, code: "", highlight: "", theme: "auto", overrides: {}, height: 600 };
             let diff = Object.fromEntries(Object.entries(s).filter(([k, v]) => JSON.stringify(v) !== JSON.stringify(d[k])));
             return "/pit-map" + (Object.keys(diff).length ? "#" + encodeURIComponent(JSON.stringify(diff)) : "");
         }
-        let keys = ["widget", "team", "season", "theme", "layout", "accent", "useAccent", "radius", "stats", "upcoming", "skipScrimmages", "oldest", "onlyWon", "seasons"];
+        let keys = ["widget", "team", "season", "theme", "layout", "accent", "useAccent", "stats", "upcoming", "skipScrimmages", "oldest", "onlyWon", "seasons"];
         let s = Object.fromEntries(keys.filter((k) => JSON.stringify(state[k]) !== JSON.stringify(DEFAULTS[k]) || k == "team").map((k) => [k, state[k]]));
+        // The editor has no shape presets: the shape goes along as CSS variables in its custom CSS.
+        let shape = Object.entries(shapeTokens());
+        if (shape.length) s.css = `:host {\n${shape.map(([k, v]) => `    --ftcw-${kebab(k)}: ${v};`).join("\n")}\n}`;
         return "/team#" + encodeURIComponent(JSON.stringify(s));
     }
 
@@ -237,7 +319,29 @@
 
     const choice = (key, value, title, text = "", extra = "") =>
         `<button type="button" class="choice" data-key="${key}" data-value="${esc(JSON.stringify(value))}">${extra}<b>${title}</b>${text ? `<span>${text}</span>` : ""}</button>`;
+    // Light half and dark half of a family; the mode cards show which half is used.
+    const familySwatch = (f) => `<div class="swatch">${[...f.light, ...f.dark].map((c) => `<i style="background:${c}"></i>`).join("")}</div>`;
+    const modeIcon = (m) => `<span class="mode-ico ${m}"></span>`;
+    function colorPicker(familyKey, modeKey, map) {
+        let fams = Object.entries(FAMILIES).filter(([, f]) => !(map && f.teamOnly));
+        return `<div class="choices">${fams.map(([id, f]) => choice(familyKey, id, f.label, f.text, familySwatch(f))).join("")}</div>
+            <p class="q">Light or dark?</p>
+            <div class="choices small">${Object.entries(MODES).map(([m, [label, text]]) => choice(modeKey, m, label, text, modeIcon(m))).join("")}</div>`;
+    }
     const swatch = (colors) => `<div class="swatch">${colors.map((c) => `<i style="background:${c}"></i>`).join("")}</div>`;
+    // Small drawings of a shape preset, in the site's own colors: a card with three blocks, at half size.
+    const half = (v) => (/%$/.test(v) ? v : `${Math.min(parseFloat(v) || 0, 60) / 2}px`);
+    function teamShapeDemo(tokens) {
+        let t = tokens ? { ...SHAPE_DEFAULTS, ...tokens } : null;
+        if (!t) return `<div class="shape own"><i></i><i></i><i></i></div>`;
+        return `<div class="shape" style="border-radius:${half(t.radius)};padding:${half(t.padding)};gap:${half(t.gap)}"><b style="border-radius:${t.avatarRadius == "50%" ? "50%" : half(t.avatarRadius)}"></b><i style="border-radius:${half(t.innerRadius)}"></i><i style="border-radius:${half(t.innerRadius)}"></i></div>`;
+    }
+    // A row of pits between two walls; values are in cells (one pit ≈ 18px here).
+    function mapShapeDemo(v) {
+        if (!v) return `<div class="pits own">${"<i></i>".repeat(5)}</div>`;
+        let [pit, gap, , , wall] = v;
+        return `<div class="pits" style="gap:${gap * 36}px;border-radius:${wall * 18}px">${`<i style="border-radius:${pit * 18}px"></i>`.repeat(5)}</div>`;
+    }
 
     const PAGES = {
         kind: () => `
@@ -274,9 +378,12 @@
                 ? `
             <span class="kicker">Look</span>
             <h1>How should the map look?</h1>
-            <p class="sub">Pick what fits your website best. The full editor has every color and corner if you need more.</p>
+            <p class="sub">Colors and shape are picked separately, so any two go together. The full editor has every color and corner if you need more.</p>
+            <h2 class="sec"><span>A</span>Colors</h2>
+            ${colorPicker("mapFamily", "mapMode", true)}
+            <h2 class="sec"><span>B</span>Shape & spacing <small>Works with any colors</small></h2>
             <div class="choices">
-                ${MAP_THEMES.map((t) => choice("mapTheme", t, TEAM_THEMES[t][0], TEAM_THEMES[t][1], swatch(TEAM_THEMES[t][2]))).join("")}
+                ${Object.entries(MAP_SHAPES).map(([id, [name, text, v]]) => choice("mapShape", id, name, text, mapShapeDemo(v))).join("")}
             </div>
             <p class="q">How tall?</p>
             <div class="choices small">
@@ -285,22 +392,21 @@
                 : `
             <span class="kicker">Look</span>
             <h1>How should it look?</h1>
-            <p class="sub">Pick a style that fits your website; the preview follows along.</p>
-            <div class="choices">
-                ${Object.entries(TEAM_THEMES).map(([t, [name, text, colors]]) => choice("theme", t, name, text, swatch(colors))).join("")}
-            </div>
-            <p class="q">Layout</p>
-            <div class="choices small">
-                ${Object.entries(WIDGETS[state.widget].layouts).map(([v, label]) => choice("layout", v, label)).join("")}
-            </div>
-            <p class="q">Corners</p>
-            <div class="choices small">
-                ${choice("radius", -1, "Theme's own")}${choice("radius", 0, "Square")}${choice("radius", 8, "Rounded")}${choice("radius", 16, "Very round")}
-            </div>
-            <p class="q">Your team's color? <small>Optional</small></p>
+            <p class="sub">Colors and shape are picked separately, so any two go together. The preview follows along.</p>
+            <h2 class="sec"><span>A</span>Colors</h2>
+            ${colorPicker("family", "mode", false)}
+            <p class="q">Your team's color? <small>Optional, replaces the accent</small></p>
             <div class="row">
                 <label class="check"><input type="checkbox" data-check="useAccent"> Use my own accent color</label>
                 <input type="color" data-color="accent" aria-label="Accent color">
+            </div>
+            <h2 class="sec"><span>B</span>Shape & spacing <small>Works with any colors</small></h2>
+            <div class="choices">
+                ${Object.entries(TEAM_SHAPES).map(([id, [name, text, tokens]]) => choice("shape", id, name, text, teamShapeDemo(tokens))).join("")}
+            </div>
+            <p class="q">Arrangement</p>
+            <div class="choices small">
+                ${Object.entries(WIDGETS[state.widget].layouts).map(([v, label]) => choice("layout", v, label)).join("")}
             </div>`,
 
         content: () => {
@@ -372,8 +478,8 @@
             let p = PLATFORMS[state.site] || PLATFORMS.other;
             let what = state.kind == "event" ? `Pit map · ${state.source == "example" ? EXAMPLE_NAMES[state.example] || state.example : eventRef()}` : `${WIDGETS[state.widget].label} · team ${state.team}`;
             let rows = state.kind == "event"
-                ? [["event", "Event", what.split(" · ")[1]], ["highlight", "Teams", teamList() || "none"], ["look", "Look", `${TEAM_THEMES[state.mapTheme][0]}, ${state.height}px`], ["site", "Website", p.label]]
-                : [["team", "Team", `${state.team}${state.season ? `, ${state.season}` : ""}`], ["widget", "Widget", WIDGETS[state.widget].label], ["look", "Look", `${TEAM_THEMES[state.theme][0]}, ${WIDGETS[state.widget].layouts[state.layout] || "default layout"}`], ["site", "Website", p.label]];
+                ? [["event", "Event", what.split(" · ")[1]], ["highlight", "Teams", teamList() || "none"], ["look", "Look", `${themeLabel(state.mapTheme)} colors, ${MAP_SHAPES[state.mapShape][0].toLowerCase()} shape, ${state.height}px`], ["site", "Website", p.label]]
+                : [["team", "Team", `${state.team}${state.season ? `, ${state.season}` : ""}`], ["widget", "Widget", WIDGETS[state.widget].label], ["look", "Look", `${themeLabel(state.theme)} colors, ${TEAM_SHAPES[state.shape][0].toLowerCase()} shape, ${(WIDGETS[state.widget].layouts[state.layout] || "list").toLowerCase()}`], ["site", "Website", p.label]];
             return `
             <span class="kicker">Done</span>
             <h1>Here's your code.</h1>
@@ -409,7 +515,7 @@
 
         if (state.kind == "event") {
             box.classList.add("map");
-            box.classList.remove("on-dark");
+            box.classList.toggle("on-dark", looksDark(state.mapTheme));
             $("preview-label").textContent = "Live preview";
             $("preview-note").textContent = eventRef();
             if (widgetKey !== "map") {
@@ -461,7 +567,7 @@
             widget.on("error", ({ error }) => setTeamCheck(false, error));
             widgetKey = id;
         } else widget.update(o);
-        box.classList.toggle("on-dark", step != "team" && ["dark", "trophy", "ftcscout-dark"].includes(state.theme));
+        box.classList.toggle("on-dark", step != "team" && looksDark(state.theme));
     }
 
     function setTeamCheck(ok, data) {
@@ -523,7 +629,7 @@
     /** Sync everything that shows an answer, without rebuilding the page (keeps focus in inputs). */
     function sync() {
         let ask = $("ask");
-        for (let b of ask.querySelectorAll(".choice[data-key]")) b.setAttribute("aria-pressed", JSON.stringify(state[b.dataset.key]) === b.dataset.value);
+        for (let b of ask.querySelectorAll(".choice[data-key]")) b.setAttribute("aria-pressed", JSON.stringify(VIRTUAL[b.dataset.key] ? virtualGet(b.dataset.key) : state[b.dataset.key]) === b.dataset.value);
         for (let el of ask.querySelectorAll("[data-check]")) el.checked = !!state[el.dataset.check];
         for (let el of ask.querySelectorAll("[data-color]")) el.value = state[el.dataset.color];
         for (let el of ask.querySelectorAll("[data-select]")) el.value = String(state[el.dataset.select]);
@@ -582,7 +688,7 @@
         if (c) {
             let key = c.dataset.key;
             let value = JSON.parse(c.dataset.value);
-            set({ [key]: value });
+            set(VIRTUAL[key] ? virtualSet(key, value) : { [key]: value });
             // The first question moves on by itself: nothing else to set there.
             if (key == "kind") go(flow()[1]);
             return;

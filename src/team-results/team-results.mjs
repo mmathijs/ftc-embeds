@@ -7,7 +7,7 @@ import { RESULTS_CSS, RESULTS_TROPHY, resultsView, resultsTitle } from "../core/
 import { getTeamResults } from "../core/team-api.mjs";
 export { configure, EmbedsApiError, DEFAULT_API_BASE } from "../core/api.mjs";
 export { getTeamResults, seasonOf, TEAM_RESULTS_QUERY } from "../core/team-api.mjs";
-export { TEAM_THEMES, ICONS } from "../core/team-ui.mjs";
+export { TEAM_THEMES, TEAM_THEME_MODES, ICONS } from "../core/team-ui.mjs";
 export { TEAM_TEXT } from "../core/team-text.mjs";
 
 export class TeamResults extends TeamWidget {

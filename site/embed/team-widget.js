@@ -26,7 +26,8 @@
     lib.configure({ apiBase: q.get("apiBase") || site.apiBase || null, graphqlUrl: q.get("graphqlUrl") || site.graphqlUrl || null });
 
     let theme = typeof options.theme === "string" ? options.theme : options.theme?.base;
-    document.documentElement.style.colorScheme = ["dark", "trophy"].includes(theme) ? "dark" : theme === "auto" || !theme ? "light dark" : "light";
+    // Dark themes end in -dark (plus "dark" and "trophy"); the -auto ones follow the visitor.
+    document.documentElement.style.colorScheme = !theme || theme === "auto" || theme.endsWith("-auto") ? "light dark" : theme === "dark" || theme === "trophy" || theme.endsWith("-dark") ? "dark" : "light";
 
     let root = document.getElementById("widget");
     let widget = new Widget(root, options);

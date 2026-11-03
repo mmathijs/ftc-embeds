@@ -172,7 +172,8 @@
             widget = new lib[w.cls]($("preview"), o);
             shown = state.widget;
         } else widget.update(o);
-        $("preview").classList.toggle("on-dark", ["dark", "trophy", "ftcscout-dark"].includes(state.theme));
+        let dark = /-auto$|^auto$/.test(state.theme) ? matchMedia("(prefers-color-scheme: dark)").matches : state.theme == "dark" || state.theme == "trophy" || state.theme.endsWith("-dark");
+        $("preview").classList.toggle("on-dark", dark);
     }
 
     // ------------------------------------------------------------ controls

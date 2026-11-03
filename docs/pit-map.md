@@ -78,7 +78,7 @@ Importing the library registers `<ftc-pit-map>`.
 | `src` | Alternative: URL of a pit map JSON file (or set the `.data` property) |
 | `highlight`, `outline` | team numbers, comma/space separated |
 | `highlight-color`, `outline-color` | any CSS color |
-| `theme` | `auto` (default), `light`, `dark`, `ftcscout`, `ftcscout-dark`, `ftc-events` |
+| `theme` | `auto` (default), `light`, `dark`, `ftcscout`, `ftcscout-dark`, `ftcscout-auto`, `ftc-events`, `ftc-events-dark`, `ftc-events-auto` |
 | `dim-others`, `controls`, `pulse` | `true` / `false` |
 | `scroll-zoom` | `modifier` (default, ctrl/⌘ + wheel), `true`, `false` |
 | `click-action` | `popup` (default), `tooltip`, `focus`, `none` |
@@ -201,7 +201,7 @@ export class PitsComponent { /* ... */ }
 
 ## Styling
 
-Pick a preset, then override any token. Presets: `auto` (default, light/dark from the OS), `light`, `dark`, `ftcscout`, `ftcscout-dark`, `ftc-events`.
+Pick a preset, then override any token. Presets: `auto` (default, light/dark from the OS), `light`, `dark`, `ftcscout`, `ftcscout-dark`, `ftc-events`, `ftc-events-dark`. The `-auto` ones (`ftcscout-auto`, `ftc-events-auto`) switch between a light and a dark preset with the OS, like `auto` (`THEME_MODES` lists the pairs).
 
 ```js
 new PitMap(el, { data, theme: "ftc-events" });

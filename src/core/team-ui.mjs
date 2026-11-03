@@ -58,6 +58,20 @@ const ftcscout = (d) => ({
     radius: "8px", innerRadius: "5px", padding: "14px", font: 'var(--font-family, "Inter", sans-serif)',
 });
 
+// Trophy case and FTC Events: the same shape in their light and dark versions.
+const TROPHY_SIZES = {
+    ...SIZES,
+    radius: "14px", innerRadius: "12px", padding: "20px", gap: "12px", tileWidth: "200px", cardHeight: "264px",
+    titleSize: "20px", titleWeight: "800", titleTransform: "uppercase", titleLetterSpacing: ".01em",
+    valueSize: "26px", valueWeight: "850", labelLetterSpacing: ".06em", nameSize: "24px", nameWeight: "850",
+    chipFontSize: "10.5px", chipWeight: "700", chipPadding: "3px 9px", glow: "0 0 24px 5px", glowRoom: "18px",
+};
+const FTC_EVENTS_SIZES = {
+    ...SIZES,
+    shadow: "none", radius: "4px", innerRadius: "4px", chipRadius: "4px", avatarRadius: "0",
+    font: '"Roboto", "Helvetica Neue", Arial, sans-serif',
+};
+
 export const TEAM_THEMES = {
     light: {
         ...SIZES,
@@ -73,25 +87,38 @@ export const TEAM_THEMES = {
     },
     ftcscout: ftcscout(false),
     "ftcscout-dark": ftcscout(true),
-    // Trophy-case look (dark slate, metallic award cards, amber for wins). Also adds the widgets'
-    // "trophy" CSS (TeamWidget.skins.trophy).
+    // Trophy-case look (dark slate, metallic award cards, amber for wins; trophy-light on warm
+    // paper). Both add the widgets' "trophy" CSS (TeamWidget.skins.trophy).
     trophy: {
-        ...SIZES,
+        ...TROPHY_SIZES,
         bg: "#2b313d", surface: "rgba(255,255,255,.07)", text: "#f8fafc", muted: "#cbd5e1", border: "rgba(255,255,255,.09)",
         accent: "#fbbf24", accentText: "#111827", red: "#f87171", blue: "#60a5fa", good: "#4ade80", bad: "#f87171", gold: "#fbbf24",
         shadow: "0 10px 30px rgba(0,0,0,.25)",
-        radius: "14px", innerRadius: "12px", padding: "20px", gap: "12px", tileWidth: "200px", cardHeight: "264px",
-        titleSize: "20px", titleWeight: "800", titleTransform: "uppercase", titleLetterSpacing: ".01em",
-        valueSize: "26px", valueWeight: "850", labelLetterSpacing: ".06em", nameSize: "24px", nameWeight: "850",
-        chipFontSize: "10.5px", chipWeight: "700", chipPadding: "3px 9px", glow: "0 0 24px 5px", glowRoom: "18px",
+    },
+    "trophy-light": {
+        ...TROPHY_SIZES,
+        bg: "#f7f5f0", surface: "rgba(15,23,42,.05)", text: "#1c2230", muted: "#5b6474", border: "rgba(15,23,42,.10)",
+        accent: "#b45309", accentText: "#ffffff", red: "#dc2626", blue: "#2563eb", good: "#15803d", bad: "#dc2626", gold: "#d97706",
+        shadow: "0 10px 30px rgba(15,23,42,.12)",
     },
     "ftc-events": {
-        ...SIZES,
+        ...FTC_EVENTS_SIZES,
         bg: "#ffffff", surface: "#f2f2f2", text: "#212529", muted: "#6c757d", border: "#dee2e6",
         accent: "#0066b3", accentText: "#ffffff", red: "#ed1c24", blue: "#0066b3", good: "#198754", bad: "#dc3545", gold: "#c99a06",
-        shadow: "none", radius: "4px", innerRadius: "4px", chipRadius: "4px", avatarRadius: "0",
-        font: '"Roboto", "Helvetica Neue", Arial, sans-serif',
     },
+    "ftc-events-dark": {
+        ...FTC_EVENTS_SIZES,
+        bg: "#212529", surface: "#2b3035", text: "#dee2e6", muted: "#adb5bd", border: "#495057",
+        accent: "#4d9fe0", accentText: "#0b1220", red: "#f1555b", blue: "#4d9fe0", good: "#4cc38a", bad: "#ea868f", gold: "#e0b23a",
+    },
+};
+
+/** The themes that follow the visitor's light or dark mode: [light theme, dark theme]. */
+export const TEAM_THEME_MODES = {
+    auto: ["light", "dark"],
+    "ftcscout-auto": ["ftcscout", "ftcscout-dark"],
+    "ftc-events-auto": ["ftc-events", "ftc-events-dark"],
+    "trophy-auto": ["trophy-light", "trophy"],
 };
 
 /** The icons and their default glyphs; override with --ftcw-icon-<name> or the `icons` option. */
@@ -120,14 +147,18 @@ const SKINS = {
 .head{margin-bottom:16px}
 .chip{letter-spacing:.03em;text-transform:uppercase}
 .chip.upcoming{background:var(--_accent);color:var(--_accent-text)}
-.arrows button{background:rgba(255,255,255,.1);color:#fff}
+.arrows button{background:color-mix(in srgb,var(--_text) 10%,transparent);color:var(--_text)}
 .arrows button:hover:not(:disabled){background:var(--_accent);color:var(--_accent-text)}
 .metal{background:linear-gradient(160deg,#e4e4e7 0%,#b4b4bb 45%,#8e8e97 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.65),inset 0 -2px 6px rgba(0,0,0,.12),0 8px 18px rgba(0,0,0,.28)}`,
 };
 
-/** "auto" | "light" | "dark" | "ftcscout" | "ftc-events" | "trophy", or { base, ...tokens }. */
+/** A theme name (see TEAM_THEMES, or TEAM_THEME_MODES for the ones following light/dark mode), or { base, ...tokens }. */
 export function resolveTeamTheme(theme) {
-    let named = (name) => (!name || name === "auto" ? (DARK?.matches ? TEAM_THEMES.dark : TEAM_THEMES.light) : TEAM_THEMES[name] || TEAM_THEMES.light);
+    let named = (name) => {
+        let pair = TEAM_THEME_MODES[name || "auto"];
+        if (pair) name = pair[DARK?.matches ? 1 : 0];
+        return TEAM_THEMES[name] || TEAM_THEMES.light;
+    };
     if (theme && typeof theme === "object") return { ...named(theme.base || "auto"), ...theme };
     return named(theme);
 }
@@ -521,7 +552,7 @@ export class TeamWidget {
             body = h("div", { class: "status" }, this.error.notFound ? this.t("notFound", { team: this.options.team }) : this.t("loadError"));
         } else if (!this.data) body = h("div", { "aria-busy": "true" }, h("div", { class: "skeleton", style: { width: "45%" } }), h("div", { class: "skeleton" }), h("div", { class: "skeleton", style: { width: "75%" } }));
         else body = this.view(this.data);
-        let skin = this.options.skin ?? (themeBase(this.options.theme) === "trophy" ? "trophy" : null);
+        let skin = this.options.skin ?? (/^trophy(-|$)/.test(themeBase(this.options.theme) || "") ? "trophy" : null);
         let skinCss = skin ? (SKINS[skin] || "") + (this.constructor.skins?.[skin] || "") : "";
         let style = h("style", null, `:host{${vars}}` + BASE_CSS + icons + (this.constructor.css || "") + skinCss + (this.options.css || ""));
         let cls = [PREFIX, `${PREFIX}-${this.constructor.kind}`, `layout-${this.layout}`, `density-${this.options.density || "normal"}`, this.options.bare ? "bare" : ""];

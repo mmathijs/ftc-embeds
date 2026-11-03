@@ -20,7 +20,7 @@ Every team widget takes these (as options, or kebab-case attributes on the eleme
 | --- | --- | --- |
 | `team` | number | the team |
 | `season` | number | default: the current season |
-| `theme` | name or object | `auto` (light/dark from the visitor), `light`, `dark`, `ftcscout`, `ftcscout-dark`, `ftc-events`, `trophy`; or `{ base: "dark", accent: "#e4002b", radius: "4px" }` |
+| `theme` | name or object | `auto` (light/dark from the visitor), `light`, `dark`; `ftcscout`, `ftcscout-dark`, `ftcscout-auto`; `ftc-events`, `ftc-events-dark`, `ftc-events-auto`; `trophy` (dark), `trophy-light`, `trophy-auto`; or `{ base: "dark", accent: "#e4002b", radius: "4px" }` |
 | `layout` | | the widget's layouts (`list`, `strip`, `compact`) |
 | `density` | `normal` \| `compact` | tighter spacing |
 | `hide` | `"website,epa"` | parts to leave out (each widget lists its parts) |
@@ -60,7 +60,9 @@ Themes are tokens. Override them in a theme object (`{ base: "light", radius: "4
 ftc-team-awards { --ftcw-accent: #e4002b; --ftcw-radius: 4px; --ftcw-inner-radius: 0; --ftcw-gap: 16px; --ftcw-font: Georgia, serif; }
 ```
 
-`theme="ftcscout"` reads FTCScout's own variables (so on FTCScout it follows its dark mode); `ftcscout-dark` is the same with FTCScout's dark colors as fallback, for dark pages elsewhere. `theme="trophy"` is a trophy case: dark slate, metallic award cards and stat tiles, amber for wins, orange for won judged awards.
+`theme="ftcscout"` reads FTCScout's own variables (so on FTCScout it follows its dark mode); `ftcscout-dark` is the same with FTCScout's dark colors as fallback, for dark pages elsewhere. `theme="trophy"` is a trophy case: dark slate, metallic award cards and stat tiles, amber for wins, orange for won judged awards; `trophy-light` is the same on warm paper. `ftc-events-dark` is FTC Events' look on a dark page.
+
+Every look comes in light, dark and a version that follows the visitor's light or dark mode: `auto` (light/dark), `ftcscout-auto`, `ftc-events-auto` and `trophy-auto`. `TEAM_THEME_MODES` lists which two themes each one switches between.
 
 ## Texts
 

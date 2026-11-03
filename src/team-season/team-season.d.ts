@@ -2,7 +2,7 @@
 
 import type { TeamWidget, TeamWidgetOptions, ApiOptions, EventSummary, EventRecord, Award, Location } from "../core/team-widgets";
 export type { TeamWidgetOptions, TeamThemeName, TeamTheme, TeamThemeOption, IconName, ApiOptions, EmbedsConfig } from "../core/team-widgets";
-export { configure, EmbedsApiError, TEAM_THEMES, ICONS, TEAM_TEXT, seasonOf, DEFAULT_API_BASE } from "../core/team-widgets";
+export { configure, EmbedsApiError, TEAM_THEMES, TEAM_THEME_MODES, ICONS, TEAM_TEXT, seasonOf, DEFAULT_API_BASE } from "../core/team-widgets";
 
 import type { TeamResultsData } from "../team-results/team-results";
 import type { TeamMatchesData } from "../next-match/next-match";

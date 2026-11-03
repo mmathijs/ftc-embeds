@@ -10,7 +10,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(import.meta.url);
 const demoData = (code) => JSON.parse(readFileSync(resolve(root, `demo/pit-map/data/${code}_pitmap.json`), "utf8"));
 
-const EXPORTS = ["PitMap", "THEMES", "CELL_TYPES", "normalizePitMap", "definePitMapElement", "configure", "getPitMap", "EmbedsApiError", "PIT_MAP_QUERY"];
+const EXPORTS = ["PitMap", "THEMES", "THEME_MODES", "CELL_TYPES", "normalizePitMap", "definePitMapElement", "configure", "getPitMap", "EmbedsApiError", "PIT_MAP_QUERY"];
 
 for (const [label, load] of [
     ["source", () => import(resolve(root, "src/pit-map/pit-map.mjs"))],
@@ -144,9 +144,10 @@ for (const w of TEAM_WIDGETS) {
     ]) {
         test(`${w.name}: ${label} loads without a DOM and has its exports`, async () => {
             const m = await load();
-            for (const name of [w.cls, w.define, "configure", "EmbedsApiError", "DEFAULT_API_BASE", "TEAM_THEMES", "ICONS", "TEAM_TEXT", ...w.api]) assert.ok(name in m, `missing export ${name}`);
+            for (const name of [w.cls, w.define, "configure", "EmbedsApiError", "DEFAULT_API_BASE", "TEAM_THEMES", "TEAM_THEME_MODES", "ICONS", "TEAM_TEXT", ...w.api]) assert.ok(name in m, `missing export ${name}`);
             assert.equal(typeof m[w.cls], "function");
             assert.ok(m.TEAM_THEMES.trophy && m.TEAM_THEMES.light, "themes");
+            for (const [mode, pair] of Object.entries(m.TEAM_THEME_MODES)) for (const name of pair) assert.ok(m.TEAM_THEMES[name], `${mode}: theme ${name} exists`);
         });
     }
 }

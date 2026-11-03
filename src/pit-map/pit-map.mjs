@@ -267,6 +267,40 @@ THEMES["ftc-events"] = {
     shadow: "rgba(0, 0, 0, 0.15)",
 };
 
+// FTC-Events' look on a dark page: same flat shapes and raw event colors, light outlines.
+THEMES["ftc-events-dark"] = {
+    ...THEMES["ftc-events"],
+    focus: "#4d9fe0",
+    background: "#212529",
+    wall: "#dee2e6",
+    pitBase: "#212529",
+    pitStroke: "#dee2e6",
+    objectFill: "#2b3035",
+    objectStroke: "#dee2e6",
+    objectText: "#dee2e6",
+    label: "#dee2e6",
+    elementStroke: "#dee2e6",
+    fieldZone: "#2b3035",
+    fieldMat: "#2b3035",
+    fieldStroke: "#dee2e6",
+    route: "#4d9fe0",
+    routeCasing: "#212529",
+    tooltipBg: "#2b3035",
+    tooltipText: "#dee2e6",
+    tooltipMuted: "#adb5bd",
+    tooltipBorder: "rgba(255, 255, 255, 0.15)",
+    controlBg: "#2b3035",
+    controlText: "#dee2e6",
+    shadow: "rgba(0, 0, 0, 0.5)",
+};
+
+/** The themes that follow the visitor's light or dark mode: [light theme, dark theme]. */
+export const THEME_MODES = {
+    auto: ["light", "dark"],
+    "ftcscout-auto": ["ftcscout", "ftcscout-dark"],
+    "ftc-events-auto": ["ftc-events", "ftc-events-dark"],
+};
+
 const isNone = (v) => v == null || v === "" || v === "none" || v === "transparent" || v === false;
 
 const DEFAULTS = {
@@ -279,7 +313,8 @@ const DEFAULTS = {
         notFound: "No pit map has been published for this event.",
         error: "Couldn't load the pit map.",
     },
-    // "auto" | "light" | "dark" | "ftcscout" | "ftcscout-dark" | "ftc-events",
+    // "auto" | "light" | "dark" | "ftcscout" | "ftcscout-dark" | "ftc-events" | "ftc-events-dark",
+    // "ftcscout-auto" | "ftc-events-auto" (the -auto ones follow the visitor's light/dark mode),
     // or an object of tokens: { base: "ftc-events", pitRadius: 0.2, route: "var(--brand)" }
     theme: "auto",
     watchTheme: true, // re-resolve CSS variables when <html>/<body> class/style/data-theme change
@@ -1219,7 +1254,11 @@ export class PitMap {
     _rawTheme() {
         let t = this.options.theme;
         let dark = () => typeof matchMedia !== "undefined" && matchMedia("(prefers-color-scheme: dark)").matches;
-        let named = (name) => (name === "auto" || !name ? (dark() ? THEMES.dark : THEMES.light) : THEMES[name] || THEMES.light);
+        let named = (name) => {
+            let pair = THEME_MODES[name || "auto"];
+            if (pair) name = pair[dark() ? 1 : 0];
+            return THEMES[name] || THEMES.light;
+        };
         if (t && typeof t === "object") return { ...named(t.base || t.extends || "auto"), ...t };
         return named(t);
     }

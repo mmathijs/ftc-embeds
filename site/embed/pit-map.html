@@ -35,7 +35,7 @@
         }
     }
     const themeName = typeof theme == "string" ? theme : theme.base || "auto";
-    document.body.style.colorScheme = themeName.endsWith("dark") || themeName == "dark" ? "dark" : "light";
+    document.body.style.colorScheme = themeName == "auto" || themeName.endsWith("-auto") ? "light dark" : themeName.endsWith("dark") ? "dark" : "light";
 
     const options = {
         theme,
