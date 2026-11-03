@@ -31,12 +31,12 @@ All the [event widgets' options](event-widgets.md#options) (event, season, highl
 | Option | Attribute | |
 | --- | --- | --- |
 | `events` | `events` | team mode: `tabs` for a tab per event of the team this season |
-| `columns` | `columns` | which columns, in order: `rp,record,matches,opr` (default); any of `rp`, `tb1`, `tb2`, `record`, `matches`, `opr` |
+| `columns` | `columns` | which columns, in order: `rp,record,matches,opr` (default); any of `rp`, `tb1`, `tb2`, `record`, `winrate` (win %), `matches`, `opr`, `epa`, `dqs` |
 | `limit` | `limit` | show the top N, plus the highlighted teams below them |
 | `maxHeight` | `max-height` | scroll inside the widget; it scrolls to the highlighted team |
 
 **Parts for `hide`:** event, date, location, type, names, divisions.
 
-**Style parts** (`ftc-event-rankings::part(…)` from the page): card, head, title, event, date, location, type, table, row, row-me, rank, team, name, col, col-rp, col-tb1, col-tb2, col-record, col-matches, col-opr, divisions, division, events, event-tab, chip-live.
+**Style parts** (`ftc-event-rankings::part(…)` from the page): card, head, title, event, date, location, type, table, row, row-me, rank, team, name, col, col-rp, col-tb1, col-tb2, col-record, col-winrate, col-matches, col-opr, col-epa, col-dqs, divisions, division, events, event-tab, chip-live.
 
 Data comes from `GET {apiBase}/events/{season}/{code}/rankings` ([docs/api.md](api.md)).

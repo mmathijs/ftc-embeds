@@ -8,16 +8,16 @@ import { seasonOf } from "./team-api.mjs";
 const EVENT_FIELDS = "season code name start end timezone type remote started ongoing finished divisionCode leagueCode location { city state country }";
 
 const RANK_STATS_FRAGMENT = `fragment EmbedRankStats on TeamEventStats {
-    ... on TeamEventStats2019 { rank rp tb1 wins losses ties dqs qualMatchesPlayed opr { totalPointsNp } }
-    ... on TeamEventStats2020Trad { rank rp tb1 tb2 wins losses ties dqs qualMatchesPlayed opr { totalPointsNp } }
-    ... on TeamEventStats2020Remote { rank rp tb1 tb2 qualMatchesPlayed opr { totalPointsNp } }
-    ... on TeamEventStats2021Trad { rank rp tb1 tb2 wins losses ties dqs qualMatchesPlayed opr { totalPointsNp } }
-    ... on TeamEventStats2021Remote { rank rp tb1 tb2 qualMatchesPlayed opr { totalPointsNp } }
-    ... on TeamEventStats2022 { rank rp tb1 tb2 wins losses ties dqs qualMatchesPlayed opr { totalPointsNp } }
-    ... on TeamEventStats2023 { rank rp tb1 tb2 wins losses ties dqs qualMatchesPlayed opr { totalPointsNp } }
-    ... on TeamEventStats2024 { rank rp tb1 tb2 wins losses ties dqs qualMatchesPlayed opr { totalPointsNp } }
-    ... on TeamEventStats2025 { rank rp tb1 tb2 wins losses ties dqs qualMatchesPlayed opr { totalPointsNp } }
-    ... on TeamEventStats2026 { rank rp tb1 tb2 wins losses ties dqs qualMatchesPlayed opr { totalPointsNp } }
+    ... on TeamEventStats2019 { rank rp tb1 wins losses ties dqs qualMatchesPlayed opr { totalPointsNp } epa }
+    ... on TeamEventStats2020Trad { rank rp tb1 tb2 wins losses ties dqs qualMatchesPlayed opr { totalPointsNp } epa }
+    ... on TeamEventStats2020Remote { rank rp tb1 tb2 qualMatchesPlayed opr { totalPointsNp } epa }
+    ... on TeamEventStats2021Trad { rank rp tb1 tb2 wins losses ties dqs qualMatchesPlayed opr { totalPointsNp } epa }
+    ... on TeamEventStats2021Remote { rank rp tb1 tb2 qualMatchesPlayed opr { totalPointsNp } epa }
+    ... on TeamEventStats2022 { rank rp tb1 tb2 wins losses ties dqs qualMatchesPlayed opr { totalPointsNp } epa }
+    ... on TeamEventStats2023 { rank rp tb1 tb2 wins losses ties dqs qualMatchesPlayed opr { totalPointsNp } epa }
+    ... on TeamEventStats2024 { rank rp tb1 tb2 wins losses ties dqs qualMatchesPlayed opr { totalPointsNp } epa }
+    ... on TeamEventStats2025 { rank rp tb1 tb2 wins losses ties dqs qualMatchesPlayed opr { totalPointsNp } epa }
+    ... on TeamEventStats2026 { rank rp tb1 tb2 wins losses ties dqs qualMatchesPlayed opr { totalPointsNp } epa }
 }`;
 
 /** The GraphQL query behind GET {apiBase}/events/{season}/{code}/info. */

@@ -22,6 +22,10 @@ const COLUMNS = {
     record: { label: "colRecord", value: (w, s) => record(s) ?? "–" },
     matches: { label: "colMatches", value: (w, s) => stat(w, s.qualMatchesPlayed) },
     opr: { label: "colOpr", value: (w, s) => w.num(s.opr?.totalPointsNp) },
+    epa: { label: "colEpa", value: (w, s) => w.num(s.epa) },
+    // Share of matches won (ties count as played, not won).
+    winrate: { label: "colWinRate", value: (w, s) => (s.wins == null || !(s.wins + s.losses + s.ties) ? "–" : `${w.num((100 * s.wins) / (s.wins + s.losses + s.ties), 0)}%`) },
+    dqs: { label: "colDqs", value: (w, s) => stat(w, s.dqs) },
 };
 
 /**
@@ -47,7 +51,7 @@ export class EventRankings extends TeamWidget {
     static kind = "event-rankings";
     // An event, or a team: the rankings of the event it is at, or its latest.
     static subjects = ["event", "team"];
-    // columns: "rp,record,matches,opr" (any of rp, tb1, tb2, record, matches, opr);
+    // columns: "rp,record,matches,opr" (any of rp, tb1, tb2, record, winrate, matches, opr, epa, dqs);
     // highlight: team numbers to mark; refresh: seconds between updates while the event is on;
     // events: "tabs" (team mode) for a tab per event the team was ranked at this season
     static defaults = { columns: "rp,record,matches,opr", highlight: null, events: null, refresh: 30 };
@@ -120,7 +124,7 @@ export class EventRankings extends TeamWidget {
     table(rows) {
         let mine = this.marked();
         // Remote events have no record.
-        let cols = this.columns().filter((c) => c !== "record" || rows.some((r) => r.stats.wins != null));
+        let cols = this.columns().filter((c) => !["record", "winrate", "dqs"].includes(c) || rows.some((r) => r.stats.wins != null));
         let shown = limitRows(rows, Number(this.options.limit) || null, (r) => mine.has(r.teamNumber));
         let head = h("tr", null,
             h("th", { class: "rk" }, this.t("colRank")),

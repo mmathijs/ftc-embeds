@@ -17,8 +17,8 @@ export const EVENT_CSS = `
 .tbl{width:100%;border-collapse:collapse;font-size:var(--_font-size)}
 .ftcw[style*="max-height"] .tbl-wrap{overflow:visible}
 .ftcw[style*="max-height"] .tbl thead th{position:sticky;top:calc(var(--_padding) * -1);z-index:1;background:var(--_bg);box-shadow:inset 0 -1px 0 var(--_border)}
-@container (max-width:480px){.tbl .c-tb2,.tbl .c-matches,.tbl .c-dqs{display:none}}
-@container (max-width:400px){.tbl .c-tb1,.tbl .c-opr{display:none}}
+@container (max-width:480px){.tbl .c-tb2,.tbl .c-matches,.tbl .c-dqs,.tbl .c-winrate{display:none}}
+@container (max-width:400px){.tbl .c-tb1,.tbl .c-opr,.tbl .c-epa{display:none}}
 .tbl th{font-size:calc(var(--_small-size) - .5px);font-weight:600;color:var(--_muted);text-transform:var(--_label-transform);letter-spacing:var(--_label-letter-spacing);text-align:left;padding:0 6px 6px;white-space:nowrap}
 .tbl td{padding:calc(var(--_row-padding) / 2) 6px;border-top:var(--_separator-width) solid var(--_border);vertical-align:middle}
 .tbl th:first-child,.tbl td:first-child{padding-left:8px}

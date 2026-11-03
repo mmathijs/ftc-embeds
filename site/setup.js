@@ -567,7 +567,7 @@
             <h1>Which columns?</h1>
             <p class="sub">Rank and team are always there. Narrow places (a sidebar, a phone) drop the less important columns by themselves.</p>
             <div class="choices small">
-                ${choice("columns", "", "Standard", "RP, record, matches, OPR")}${choice("columns", "rp,tb1,tb2,record,matches,opr", "With tiebreakers", "Adds TBP and TBP2")}${choice("columns", "rp,record", "Short", "RP and record")}${choice("columns", "rp,opr", "Strength", "RP and OPR")}
+                ${choice("columns", "", "Standard", "RP, record, matches, OPR")}${choice("columns", "rp,tb1,tb2,record,matches,opr", "With tiebreakers", "Adds TBP and TBP2")}${choice("columns", "rp,record", "Short", "RP and record")}${choice("columns", "rp,opr,epa", "Strength", "RP, OPR and EPA")}${choice("columns", "rp,record,winrate", "Wins", "RP, record and win %")}
             </div>
             <p class="q">How many teams? <small>Highlighted teams lower down are shown too</small></p>
             ${limits("All", [["8", "Top 8"], ["16", "Top 16"]])}

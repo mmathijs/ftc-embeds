@@ -16,6 +16,7 @@ export interface RankStats {
     dqs?: number;
     qualMatchesPlayed: number;
     opr: { totalPointsNp: number } | null;
+    epa: number | null;
 }
 
 export interface EventRankingsData extends EventInfo {
@@ -35,7 +36,7 @@ export declare function teamRankingsEvent(results: { events: { event: { code: st
 export { getTeamResults } from "../team-results/team-results";
 
 export interface EventRankingsOptions extends EventWidgetOptions {
-    /** Which columns, in order: "rp,record,matches,opr" (default); any of rp, tb1, tb2, record, matches, opr. */
+    /** Which columns, in order: "rp,record,matches,opr" (default); any of rp, tb1, tb2, record, winrate, matches, opr, epa, dqs. */
     columns?: string | string[];
     /** Team mode: "tabs" for a tab per event the team was ranked at this season (newest first). */
     events?: "tabs" | null;
