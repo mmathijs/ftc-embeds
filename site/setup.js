@@ -900,7 +900,7 @@
         if (SITE.apiBase || SITE.graphqlUrl) lib.configure({ apiBase: SITE.apiBase || null, graphqlUrl: SITE.graphqlUrl || null });
         let o = step == "team" ? { team: +state.team, season: state.season ? +state.season : null, stats: "opr,record,awards-total", upcoming: 0 } : teamOptions();
         // Every option goes in, so ones back at their default are reset too.
-        o = { layout: "list", season: null, theme: "auto", ...(id == "team-card" ? { stats: "opr,epa,record", upcoming: 1 } : {}), ...(id == "team-awards" ? { onlyWon: false, seasons: null } : {}), ...(id == "team-results" || id == "team-season" ? { skipTypes: null, order: "newest" } : {}), ...(id == "event-rankings" ? { columns: lib[w.cls].defaults.columns, limit: null, maxHeight: null } : {}), ...o };
+        o = { layout: "list", season: null, theme: "auto", shape: null, locale: null, numberFormat: "locale", decimals: 1, dateFormat: "short", hourCycle: null, timeZone: null, ...(id == "team-card" ? { stats: "opr,epa,record", upcoming: 1 } : {}), ...(id == "team-awards" ? { onlyWon: false, seasons: null } : {}), ...(id == "team-results" || id == "team-season" ? { skipTypes: null, order: "newest" } : {}), ...(id == "event-rankings" ? { columns: lib[w.cls].defaults.columns, limit: null, maxHeight: null } : {}), ...o };
         if (widgetKey !== id || !widget) {
             widget?.destroy?.();
             box.replaceChildren();
