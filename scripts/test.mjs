@@ -242,3 +242,12 @@ test("texts can be filled and changed", async () => {
     assert.deepEqual(awardParts("Think", 1, 2025, w), ["Think Tank Award", "Winner"]);
     assert.deepEqual(awardParts("Winner", 3, 2025, w), ["Winning Alliance", "pick 2nd"]);
 });
+
+test("flag attributes are on when present without a value", async () => {
+    const { attrValue } = await import(resolve(root, "src/core/team-ui.mjs"));
+    assert.equal(attrValue("", true), true);
+    assert.equal(attrValue("false", true), false);
+    assert.equal(attrValue("", false), "");
+    assert.deepEqual(attrValue('{"accent":"red"}'), { accent: "red" });
+    assert.equal(attrValue("[oops"), "[oops");
+});
