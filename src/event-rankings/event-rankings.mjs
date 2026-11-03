@@ -28,6 +28,14 @@ const COLUMNS = {
  * For a team (its season's results): the code of the event whose rankings to show, the one it is
  * at now, or else the most recent one it was ranked at; null when it hasn't been ranked yet.
  */
+/** A team's ranked events this season, newest first: { code, name, start }. */
+export function teamRankedEvents(t) {
+    return (t?.events || [])
+        .filter((e) => e.stats?.rank)
+        .sort((a, b) => b.event.start.localeCompare(a.event.start) || a.event.code.localeCompare(b.event.code))
+        .map((e) => ({ code: e.event.code, name: e.event.name, start: e.event.start }));
+}
+
 export function teamRankingsEvent(t) {
     let ranked = (t?.events || []).filter((e) => e.stats?.rank);
     let live = ranked.find((e) => e.event.ongoing);
@@ -40,17 +48,21 @@ export class EventRankings extends TeamWidget {
     // An event, or a team: the rankings of the event it is at, or its latest.
     static subjects = ["event", "team"];
     // columns: "rp,record,matches,opr" (any of rp, tb1, tb2, record, matches, opr);
-    // highlight: team numbers to mark; refresh: seconds between updates while the event is on
-    static defaults = { columns: "rp,record,matches,opr", highlight: null, refresh: 30 };
+    // highlight: team numbers to mark; refresh: seconds between updates while the event is on;
+    // events: "tabs" (team mode) for a tab per event the team was ranked at this season
+    static defaults = { columns: "rp,record,matches,opr", highlight: null, events: null, refresh: 30 };
     static css = EVENT_CSS;
 
     async fetch(api) {
         if (this.options.event) return getEventRankings(this.options.event, api);
         let t = await getTeamResults(this.options.team, api);
-        let code = teamRankingsEvent(t);
+        let events = teamRankedEvents(t);
+        // The event picked with the tabs (for this team and season), else the current or latest.
+        let key = `${this.options.team}/${this.options.season ?? ""}`;
+        let code = this._picked && this._pickedFor === key ? this._picked : teamRankingsEvent(t);
         if (!code) return { teamOnly: t.number, season: t.events[0]?.event.season ?? null };
-        let season = t.events.find((e) => e.event.code === code).event.season;
-        return { ...(await getEventRankings(code, { ...api, season })), forTeam: t.number };
+        let season = t.events.find((e) => e.event.code === code)?.event.season ?? t.events[0]?.event.season;
+        return { ...(await getEventRankings(code, { ...api, season })), forTeam: t.number, teamEvents: events };
     }
 
     /** The teams to mark: `highlight`, and in team mode the team itself. */
@@ -75,7 +87,21 @@ export class EventRankings extends TeamWidget {
         let tabs = this.divisionTabs(ev);
         let hint = !rows.length && tabs ? h("div", { class: "muted", style: { marginBottom: "8px" } }, this.t("rankedPerDivision")) : null;
         let body = rows.length ? this.table(rows) : tabs ? null : h("div", { class: "empty" }, this.t(ev.started ? "noRankings" : "noRankingsYet"));
-        return h("div", null, this.heading(this.t("rankings")), eventLine(this, ev), hint, tabs, body);
+        return h("div", null, this.heading(this.t("rankings")), this.eventTabs(ev), eventLine(this, ev), hint, tabs, body);
+    }
+
+    /** Team mode with events="tabs": a tab per event the team was ranked at this season. */
+    eventTabs(ev) {
+        if (this.options.events !== "tabs" || !ev.teamEvents || ev.teamEvents.length < 2) return null;
+        return h("div", { class: "tabs ev-tabs", part: "events" }, ev.teamEvents.map((e) =>
+            h("button", { type: "button", part: "event-tab", "aria-pressed": String(e.code === ev.code), title: e.name, onclick: () => this.pick(e.code) }, `${e.name} · ${this.day(e.start)}`)));
+    }
+
+    /** Team mode: show another of the team's events (keeps the team's tabs and mark). */
+    pick(code) {
+        this._picked = code;
+        this._pickedFor = `${this.options.team}/${this.options.season ?? ""}`;
+        this.load();
     }
 
     /** A championship ranks its teams per division: buttons to switch between them. */
@@ -88,7 +114,7 @@ export class EventRankings extends TeamWidget {
         if (!divisions.length) return null;
         let label = (d) => d.name.replace(parentName, "").replace(/^\s*[-–:]\s*/, "") || d.name;
         return h("div", { class: "tabs", part: "divisions" }, divisions.map((d) =>
-            h("button", { type: "button", part: "division", "aria-pressed": String(d.code === ev.code), onclick: () => d.code !== ev.code && this.update({ event: d.code, season: ev.season, highlight: [...this.marked()] }) }, label(d))));
+            h("button", { type: "button", part: "division", "aria-pressed": String(d.code === ev.code), onclick: () => d.code !== ev.code && (ev.forTeam && !this.options.event ? this.pick(d.code) : this.update({ event: d.code, season: ev.season, highlight: [...this.marked()] })) }, label(d))));
     }
 
     table(rows) {
@@ -119,7 +145,7 @@ export class EventRankings extends TeamWidget {
 
 /** Registers <ftc-event-rankings event="NLCMP" season="2025"> (or team="19444": its current or latest event). Extra attributes: columns, highlight, refresh. */
 export function defineEventRankingsElement(tagName = "ftc-event-rankings") {
-    defineTeamElement(tagName, EventRankings, { columns: "columns", highlight: "highlight", refresh: "refresh" });
+    defineTeamElement(tagName, EventRankings, { columns: "columns", highlight: "highlight", events: "events", refresh: "refresh" });
 }
 
 if (typeof window !== "undefined" && typeof customElements !== "undefined") defineEventRankingsElement();

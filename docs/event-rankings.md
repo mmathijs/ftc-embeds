@@ -17,7 +17,10 @@ const widget = new EventRankings(document.getElementById("here"), { event: "NLHA
 
 ```html
 <ftc-event-rankings team="19444" limit="8"></ftc-event-rankings>
+<ftc-event-rankings team="19444" events="tabs" max-height="400px"></ftc-event-rankings>
 ```
+
+With `events="tabs"` it has a tab for every event the team was ranked at this season, newest first (like a "Detailed event results" box).
 
 Or as an iframe, or a plain link: `https://ftc-embeds.com/embed/event-rankings?event=NLHAQ&season=2025&theme=dark` (any option as a URL parameter; the page posts `{ type: "ftc-embeds:height", height }` to the parent so it can size the iframe).
 
@@ -27,12 +30,13 @@ All the [event widgets' options](event-widgets.md#options) (event, season, highl
 
 | Option | Attribute | |
 | --- | --- | --- |
+| `events` | `events` | team mode: `tabs` for a tab per event of the team this season |
 | `columns` | `columns` | which columns, in order: `rp,record,matches,opr` (default); any of `rp`, `tb1`, `tb2`, `record`, `matches`, `opr` |
 | `limit` | `limit` | show the top N, plus the highlighted teams below them |
 | `maxHeight` | `max-height` | scroll inside the widget; it scrolls to the highlighted team |
 
 **Parts for `hide`:** event, date, location, type, names, divisions.
 
-**Style parts** (`ftc-event-rankings::part(…)` from the page): card, head, title, event, date, location, type, table, row, row-me, rank, team, name, col, col-rp, col-tb1, col-tb2, col-record, col-matches, col-opr, divisions, division, chip-live.
+**Style parts** (`ftc-event-rankings::part(…)` from the page): card, head, title, event, date, location, type, table, row, row-me, rank, team, name, col, col-rp, col-tb1, col-tb2, col-record, col-matches, col-opr, divisions, division, events, event-tab, chip-live.
 
 Data comes from `GET {apiBase}/events/{season}/{code}/rankings` ([docs/api.md](api.md)).

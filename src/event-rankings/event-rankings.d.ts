@@ -19,8 +19,9 @@ export interface RankStats {
 }
 
 export interface EventRankingsData extends EventInfo {
-    /** Team mode: the team whose event this is. */
+    /** Team mode: the team whose event this is, and its ranked events this season. */
     forTeam?: number;
+    teamEvents?: { code: string; name: string; start: string }[];
     /** The championship and its divisions. */
     relatedEvents: { code: string; name: string; divisionCode: string | null }[];
     teams: { teamNumber: number; team: { name: string; location: Location } | null; stats: RankStats | null }[];
@@ -36,7 +37,12 @@ export { getTeamResults } from "../team-results/team-results";
 export interface EventRankingsOptions extends EventWidgetOptions {
     /** Which columns, in order: "rp,record,matches,opr" (default); any of rp, tb1, tb2, record, matches, opr. */
     columns?: string | string[];
+    /** Team mode: "tabs" for a tab per event the team was ranked at this season (newest first). */
+    events?: "tabs" | null;
 }
+
+/** A team's ranked events this season, newest first. */
+export declare function teamRankedEvents(results: { events: { event: { code: string; name: string; start: string }; stats: { rank: number } | null }[] }): { code: string; name: string; start: string }[];
 
 /** An event's rankings (rank, RP, record, matches, OPR), refreshing while the event is on; championships switch between their divisions. With `team` instead of `event`: the rankings of the event the team is at, or else its latest, with the team marked. */
 export declare class EventRankings extends TeamWidget<EventRankingsData, EventRankingsOptions> {}

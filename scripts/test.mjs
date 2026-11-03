@@ -135,7 +135,7 @@ const TEAM_WIDGETS = [
     { name: "team-awards", cls: "TeamAwards", define: "defineTeamAwardsElement", api: ["getTeamAwards", "TEAM_AWARDS_QUERY"] },
     { name: "next-match", cls: "NextMatch", define: "defineNextMatchElement", api: ["getTeamMatches", "TEAM_MATCHES_QUERY"] },
     { name: "team-season", cls: "TeamSeason", define: "defineTeamSeasonElement", api: ["getTeamResults", "getTeamMatches"] },
-    { name: "event-rankings", cls: "EventRankings", define: "defineEventRankingsElement", api: ["getEventRankings", "parseEventCode", "EVENT_RANKINGS_QUERY", "getTeamResults", "teamRankingsEvent"] },
+    { name: "event-rankings", cls: "EventRankings", define: "defineEventRankingsElement", api: ["getEventRankings", "parseEventCode", "EVENT_RANKINGS_QUERY", "getTeamResults", "teamRankingsEvent", "teamRankedEvents"] },
     { name: "event-matches", cls: "EventMatches", define: "defineEventMatchesElement", api: ["getEventMatches", "matchRows", "EVENT_MATCHES_QUERY"] },
     { name: "event-advancement", cls: "EventAdvancement", define: "defineEventAdvancementElement", api: ["getEventAdvancement", "advancementRows", "EVENT_ADVANCEMENT_QUERY"] },
     { name: "league-standings", cls: "LeagueStandings", define: "defineLeagueStandingsElement", api: ["getEventLeague", "EVENT_LEAGUE_QUERY"] },
@@ -411,4 +411,10 @@ test("rankings for a team: the event it is at, or else its latest ranked one", a
     assert.equal(teamRankingsEvent({ events: [e("Q1", "2025-11-29", 4), e("Q2", "2026-01-10", 3, true), e("Q3", "2026-02-07", 1)] }), "Q2");
     assert.equal(teamRankingsEvent({ events: [e("Q9", "2026-12-01", null)] }), null);
     assert.equal(teamRankingsEvent({ events: [] }), null);
+});
+
+test("a team's ranked events, newest first, for the tabs", async () => {
+    const { teamRankedEvents } = await import(resolve(root, "src/event-rankings/event-rankings.mjs"));
+    const e = (code, start, rank) => ({ event: { code, name: code, start }, stats: rank ? { rank } : null });
+    assert.deepEqual(teamRankedEvents({ events: [e("Q1", "2025-11-29", 4), e("CMP", "2026-02-07", null), e("CMPOCK1", "2026-02-07", 12), e("Q0", "2025-10-01", 2)] }).map((x) => x.code), ["CMPOCK1", "Q1", "Q0"]);
 });
