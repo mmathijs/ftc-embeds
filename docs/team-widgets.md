@@ -105,6 +105,8 @@ new TeamAwards(el, { team: 19444, layout: "strip", theme: { base: "dark", bg: "r
     .card .c-event { order: 1; color: #000 }` });
 ```
 
+The builder at [ftc-embeds.com/team](https://ftc-embeds.com/team) has a CSS editor with examples for each widget and the classes you can use, and shows the result as you type.
+
 ## Live updates
 
 `next-match` and `team-season` refresh every 30 seconds (`refresh`) while the team's event is on and the page is visible.

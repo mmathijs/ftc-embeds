@@ -11,11 +11,52 @@
         "next-match": { global: "FtcNextMatch", cls: "NextMatch", tag: "ftc-next-match", label: "Next match", hint: "During an event: the next match and the last result, updating itself. Otherwise the next event.", layouts: { list: "Full", compact: "Two lines" }, parts: "event, time, countdown, alliances, names, last, rank, upcoming" },
         "team-season": { global: "FtcTeamSeason", cls: "TeamSeason", tag: "ftc-team-season", label: "Season + next match", hint: "Season results, with the next match on top while competing.", layouts: { list: "List", strip: "Scrolling tiles" }, parts: "live, team, date, type, location, rank, record, awards, advanced" },
     };
+    // Starting points for the custom CSS: for every widget, and per widget.
+    const CSS_EXAMPLES = {
+        all: [
+            ["Brand colors", ":host {\n    --ftcw-accent: #e4002b;\n    --ftcw-gold: #e4002b;\n}"],
+            ["Square corners", ":host {\n    --ftcw-radius: 0;\n    --ftcw-inner-radius: 0;\n    --ftcw-chip-radius: 0;\n}"],
+            ["Bigger title", ".title {\n    font-size: 24px;\n    letter-spacing: -0.01em;\n}"],
+            ["No card border", ".ftcw {\n    border: 0;\n    box-shadow: none;\n}"],
+            ["Your font", ":host {\n    --ftcw-font: Georgia, serif;\n}"],
+        ],
+        "team-card": [
+            ["Big centered stats", ".stat {\n    text-align: center;\n}\n.stat .v {\n    font-size: 30px;\n    color: var(--_accent);\n}"],
+            ["Round avatar", ":host {\n    --ftcw-avatar-radius: 50%;\n    --ftcw-avatar-size: 56px;\n}"],
+            ["Name in capitals", ".name {\n    text-transform: uppercase;\n    letter-spacing: .02em;\n}"],
+        ],
+        "team-results": [
+            ["Big ranks", ".rank {\n    font-size: 26px;\n    color: var(--_accent);\n}"],
+            ["Plain award labels", ".chip.award {\n    background: none;\n    padding-left: 0;\n}"],
+            ["Tall tiles", ":host {\n    --ftcw-tile-height: 170px;\n    --ftcw-tile-width: 220px;\n}"],
+        ],
+        "team-awards": [
+            ["Trophy cards (Lorentz style)", ".strip > .card {\n    background: linear-gradient(#b3b3b3, #a3a3a3);\n    text-transform: uppercase;\n    text-align: center;\n    align-items: center;\n    color: #fff;\n}\n.card.judged.won {\n    background: linear-gradient(#f39a4f, #e07a2b);\n}\n.card.alliance.won {\n    outline: 4px solid #fbbf24;\n    outline-offset: -4px;\n}\n.card .c-event {\n    order: 1;\n    color: #000;\n    font-weight: 800;\n}"],
+            ["Dim awards not won", ".card:not(.won), .aw:not(.won) {\n    opacity: .6;\n}"],
+            ["No icons", ".icon {\n    display: none;\n}"],
+        ],
+        "next-match": [
+            ["Big match number", ".nm-desc {\n    font-size: 36px;\n}"],
+            ["Bold alliances", ".al {\n    border-left-width: 6px;\n    font-size: 15px;\n}"],
+        ],
+        "team-season": [
+            ["Bigger live part", ".nm-desc, .c-desc {\n    font-size: 30px;\n}"],
+            ["Big ranks", ".rank {\n    font-size: 26px;\n    color: var(--_accent);\n}"],
+        ],
+    };
+    const CLASSES = {
+        "team-card": ".ftcw (the card), .top, .avatar, .num, .name, .meta, .stats, .stat, .stat .k / .v / .r, .next, .upc, .upc-row, .upc-date, .chip",
+        "team-results": ".ftcw, .head, .title, .rows, .row, .ev, .sub, .chips, .chip.award, .chip.award.won, .chip.good, .rank, .rec, .strip, .tile, .tile.live, .tile.upcoming",
+        "team-awards": ".ftcw, .head, .title, .count, .season, .sname, .aw, .an, .ae, .strip, .card, .card.won, .card.alliance, .card.judged, .card.p1 / .p2 / …, .card.type-Inspire / …, .c-icon, .c-name, .c-place, .c-event, .c-season",
+        "next-match": ".ftcw, .live-head, .nm, .nm-label, .nm-desc, .nm-when, .alliances, .al.red, .al.blue, .al .t.me, .last, .upnext, .cm (compact)",
+        "team-season": "those of season results and next match, plus .now (the live part)",
+    };
+
     const STATS = { opr: "OPR", epa: "EPA", "region-rank": "Rank in region", record: "Season record", "record-total": "All-time record", "win-rate": "Win rate", awards: "Season awards", "awards-total": "All awards", matches: "Season matches", "matches-total": "All matches", events: "Season events", "events-total": "All events", seasons: "Seasons", rookie: "Since" };
 
     const DEFAULTS = {
         widget: "team-card", team: "19444", season: "", theme: "auto", layout: "list", density: "normal", accent: "#2563eb", useAccent: false, bare: false,
-        radius: -1, avatarRadius: "", linkTo: "ftcscout",
+        radius: -1, avatarRadius: "", linkTo: "ftcscout", css: "",
         stats: ["opr", "epa", "record"], upcoming: 1, skipScrimmages: false, oldest: false, onlyWon: false, seasons: "", limit: "", hide: "",
     };
     let state = { ...DEFAULTS };
@@ -53,6 +94,7 @@
         if (state.linkTo === "none") o.linkTarget = "none";
         else if (state.linkTo !== "ftcscout") o.linkTo = state.linkTo;
         if (state.limit) o.limit = +state.limit;
+        if (state.css.trim()) o.css = state.css.trim();
         if (state.hide.trim()) o.hide = state.hide.split(/[\s,]+/).filter(Boolean).join(",");
         if (w === "team-card") {
             if (state.stats.join(",") !== "opr,epa,record") o.stats = state.stats.join(",");
@@ -97,6 +139,7 @@
         element: "Paste it where the widget should go. It fits the width of its container.",
         iframe: "For sites that don't allow scripts (Wix, Google Sites, …). Set the height to fit.",
         js: "For apps built with a bundler. The options are the same as the attributes.",
+        css: "Style anything inside the widget: start from an example or write your own. The preview updates as you type, and the CSS goes into the code.",
     };
 
     // ------------------------------------------------------------ preview
@@ -109,7 +152,7 @@
         if (!lib) return;
         if (SITE.apiBase || SITE.graphqlUrl) lib.configure({ apiBase: SITE.apiBase || null, graphqlUrl: SITE.graphqlUrl || null });
         // Every option goes to the widget, so values back at their default are applied too.
-        let o = { layout: "list", density: "normal", bare: false, limit: null, hide: null, season: null, theme: "auto", linkTo: "ftcscout", linkTarget: "_blank", ...options() };
+        let o = { layout: "list", density: "normal", bare: false, limit: null, hide: null, season: null, theme: "auto", linkTo: "ftcscout", linkTarget: "_blank", css: "", ...options() };
         if (state.widget === "team-card") o = { stats: "opr,epa,record", upcoming: 1, ...o };
         if (state.widget === "team-awards") o = { onlyWon: false, seasons: null, ...o };
         if (state.widget === "team-results" || state.widget === "team-season") o = { skipTypes: null, order: "newest", ...o };
@@ -158,12 +201,24 @@
         $("limit").value = state.limit;
         $("hide").value = state.hide;
         $("hide-hint").textContent = `Parts of this widget: ${w.parts}.`;
+        if (document.activeElement !== $("css")) $("css").value = state.css;
+        $("css-examples").replaceChildren(...[...CSS_EXAMPLES.all, ...(CSS_EXAMPLES[state.widget] || [])].map(([label, css]) => {
+            let b = document.createElement("button");
+            b.type = "button";
+            b.textContent = label;
+            b.onclick = () => set({ css: (state.css.trim() ? state.css.trim() + "\n\n" : "") + css });
+            return b;
+        }));
+        $("css-classes").textContent = `Classes in this widget: ${CLASSES[state.widget]}.`;
     }
 
     function render() {
         syncControls();
         preview();
-        $("snippet").textContent = snippet();
+        if (tab !== "css") $("snippet").textContent = snippet();
+        $("snippet").hidden = tab === "css";
+        $("css-panel").hidden = tab !== "css";
+        $("copy").hidden = tab === "css";
         $("tab-hint").textContent = HINTS[tab];
         document.querySelectorAll(".tabs button").forEach((b) => b.setAttribute("aria-selected", b.dataset.tab === tab));
         writeHash();
@@ -204,7 +259,18 @@
     $("seasons").onchange = (e) => set({ seasons: e.target.value.trim() });
     $("limit").onchange = (e) => set({ limit: e.target.value.trim() });
     $("hide").onchange = (e) => set({ hide: e.target.value });
+    let cssTimer;
+    $("css").oninput = (e) => {
+        clearTimeout(cssTimer);
+        cssTimer = setTimeout(() => set({ css: e.target.value }), 250);
+    };
     document.querySelectorAll(".tabs button").forEach((b) => (b.onclick = () => ((tab = b.dataset.tab), render())));
+    $("open-css").onclick = () => {
+        tab = "css";
+        render();
+        $("css").focus({ preventScroll: true });
+        $("css-panel").scrollIntoView({ behavior: "smooth", block: "nearest" });
+    };
 
     async function copy(text, button) {
         let label = button.textContent;

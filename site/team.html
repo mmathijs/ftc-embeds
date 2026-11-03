@@ -140,6 +140,22 @@
         .top nav { flex-wrap: wrap; gap: 6px 16px; width: 100%; }
         .wordmark { white-space: nowrap; }
     }
+    @media (min-width: 901px) {
+        .app > .work { position: sticky; top: 0; align-self: start; max-height: 100vh; overflow-y: auto; }
+    }
+    #css-panel { display: grid; gap: 10px; margin-top: 12px; }
+    #css-panel[hidden] { display: none; }
+    .examples { display: flex; flex-wrap: wrap; gap: 6px; }
+    .examples button { font: 13px var(--sans); border: 1px solid var(--ink); background: var(--field); color: var(--ink); padding: 6px 11px; border-radius: 2px; cursor: pointer; }
+    .examples button:hover { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+    .ex-label { font: 12px var(--mono); color: var(--ink-2); }
+    .tabs .css-tab { color: var(--accent); font-weight: 500; }
+    .tabs .css-tab[aria-selected="true"] { color: var(--ink); }
+    .badge { font: 10px var(--mono); text-transform: uppercase; letter-spacing: .06em; background: var(--accent); color: var(--accent-ink); padding: 1px 5px; border-radius: 2px; margin-left: 4px; vertical-align: 2px; }
+    .css-open { justify-self: start; border-color: var(--accent); color: var(--ink); }
+    .css-open:hover { background: var(--accent); color: var(--accent-ink); }
+    #css { width: 100%; min-height: 150px; resize: vertical; box-sizing: border-box; font: 12.5px/1.5 var(--mono); padding: 10px; border: 1px solid var(--ink); border-radius: 2px; background: var(--code-bg); color: var(--code-ink); tab-size: 4; }
+    .hint code { font: 12px var(--mono); }
 </style>
 </head>
 <body>
@@ -204,6 +220,7 @@
             <label class="f">Accent color <input type="color" id="accent" value="#2563eb"></label>
             <label class="check"><input type="checkbox" id="use-accent"> Use my accent color</label>
             <label class="check"><input type="checkbox" id="bare"> No card around it</label>
+            <button type="button" class="btn css-open" id="open-css">More? Custom CSS, with examples →</button>
             <label class="f">Names link to
                 <select id="link-to"><option value="ftcscout">FTCScout</option><option value="ftc-events">FTC Events</option><option value="none">Nothing (no links)</option></select>
             </label>
@@ -241,6 +258,7 @@
                     <button role="tab" data-tab="element" aria-selected="true">HTML element</button>
                     <button role="tab" data-tab="iframe" aria-selected="false">iframe</button>
                     <button role="tab" data-tab="js" aria-selected="false">JavaScript</button>
+                    <button role="tab" data-tab="css" aria-selected="false" class="css-tab">Custom CSS <span class="badge">new</span></button>
                 </div>
                 <div class="actions">
                     <button class="btn" id="share">Copy link to these settings</button>
@@ -249,6 +267,13 @@
             </div>
             <p class="hint" id="tab-hint"></p>
             <pre id="snippet"></pre>
+            <div id="css-panel" hidden>
+                <span class="ex-label">Start from an example:</span>
+                <div class="examples" id="css-examples"></div>
+                <textarea id="css" spellcheck="false" autocomplete="off" placeholder=".title { font-size: 22px; }"></textarea>
+                <p class="hint" id="css-classes"></p>
+                <p class="hint">Theme tokens work here too, as <code>:host { --ftcw-accent: #e4002b; }</code>. <a href="https://github.com/mmathijs/ftc-embeds/blob/main/docs/team-widgets.md#styling-anything" target="_blank" rel="noopener">All classes, parts and tokens</a></p>
+            </div>
         </section>
     </main>
 </div>
