@@ -58,6 +58,7 @@
         widget: "team-card", team: "19444", season: "", theme: "auto", layout: "list", density: "normal", accent: "#2563eb", useAccent: false, bare: false,
         radius: -1, avatarRadius: "", linkTo: "ftcscout", css: "",
         stats: ["opr", "epa", "record"], upcoming: 1, skipScrimmages: false, oldest: false, onlyWon: false, seasons: "", limit: "", hide: "",
+        locale: "", numberFormat: "locale", decimals: 1, dateFormat: "short", hourCycle: "", timeZone: "",
     };
     let state = { ...DEFAULTS };
     let tab = "element";
@@ -96,6 +97,12 @@
         if (state.limit) o.limit = +state.limit;
         if (state.css.trim()) o.css = state.css.trim();
         if (state.hide.trim()) o.hide = state.hide.split(/[\s,]+/).filter(Boolean).join(",");
+        if (state.locale) o.locale = state.locale;
+        if (state.numberFormat !== "locale") o.numberFormat = state.numberFormat;
+        if (+state.decimals !== 1) o.decimals = +state.decimals;
+        if (state.dateFormat !== "short") o.dateFormat = state.dateFormat;
+        if (state.hourCycle) o.hourCycle = +state.hourCycle;
+        if (state.timeZone) o.timeZone = state.timeZone;
         if (w === "team-card") {
             if (state.stats.join(",") !== "opr,epa,record") o.stats = state.stats.join(",");
             if (+state.upcoming !== 1) o.upcoming = +state.upcoming;
@@ -162,7 +169,7 @@
         if (!lib) return;
         if (SITE.apiBase || SITE.graphqlUrl) lib.configure({ apiBase: SITE.apiBase || null, graphqlUrl: SITE.graphqlUrl || null });
         // Every option goes to the widget, so values back at their default are applied too.
-        let o = { layout: "list", density: "normal", bare: false, limit: null, hide: null, season: null, theme: "auto", linkTo: "ftcscout", linkTarget: "_blank", css: "", ...options() };
+        let o = { layout: "list", density: "normal", bare: false, limit: null, hide: null, season: null, theme: "auto", linkTo: "ftcscout", linkTarget: "_blank", css: "", locale: null, numberFormat: "locale", decimals: 1, dateFormat: "short", hourCycle: null, timeZone: null, ...options() };
         if (state.widget === "team-card") o = { stats: "opr,epa,record", upcoming: 1, ...o };
         if (state.widget === "team-awards") o = { onlyWon: false, seasons: null, ...o };
         if (state.widget === "team-results" || state.widget === "team-season") o = { skipTypes: null, order: "newest", ...o };
@@ -172,7 +179,8 @@
             widget = new lib[w.cls]($("preview"), o);
             shown = state.widget;
         } else widget.update(o);
-        $("preview").classList.toggle("on-dark", ["dark", "trophy", "ftcscout-dark"].includes(state.theme));
+        let dark = /-auto$|^auto$/.test(state.theme) ? matchMedia("(prefers-color-scheme: dark)").matches : state.theme == "dark" || state.theme == "trophy" || state.theme.endsWith("-dark");
+        $("preview").classList.toggle("on-dark", dark);
     }
 
     // ------------------------------------------------------------ controls
@@ -210,6 +218,12 @@
         $("seasons").value = state.seasons;
         $("limit").value = state.limit;
         $("hide").value = state.hide;
+        $("locale").value = state.locale;
+        $("number-format").value = state.numberFormat;
+        $("decimals").value = state.decimals;
+        $("date-format").value = state.dateFormat;
+        $("hour-cycle").value = state.hourCycle;
+        $("time-zone").value = state.timeZone;
         $("hide-hint").textContent = `Parts of this widget: ${w.parts}.`;
         if (document.activeElement !== $("css")) $("css").value = state.css;
         $("css-examples").replaceChildren(...[...CSS_EXAMPLES.all, ...(CSS_EXAMPLES[state.widget] || [])].map(([label, css]) => {
@@ -269,6 +283,13 @@
     $("seasons").onchange = (e) => set({ seasons: e.target.value.trim() });
     $("limit").onchange = (e) => set({ limit: e.target.value.trim() });
     $("hide").onchange = (e) => set({ hide: e.target.value });
+    $("locale").onchange = (e) => set({ locale: e.target.value.trim() });
+    $("number-format").onchange = (e) => set({ numberFormat: e.target.value });
+    $("decimals").onchange = (e) => set({ decimals: Math.max(0, Math.min(3, +e.target.value || 0)) });
+    $("date-format").onchange = (e) => set({ dateFormat: e.target.value });
+    $("hour-cycle").onchange = (e) => set({ hourCycle: e.target.value });
+    $("time-zone").onchange = (e) => set({ timeZone: e.target.value.trim() });
+    if (Intl.supportedValuesOf) $("time-zones").replaceChildren(...Intl.supportedValuesOf("timeZone").map((z) => new Option(z.replace(/_/g, " "), z)));
     let cssTimer;
     $("css").oninput = (e) => {
         clearTimeout(cssTimer);

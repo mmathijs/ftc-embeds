@@ -6,9 +6,12 @@ import { TEAM_TEXT, fill } from "./team-text.mjs";
 
 const PREFIX = "ftcw";
 
-// Theme tokens. Sizes and type are shared (SIZES) and themes override what they change; every token
-// can also be set from the page as --ftcw-<kebab-name>, or in a theme object.
-const SIZES = {
+// Theme tokens come in two independent halves: colors (TEAM_THEMES, the `theme` option) and shape
+// (TEAM_SHAPES, the `shape` option: corners, spacing, type). Every token can also be set from the
+// page as --ftcw-<kebab-name>, or in a theme or shape object.
+
+/** Shapes: corners, spacing, sizes and type. */
+const DEFAULT_SHAPE = {
     radius: "12px", // the card
     innerRadius: "8px", // tiles, stat blocks, the next-match box
     chipRadius: "999px", // chips and the scroll buttons
@@ -44,10 +47,32 @@ const SIZES = {
     font: 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
 };
 
+export const TEAM_SHAPES = {
+    default: DEFAULT_SHAPE,
+    square: { ...DEFAULT_SHAPE, radius: "0", innerRadius: "0", chipRadius: "0", avatarRadius: "0" },
+    compact: {
+        ...DEFAULT_SHAPE, radius: "6px", innerRadius: "4px", chipRadius: "4px", avatarSize: "36px", padding: "10px", gap: "6px", rowPadding: "6px",
+        fontSize: "13px", titleSize: "15px", valueSize: "17px", nameSize: "16px", tileWidth: "156px",
+    },
+    spacious: {
+        ...DEFAULT_SHAPE, radius: "16px", innerRadius: "12px", avatarRadius: "10px", avatarSize: "52px", padding: "24px", gap: "14px", rowPadding: "14px",
+        tileWidth: "196px", fontSize: "15px", titleSize: "18px",
+    },
+    bubbly: { ...DEFAULT_SHAPE, radius: "24px", innerRadius: "18px", avatarRadius: "50%", padding: "20px", gap: "10px", rowPadding: "12px" },
+    // Big, bold type: the trophy case's own shape.
+    showcase: {
+        ...DEFAULT_SHAPE, radius: "14px", innerRadius: "12px", padding: "20px", gap: "12px", tileWidth: "200px", cardHeight: "264px",
+        titleSize: "20px", titleWeight: "800", titleTransform: "uppercase", titleLetterSpacing: ".01em",
+        valueSize: "26px", valueWeight: "850", labelLetterSpacing: ".06em", nameSize: "24px", nameWeight: "850",
+        chipFontSize: "10.5px", chipWeight: "700", chipPadding: "3px 9px", glow: "0 0 24px 5px", glowRoom: "18px",
+    },
+    ftcscout: { ...DEFAULT_SHAPE, radius: "8px", innerRadius: "5px", padding: "14px", font: 'var(--font-family, "Inter", sans-serif)' },
+    "ftc-events": { ...DEFAULT_SHAPE, radius: "4px", innerRadius: "4px", chipRadius: "4px", avatarRadius: "0", font: '"Roboto", "Helvetica Neue", Arial, sans-serif' },
+};
+
 // FTCScout: its own CSS variables, with its light or dark values as fallback (so on FTCScout it
 // follows the site's dark mode; elsewhere "ftcscout-dark" gives the dark look).
 const ftcscout = (d) => ({
-    ...SIZES,
     bg: `var(--fg-color, ${d ? "rgb(45, 45, 45)" : "#ffffff"})`, surface: `var(--bg-color, ${d ? "#161616" : "#f2f2f2"})`,
     text: `var(--text-color, ${d ? "#dfe2e6" : "#000000"})`, muted: `var(--secondary-text-color, ${d ? "#b7b7b8" : "#636466"})`,
     border: `var(--sep-color, ${d ? "#4a4e51" : "lightgray"})`,
@@ -55,43 +80,59 @@ const ftcscout = (d) => ({
     red: `var(--red-team-text-color, ${d ? "rgb(255, 83, 71)" : "rgb(175, 29, 29)"})`, blue: `var(--blue-team-text-color, ${d ? "rgb(33, 150, 243)" : "rgb(27, 87, 179)"})`,
     good: `var(--generic-advanced-color, ${d ? "#14d55b" : "#097a34"})`, bad: `var(--red-team-text-color, ${d ? "rgb(255, 83, 71)" : "rgb(175, 29, 29)"})`,
     gold: d ? "#e0b23a" : "#c99a06", shadow: "none",
-    radius: "8px", innerRadius: "5px", padding: "14px", font: 'var(--font-family, "Inter", sans-serif)',
 });
 
+/** Color themes. */
 export const TEAM_THEMES = {
     light: {
-        ...SIZES,
         bg: "#ffffff", surface: "#f5f6f8", text: "#1d2329", muted: "#5d6773", border: "#e2e5ea",
         accent: "#2563eb", accentText: "#ffffff", red: "#d32f2f", blue: "#1e63d6", good: "#1f8a4c", bad: "#c62828", gold: "#c99a06",
         shadow: "0 1px 3px rgba(16,24,40,.08)",
     },
     dark: {
-        ...SIZES,
         bg: "#16191e", surface: "#1e2228", text: "#e8ebef", muted: "#9aa3ad", border: "#2c313a",
         accent: "#6b9cff", accentText: "#0b1220", red: "#ef5350", blue: "#5b9bff", good: "#43c47a", bad: "#ef5350", gold: "#e0b23a",
         shadow: "none",
     },
     ftcscout: ftcscout(false),
     "ftcscout-dark": ftcscout(true),
-    // Trophy-case look (dark slate, metallic award cards, amber for wins). Also adds the widgets'
-    // "trophy" CSS (TeamWidget.skins.trophy).
+    // Trophy-case look (dark slate, metallic award cards, amber for wins; trophy-light on warm
+    // paper). Both add the widgets' "trophy" CSS (TeamWidget.skins.trophy).
     trophy: {
-        ...SIZES,
         bg: "#2b313d", surface: "rgba(255,255,255,.07)", text: "#f8fafc", muted: "#cbd5e1", border: "rgba(255,255,255,.09)",
         accent: "#fbbf24", accentText: "#111827", red: "#f87171", blue: "#60a5fa", good: "#4ade80", bad: "#f87171", gold: "#fbbf24",
         shadow: "0 10px 30px rgba(0,0,0,.25)",
-        radius: "14px", innerRadius: "12px", padding: "20px", gap: "12px", tileWidth: "200px", cardHeight: "264px",
-        titleSize: "20px", titleWeight: "800", titleTransform: "uppercase", titleLetterSpacing: ".01em",
-        valueSize: "26px", valueWeight: "850", labelLetterSpacing: ".06em", nameSize: "24px", nameWeight: "850",
-        chipFontSize: "10.5px", chipWeight: "700", chipPadding: "3px 9px", glow: "0 0 24px 5px", glowRoom: "18px",
+    },
+    "trophy-light": {
+        bg: "#f7f5f0", surface: "rgba(15,23,42,.05)", text: "#1c2230", muted: "#5b6474", border: "rgba(15,23,42,.10)",
+        accent: "#b45309", accentText: "#ffffff", red: "#dc2626", blue: "#2563eb", good: "#15803d", bad: "#dc2626", gold: "#d97706",
+        shadow: "0 10px 30px rgba(15,23,42,.12)",
     },
     "ftc-events": {
-        ...SIZES,
         bg: "#ffffff", surface: "#f2f2f2", text: "#212529", muted: "#6c757d", border: "#dee2e6",
         accent: "#0066b3", accentText: "#ffffff", red: "#ed1c24", blue: "#0066b3", good: "#198754", bad: "#dc3545", gold: "#c99a06",
-        shadow: "none", radius: "4px", innerRadius: "4px", chipRadius: "4px", avatarRadius: "0",
-        font: '"Roboto", "Helvetica Neue", Arial, sans-serif',
+        shadow: "none",
     },
+    "ftc-events-dark": {
+        bg: "#212529", surface: "#2b3035", text: "#dee2e6", muted: "#adb5bd", border: "#495057",
+        accent: "#4d9fe0", accentText: "#0b1220", red: "#f1555b", blue: "#4d9fe0", good: "#4cc38a", bad: "#ea868f", gold: "#e0b23a",
+        shadow: "none",
+    },
+};
+
+/** The themes that follow the visitor's light or dark mode: [light theme, dark theme]. */
+export const TEAM_THEME_MODES = {
+    auto: ["light", "dark"],
+    "ftcscout-auto": ["ftcscout", "ftcscout-dark"],
+    "ftc-events-auto": ["ftc-events", "ftc-events-dark"],
+    "trophy-auto": ["trophy-light", "trophy"],
+};
+
+/** The shape a color theme gets when the `shape` option isn't set (the rest get "default"). */
+export const TEAM_THEME_SHAPES = {
+    ftcscout: "ftcscout", "ftcscout-dark": "ftcscout", "ftcscout-auto": "ftcscout",
+    "ftc-events": "ftc-events", "ftc-events-dark": "ftc-events", "ftc-events-auto": "ftc-events",
+    trophy: "showcase", "trophy-light": "showcase", "trophy-auto": "showcase",
 };
 
 /** The icons and their default glyphs; override with --ftcw-icon-<name> or the `icons` option. */
@@ -120,16 +161,24 @@ const SKINS = {
 .head{margin-bottom:16px}
 .chip{letter-spacing:.03em;text-transform:uppercase}
 .chip.upcoming{background:var(--_accent);color:var(--_accent-text)}
-.arrows button{background:rgba(255,255,255,.1);color:#fff}
+.arrows button{background:color-mix(in srgb,var(--_text) 10%,transparent);color:var(--_text)}
 .arrows button:hover:not(:disabled){background:var(--_accent);color:var(--_accent-text)}
 .metal{background:linear-gradient(160deg,#e4e4e7 0%,#b4b4bb 45%,#8e8e97 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.65),inset 0 -2px 6px rgba(0,0,0,.12),0 8px 18px rgba(0,0,0,.28)}`,
 };
 
-/** "auto" | "light" | "dark" | "ftcscout" | "ftc-events" | "trophy", or { base, ...tokens }. */
-export function resolveTeamTheme(theme) {
-    let named = (name) => (!name || name === "auto" ? (DARK?.matches ? TEAM_THEMES.dark : TEAM_THEMES.light) : TEAM_THEMES[name] || TEAM_THEMES.light);
-    if (theme && typeof theme === "object") return { ...named(theme.base || "auto"), ...theme };
-    return named(theme);
+/**
+ * The tokens for a color theme and a shape. theme: a name (TEAM_THEMES, or TEAM_THEME_MODES for the
+ * ones following light/dark mode), or { base, ...tokens, dark: { ...tokens used in dark mode } }.
+ * shape: a name (TEAM_SHAPES), { base, ...tokens }, or nothing for the theme's own (TEAM_THEME_SHAPES).
+ */
+export function resolveTeamTheme(theme, shape = null) {
+    let { base: name = "auto", dark: darkTokens = null, ...tokens } = theme && typeof theme === "object" ? theme : { base: theme || "auto" };
+    let isDark = !!DARK?.matches;
+    let shapeOf = (s) => TEAM_SHAPES[s] || TEAM_SHAPES[TEAM_THEME_SHAPES[name]] || DEFAULT_SHAPE;
+    let shapeTokens = shape && typeof shape === "object" ? (({ base, ...rest }) => ({ ...shapeOf(base), ...rest }))(shape) : shapeOf(shape);
+    let pair = TEAM_THEME_MODES[name];
+    let colors = TEAM_THEMES[pair ? pair[isDark ? 1 : 0] : name] || TEAM_THEMES.light;
+    return { ...shapeTokens, ...colors, ...tokens, ...(isDark && darkTokens ? darkTokens : {}) };
 }
 
 const kebab = (s) => s.replace(/[A-Z]/g, (c) => "-" + c.toLowerCase());
@@ -232,14 +281,29 @@ export function seasonName(season) {
 
 // Event dates are plain dates ("2026-02-07"): format them without a time zone shift.
 const asDate = (d) => new Date(`${d}T12:00:00Z`);
-export function dateRange(start, end, locale = undefined) {
+/** The `dateFormat` option: "short" (Feb 7, 2026), "long" (February 7, 2026), "numeric" (2/7/2026), "iso" (2026-02-07). */
+const DATE_FORMATS = {
+    short: { month: "short", day: "numeric", year: "numeric" },
+    long: { month: "long", day: "numeric", year: "numeric" },
+    numeric: { month: "numeric", day: "numeric", year: "numeric" },
+};
+const isoDay = (d) => String(d).slice(0, 10);
+export function dateRange(start, end, locale = undefined, format = "short") {
+    if (format === "iso") return !end || start === end ? isoDay(start) : `${isoDay(start)} – ${isoDay(end)}`;
     let s = asDate(start);
     let e = asDate(end || start);
-    let f = new Intl.DateTimeFormat(locale, { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+    let f = new Intl.DateTimeFormat(locale, { ...(DATE_FORMATS[format] || DATE_FORMATS.short), timeZone: "UTC" });
     if (start === end || !end || !f.formatRange) return f.format(s);
     return f.formatRange(s, e);
 }
-export const shortDate = (d, locale = undefined) => asDate(d).toLocaleDateString(locale, { month: "short", day: "numeric", timeZone: "UTC" });
+/** A date without the year, in the same format. */
+export function shortDate(d, locale = undefined, format = "short") {
+    if (format === "iso") return isoDay(d).slice(5);
+    let { year, ...o } = DATE_FORMATS[format] || DATE_FORMATS.short;
+    return asDate(d).toLocaleDateString(locale, { ...o, timeZone: "UTC" });
+}
+/** The `numberFormat` option: separators regardless of the language; "locale" (default) follows `locale`. */
+const NUMBER_FORMATS = { point: "en-US", comma: "de-DE", space: "fr-FR", apostrophe: "de-CH", plain: "en-US" };
 
 export function place(loc) {
     if (!loc) return "";
@@ -295,6 +359,7 @@ const DEFAULTS = {
     team: null,
     season: null, // default: the current season
     theme: "auto",
+    shape: null, // "default" | "square" | "compact" | … (TEAM_SHAPES) or { base, ...tokens }; null: the theme's own
     apiBase: null,
     graphqlUrl: null,
     siteUrl: "https://ftcscout.mmathijs.nl", // links to the team/event pages; "" for no links
@@ -309,6 +374,10 @@ const DEFAULTS = {
     text: null, // change any text: { nextMatch: "Up next", awards: "Trophies" }; see TEAM_TEXT
     locale: null, // dates, times and numbers, e.g. "en-GB"; default: the visitor's
     decimals: 1, // OPR and EPA
+    numberFormat: "locale", // "locale" | "point" (1,234.5) | "comma" (1.234,5) | "space" (1 234,5) | "apostrophe" (1'234.5) | "plain" (1234.5)
+    dateFormat: "short", // "short" (Feb 7, 2026) | "long" (February 7, 2026) | "numeric" (2/7/2026) | "iso" (2026-02-07)
+    hourCycle: null, // match times: 12 | 24; default: the locale's
+    timeZone: null, // match times, e.g. "Europe/Amsterdam"; default: the visitor's
     awardNames: null, // { Inspire: "Inspire Award", Winner: "Winning Alliance" }
     eventTypes: null, // { Qualifier: "Kwalificatie" }
     linkTo: "ftcscout", // "ftcscout" | "ftc-events": where team and event names link to
@@ -434,15 +503,37 @@ export class TeamWidget {
     }
 
     num(value, digits = Number(this.options.decimals ?? 1)) {
-        return value == null ? "–" : Number(value).toLocaleString(this.locale, { minimumFractionDigits: digits, maximumFractionDigits: digits });
+        if (value == null) return "–";
+        let f = this.options.numberFormat;
+        return Number(value).toLocaleString(NUMBER_FORMATS[f] || this.locale, { minimumFractionDigits: digits, maximumFractionDigits: digits, useGrouping: f !== "plain" });
+    }
+
+    /** A whole number (ranks, counts), in the number format. */
+    int(value) {
+        return this.num(value, 0);
     }
 
     dates(start, end) {
-        return dateRange(start, end, this.locale);
+        return dateRange(start, end, this.locale, this.options.dateFormat);
     }
 
     day(date) {
-        return shortDate(date, this.locale);
+        return shortDate(date, this.locale, this.options.dateFormat);
+    }
+
+    /** A moment's time of day ("14:30" / "2:30 PM"), with `hourCycle` and `timeZone`. */
+    time(iso) {
+        let o = { hour: "2-digit", minute: "2-digit" };
+        let cycle = String(this.options.hourCycle ?? "");
+        if (cycle === "12" || cycle === "24") o.hour12 = cycle === "12";
+        if (this.options.timeZone) o.timeZone = this.options.timeZone;
+        try {
+            return new Date(iso).toLocaleTimeString(this.locale, o);
+        } catch {
+            // An unknown time zone: the visitor's.
+            delete o.timeZone;
+            return new Date(iso).toLocaleTimeString(this.locale, o);
+        }
     }
 
     /** Whether a part is shown: not in the `hide` option. */
@@ -509,7 +600,7 @@ export class TeamWidget {
     }
 
     render() {
-        let t = resolveTeamTheme(this.options.theme);
+        let t = resolveTeamTheme(this.options.theme, this.options.shape);
         // Every token can also be set from the page: --ftcw-accent, --ftcw-radius, ...
         // Internally --_<token>, so a theme can use the page's own variables of the same name
         // (accent: "var(--accent)") without referring to itself.
@@ -521,7 +612,7 @@ export class TeamWidget {
             body = h("div", { class: "status" }, this.error.notFound ? this.t("notFound", { team: this.options.team }) : this.t("loadError"));
         } else if (!this.data) body = h("div", { "aria-busy": "true" }, h("div", { class: "skeleton", style: { width: "45%" } }), h("div", { class: "skeleton" }), h("div", { class: "skeleton", style: { width: "75%" } }));
         else body = this.view(this.data);
-        let skin = this.options.skin ?? (themeBase(this.options.theme) === "trophy" ? "trophy" : null);
+        let skin = this.options.skin ?? (/^trophy(-|$)/.test(themeBase(this.options.theme) || "") ? "trophy" : null);
         let skinCss = skin ? (SKINS[skin] || "") + (this.constructor.skins?.[skin] || "") : "";
         let style = h("style", null, `:host{${vars}}` + BASE_CSS + icons + (this.constructor.css || "") + skinCss + (this.options.css || ""));
         let cls = [PREFIX, `${PREFIX}-${this.constructor.kind}`, `layout-${this.layout}`, `density-${this.options.density || "normal"}`, this.options.bare ? "bare" : ""];
@@ -579,9 +670,10 @@ export function attrValue(v, flag = false) {
 export function defineTeamElement(tagName, Widget, extraAttrs = {}) {
     if (typeof customElements === "undefined" || customElements.get(tagName)) return;
     const ATTRS = {
-        team: "team", season: "season", theme: "theme", "api-base": "apiBase", "graphql-url": "graphqlUrl", "site-url": "siteUrl", title: "title",
+        team: "team", season: "season", theme: "theme", shape: "shape", "api-base": "apiBase", "graphql-url": "graphqlUrl", "site-url": "siteUrl", title: "title",
         layout: "layout", density: "density", hide: "hide", limit: "limit", "max-height": "maxHeight", "link-target": "linkTarget", bare: "bare", now: "now",
         icons: "icons", css: "css", skin: "skin", text: "text", locale: "locale", decimals: "decimals",
+        "number-format": "numberFormat", "date-format": "dateFormat", "hour-cycle": "hourCycle", "time-zone": "timeZone",
         "award-names": "awardNames", "event-types": "eventTypes", "link-to": "linkTo", "team-url": "teamUrl", "event-url": "eventUrl",
         ...extraAttrs,
     };

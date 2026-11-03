@@ -11,7 +11,7 @@ const kindParts = (a) => `${ALLIANCE.has(a.type) ? "alliance" : "judged"}${isWin
 import { getTeamAwards } from "../core/team-api.mjs";
 export { configure, EmbedsApiError, DEFAULT_API_BASE } from "../core/api.mjs";
 export { getTeamAwards, TEAM_AWARDS_QUERY } from "../core/team-api.mjs";
-export { TEAM_THEMES, ICONS } from "../core/team-ui.mjs";
+export { TEAM_THEMES, TEAM_THEME_MODES, TEAM_SHAPES, TEAM_THEME_SHAPES, ICONS } from "../core/team-ui.mjs";
 export { TEAM_TEXT } from "../core/team-text.mjs";
 
 export class TeamAwards extends TeamWidget {

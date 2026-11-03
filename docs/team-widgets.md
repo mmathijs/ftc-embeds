@@ -20,7 +20,8 @@ Every team widget takes these (as options, or kebab-case attributes on the eleme
 | --- | --- | --- |
 | `team` | number | the team |
 | `season` | number | default: the current season |
-| `theme` | name or object | `auto` (light/dark from the visitor), `light`, `dark`, `ftcscout`, `ftcscout-dark`, `ftc-events`, `trophy`; or `{ base: "dark", accent: "#e4002b", radius: "4px" }` |
+| `theme` | name or object | `auto` (light/dark from the visitor), `light`, `dark`; `ftcscout`, `ftcscout-dark`, `ftcscout-auto`; `ftc-events`, `ftc-events-dark`, `ftc-events-auto`; `trophy` (dark), `trophy-light`, `trophy-auto`; or your own colors: `{ base: "auto", accent: "#e4002b", dark: { accent: "#ff6b6b" } }` (see [Theming](#theming)) |
+| `shape` | name or object | corners, spacing and type, apart from the colors: `default`, `square`, `compact`, `spacious`, `bubbly`, `showcase`, `ftcscout`, `ftc-events`; or `{ base: "compact", radius: "2px" }`. Default: the theme's own |
 | `layout` | | the widget's layouts (`list`, `strip`, `compact`) |
 | `density` | `normal` \| `compact` | tighter spacing |
 | `hide` | `"website,epa"` | parts to leave out (each widget lists its parts) |
@@ -38,6 +39,10 @@ Every team widget takes these (as options, or kebab-case attributes on the eleme
 | `text` | object | change any text: `{ nextMatch: "Up next", awards: "Trophies" }` (see `TEAM_TEXT`; `{name}` is filled in) |
 | `locale` | `"en-GB"` | dates, times and numbers (default: the visitor's) |
 | `decimals` | number | OPR and EPA (default 1) |
+| `numberFormat` | `point`, `comma`, `space`, `apostrophe`, `plain` | separators no matter the language: 1,234.5 · 1.234,5 · 1 234,5 · 1'234.5 · 1234.5 (default `locale`: the language's) |
+| `dateFormat` | `short`, `long`, `numeric`, `iso` | event dates: Feb 7, 2026 (default) · February 7, 2026 · 2/7/2026 (in the language's order) · 2026-02-07 |
+| `hourCycle` | `12`, `24` | match times on a 12- or 24-hour clock (default: the language's) |
+| `timeZone` | `"Europe/Amsterdam"` | time zone of match times (default: the visitor's) |
 | `awardNames` | object | rename awards: `{ Inspire: "Inspire Award" }` |
 | `eventTypes` | object | rename event types: `{ Qualifier: "Kwalificatie" }` |
 | `linkTo` | `ftcscout` \| `ftc-events` | where team and event names link to |
@@ -45,12 +50,30 @@ Every team widget takes these (as options, or kebab-case attributes on the eleme
 
 ## Theming
 
-Themes are tokens. Override them in a theme object (`{ base: "light", radius: "4px", accent: "#e4002b" }`), or from the page with CSS variables, which pass into the widgets (`--ftcw-<kebab-name>`):
+The look has two independent halves: the colors (`theme`, from `TEAM_THEMES`) and the shape (`shape`, from `TEAM_SHAPES`: corners, spacing and type). Any colors go with any shape. Without a `shape`, a theme brings its own (`TEAM_THEME_SHAPES`: the trophy case gets `showcase`, FTCScout and FTC Events get theirs, the rest `default`), so `theme="trophy"` looks as it always did and `theme="trophy" shape="square"` is the trophy case's colors on square corners.
+
+```html
+<ftc-team-card team="19444" theme="ftc-events-auto" shape="bubbly"></ftc-team-card>
+```
+
+**Your own colors.** A theme object puts tokens over a theme; tokens under `dark` apply only when the visitor is in dark mode, so one object can follow light/dark mode with your own colors:
+
+```js
+theme: {
+    base: "auto",
+    bg: "#fff7ed", surface: "#ffedd5", text: "#431407", muted: "#9a3412", border: "#fed7aa", accent: "#ea580c",
+    dark: { bg: "#1c1917", surface: "#292524", text: "#fafaf9", muted: "#a8a29e", border: "#44403c", accent: "#fb923c" },
+}
+```
+
+The six colors there (`bg`, `surface`, `text`, `muted`, `border`, `accent`) work for the pit map too. [ftc-embeds.com/setup](https://ftc-embeds.com/setup) has an editor for them, and saves them as templates in your browser.
+
+Every token can also be set in a theme or shape object, or from the page with CSS variables, which pass into the widgets (`--ftcw-<kebab-name>`):
 
 | Group | Tokens |
 | --- | --- |
-| Colors | `bg`, `surface`, `text`, `muted`, `border`, `accent`, `accentText`, `red`, `blue`, `good`, `bad`, `gold`, `shadow` |
-| Corners | `radius` (the card), `innerRadius` (tiles, stat blocks), `chipRadius` (chips, scroll buttons), `avatarRadius` (4px, like FTCScout) |
+| Colors (`theme`) | `bg`, `surface`, `text`, `muted`, `border`, `accent`, `accentText`, `red`, `blue`, `good`, `bad`, `gold`, `shadow` |
+| Corners (`shape`, like the rows below) | `radius` (the card), `innerRadius` (tiles, stat blocks), `chipRadius` (chips, scroll buttons), `avatarRadius` (4px, like FTCScout) |
 | Spacing and sizes | `padding`, `gap` (stat blocks, tiles, alliances), `rowPadding` (list rows), `borderWidth`, `avatarSize`, `tileWidth`, `tileHeight`, `cardHeight` (award cards) |
 | Type | `font`, `fontSize`, `smallSize`, `lineHeight`, `titleSize`, `titleWeight`, `titleTransform`, `titleLetterSpacing`, `nameSize` and `nameWeight` (team card name), `valueSize` and `valueWeight` (stat values, ranks), `labelTransform` and `labelLetterSpacing` (small labels) |
 | Chips and icons | `chipFontSize`, `chipWeight`, `chipPadding`, `iconSize` |
@@ -60,7 +83,9 @@ Themes are tokens. Override them in a theme object (`{ base: "light", radius: "4
 ftc-team-awards { --ftcw-accent: #e4002b; --ftcw-radius: 4px; --ftcw-inner-radius: 0; --ftcw-gap: 16px; --ftcw-font: Georgia, serif; }
 ```
 
-`theme="ftcscout"` reads FTCScout's own variables (so on FTCScout it follows its dark mode); `ftcscout-dark` is the same with FTCScout's dark colors as fallback, for dark pages elsewhere. `theme="trophy"` is a trophy case: dark slate, metallic award cards and stat tiles, amber for wins, orange for won judged awards.
+`theme="ftcscout"` reads FTCScout's own variables (so on FTCScout it follows its dark mode); `ftcscout-dark` is the same with FTCScout's dark colors as fallback, for dark pages elsewhere. `theme="trophy"` is a trophy case: dark slate, metallic award cards and stat tiles, amber for wins, orange for won judged awards; `trophy-light` is the same on warm paper. `ftc-events-dark` is FTC Events' look on a dark page.
+
+Every look comes in light, dark and a version that follows the visitor's light or dark mode: `auto` (light/dark), `ftcscout-auto`, `ftc-events-auto` and `trophy-auto`. `TEAM_THEME_MODES` lists which two themes each one switches between.
 
 ## Texts
 

@@ -1,6 +1,8 @@
 // Types shared by the team widgets (team-card, team-results, team-awards, next-match, team-season).
 
-export type TeamThemeName = "auto" | "light" | "dark" | "ftcscout" | "ftcscout-dark" | "ftc-events" | "trophy";
+/** The themes that follow the visitor's light or dark mode (see TEAM_THEME_MODES). */
+export type TeamThemeModeName = "auto" | "ftcscout-auto" | "ftc-events-auto" | "trophy-auto";
+export type TeamThemeName = TeamThemeModeName | "light" | "dark" | "ftcscout" | "ftcscout-dark" | "ftc-events" | "ftc-events-dark" | "trophy" | "trophy-light";
 
 /** Theme tokens; each can also be set from the page with --ftcw-<kebab-name> (e.g. --ftcw-accent). */
 export interface TeamTheme {
@@ -18,6 +20,7 @@ export interface TeamTheme {
     bad: string;
     gold: string;
     shadow: string;
+    // Shape (TEAM_SHAPES): corners, spacing, sizes and type
     // Corners
     /** The card. */
     radius: string;
@@ -69,7 +72,16 @@ export interface TeamTheme {
     glowRoom: string;
 }
 
-export type TeamThemeOption = TeamThemeName | (Partial<TeamTheme> & { base?: TeamThemeName });
+/** The color tokens: what a color theme (TEAM_THEMES) sets. */
+export type TeamColorToken = "bg" | "surface" | "text" | "muted" | "border" | "accent" | "accentText" | "red" | "blue" | "good" | "bad" | "gold" | "shadow";
+export type TeamColors = Pick<TeamTheme, TeamColorToken>;
+export type TeamShapeTokens = Omit<TeamTheme, TeamColorToken>;
+export type TeamShapeName = "default" | "square" | "compact" | "spacious" | "bubbly" | "showcase" | "ftcscout" | "ftc-events";
+
+/** A color theme, or tokens over one; `dark` holds tokens used only when the visitor is in dark mode. */
+export type TeamThemeOption = TeamThemeName | (Partial<TeamTheme> & { base?: TeamThemeName; dark?: Partial<TeamTheme> });
+/** A shape, or shape tokens over one. */
+export type TeamShapeOption = TeamShapeName | (Partial<TeamShapeTokens> & { base?: TeamShapeName });
 
 /** Icon names; override with --ftcw-icon-<name>: "★" on the page, or the `icons` option. */
 export type IconName = "trophy" | "medal" | "advanced" | "live" | "upcoming" | "calendar" | "location" | "website" | "prev" | "next";
@@ -95,7 +107,10 @@ export interface TeamWidgetOptions {
     team?: number | string | null;
     /** Season (e.g. 2025); default: the current one. */
     season?: number | string | null;
+    /** Colors. Default "auto" (light or dark, following the visitor). */
     theme?: TeamThemeOption;
+    /** Corners, spacing and type, separate from the colors. Default: the theme's own (TEAM_THEME_SHAPES). */
+    shape?: TeamShapeOption | null;
     apiBase?: string | null;
     graphqlUrl?: string | null;
     /** Where team and event names link to; "" for no links. Default "https://ftcscout.mmathijs.nl". */
@@ -130,6 +145,14 @@ export interface TeamWidgetOptions {
     locale?: string | null;
     /** Decimals of OPR and EPA (default 1). */
     decimals?: number;
+    /** Number separators regardless of `locale`: "point" 1,234.5 · "comma" 1.234,5 · "space" 1 234,5 · "apostrophe" 1'234.5 · "plain" 1234.5. Default "locale". */
+    numberFormat?: "locale" | "point" | "comma" | "space" | "apostrophe" | "plain";
+    /** Event dates: "short" Feb 7, 2026 (default) · "long" February 7, 2026 · "numeric" 2/7/2026 (in the locale's order) · "iso" 2026-02-07. */
+    dateFormat?: "short" | "long" | "numeric" | "iso";
+    /** Match times on a 12- or 24-hour clock. Default: the locale's. */
+    hourCycle?: 12 | 24 | "12" | "24" | null;
+    /** Time zone for match times, e.g. "Europe/Amsterdam". Default: the visitor's. */
+    timeZone?: string | null;
     /** Rename awards: { Inspire: "Inspire Award", Winner: "Winners" }. */
     awardNames?: Record<string, string> | null;
     /** Rename event types: { Qualifier: "Kwalificatie" }. */
@@ -173,7 +196,12 @@ export declare class EmbedsApiError extends Error {
     readonly notFound: boolean;
 }
 
-export declare const TEAM_THEMES: Record<Exclude<TeamThemeName, "auto">, TeamTheme>;
+export declare const TEAM_THEMES: Record<Exclude<TeamThemeName, TeamThemeModeName>, TeamColors>;
+export declare const TEAM_SHAPES: Record<TeamShapeName, TeamShapeTokens>;
+/** The shape each color theme gets when `shape` isn't set ("default" for the ones not listed). */
+export declare const TEAM_THEME_SHAPES: Partial<Record<TeamThemeName, TeamShapeName>>;
+/** Each theme that follows light/dark mode, with the [light, dark] themes it switches between. */
+export declare const TEAM_THEME_MODES: Record<TeamThemeModeName, [Exclude<TeamThemeName, TeamThemeModeName>, Exclude<TeamThemeName, TeamThemeModeName>]>;
 export declare const ICONS: Record<IconName, string>;
 
 /** The FTC season a date falls in (seasons start in September). */

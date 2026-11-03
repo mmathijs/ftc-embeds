@@ -149,9 +149,27 @@ export interface Theme {
     uiRadius: number;
 }
 
-export type ThemeName = "auto" | "light" | "dark" | "ftcscout" | "ftcscout-dark" | "ftc-events";
-/** A preset name, or tokens layered over a preset ({ base: "ftc-events", pitRadius: 0.2 }). */
-export type ThemeOption = ThemeName | (Partial<Theme> & { base?: ThemeName; extends?: ThemeName });
+/** The themes that follow the visitor's light or dark mode (see THEME_MODES). */
+export type ThemeModeName = "auto" | "ftcscout-auto" | "ftc-events-auto";
+export type ThemeName = ThemeModeName | "light" | "dark" | "ftcscout" | "ftcscout-dark" | "ftc-events" | "ftc-events-dark";
+/** The colors shared with the team widgets' themes; each sets the map tokens it stands for. */
+export interface PaletteTokens {
+    bg?: string;
+    surface?: string;
+    text?: string;
+    muted?: string;
+    border?: string;
+    accent?: string;
+}
+/**
+ * A preset name, or tokens layered over a preset ({ base: "ftc-events", route: "#7c3aed" });
+ * `dark` holds tokens used only when the visitor is in dark mode.
+ */
+export type ThemeOption = ThemeName | (Partial<Theme> & PaletteTokens & { base?: ThemeName; extends?: ThemeName; dark?: Partial<Theme> & PaletteTokens });
+export type ShapeName = "default" | "subtle" | "square" | "blocks" | "bubbly";
+export type ShapeTokens = Pick<Theme, "pitRadius" | "pitGap" | "objectRadius" | "fieldRadius" | "wallRadius">;
+/** A shape, or shape tokens over one. */
+export type ShapeOption = ShapeName | (Partial<ShapeTokens> & { base?: ShapeName });
 
 export interface PitStyle {
     fill: string;
@@ -230,6 +248,8 @@ export interface PitMapOptions {
     messages?: { loading?: string; notFound?: string; error?: string };
     /** Default "auto" (light/dark following prefers-color-scheme). */
     theme?: ThemeOption;
+    /** Pit, area, field and wall corners and the gap between pits, separate from the colors. Default: the theme's own (THEME_SHAPES). */
+    shape?: ShapeOption | null;
     /** Re-resolve CSS-variable theme values when <html>/<body> class/style/data-theme change. Default true. */
     watchTheme?: boolean;
     /** Per-pit style override, applied after the theme. */
@@ -395,7 +415,12 @@ export declare class PitMap {
 }
 
 export declare const CELL_TYPES: CellType[];
-export declare const THEMES: Record<Exclude<ThemeName, "auto">, Theme>;
+export declare const THEMES: Record<Exclude<ThemeName, ThemeModeName>, Omit<Theme, keyof ShapeTokens>>;
+export declare const SHAPES: Record<ShapeName, ShapeTokens>;
+/** The shape each color theme gets when `shape` isn't set ("default" for the ones not listed). */
+export declare const THEME_SHAPES: Partial<Record<ThemeName, ShapeName>>;
+/** Each theme that follows light/dark mode, with the [light, dark] themes it switches between. */
+export declare const THEME_MODES: Record<ThemeModeName, [Exclude<ThemeName, ThemeModeName>, Exclude<ThemeName, ThemeModeName>]>;
 export declare function normalizePitMap(raw: unknown): {
     minX: number;
     minY: number;

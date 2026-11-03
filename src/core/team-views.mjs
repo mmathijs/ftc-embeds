@@ -189,7 +189,7 @@ export const MATCH_CSS = `
 .cm .c-when{text-align:right;font-size:13px;white-space:nowrap}
 .cm .c-sub{grid-column:1/-1;display:flex;justify-content:space-between;gap:8px;font-size:var(--_small-size);color:var(--_muted)}`;
 
-const time = (w, iso) => new Date(iso).toLocaleTimeString(w.locale, { hour: "2-digit", minute: "2-digit" });
+const time = (w, iso) => w.time(iso);
 function until(w, iso, now) {
     let min = Math.round((new Date(iso) - now) / 60000);
     if (min < -1) return w.t("minLate", { n: -min });

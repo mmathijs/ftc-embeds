@@ -10,7 +10,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(import.meta.url);
 const demoData = (code) => JSON.parse(readFileSync(resolve(root, `demo/pit-map/data/${code}_pitmap.json`), "utf8"));
 
-const EXPORTS = ["PitMap", "THEMES", "CELL_TYPES", "normalizePitMap", "definePitMapElement", "configure", "getPitMap", "EmbedsApiError", "PIT_MAP_QUERY"];
+const EXPORTS = ["PitMap", "THEMES", "THEME_MODES", "SHAPES", "THEME_SHAPES", "CELL_TYPES", "normalizePitMap", "definePitMapElement", "configure", "getPitMap", "EmbedsApiError", "PIT_MAP_QUERY"];
 
 for (const [label, load] of [
     ["source", () => import(resolve(root, "src/pit-map/pit-map.mjs"))],
@@ -23,6 +23,8 @@ for (const [label, load] of [
         const m = await load();
         for (const name of EXPORTS) assert.ok(name in m, `missing export ${name}`);
         assert.equal(typeof m.PitMap, "function");
+        for (const [theme, shape] of Object.entries(m.THEME_SHAPES)) assert.ok(m.SHAPES[shape], `${theme}: shape ${shape} exists`);
+        for (const [name, t] of Object.entries(m.THEMES)) assert.ok(!("pitRadius" in t), `${name} has no shape`);
     });
 }
 
@@ -144,9 +146,14 @@ for (const w of TEAM_WIDGETS) {
     ]) {
         test(`${w.name}: ${label} loads without a DOM and has its exports`, async () => {
             const m = await load();
-            for (const name of [w.cls, w.define, "configure", "EmbedsApiError", "DEFAULT_API_BASE", "TEAM_THEMES", "ICONS", "TEAM_TEXT", ...w.api]) assert.ok(name in m, `missing export ${name}`);
+            for (const name of [w.cls, w.define, "configure", "EmbedsApiError", "DEFAULT_API_BASE", "TEAM_THEMES", "TEAM_THEME_MODES", "TEAM_SHAPES", "TEAM_THEME_SHAPES", "ICONS", "TEAM_TEXT", ...w.api]) assert.ok(name in m, `missing export ${name}`);
             assert.equal(typeof m[w.cls], "function");
             assert.ok(m.TEAM_THEMES.trophy && m.TEAM_THEMES.light, "themes");
+            for (const [mode, pair] of Object.entries(m.TEAM_THEME_MODES)) for (const name of pair) assert.ok(m.TEAM_THEMES[name], `${mode}: theme ${name} exists`);
+            for (const [theme, shape] of Object.entries(m.TEAM_THEME_SHAPES)) assert.ok(m.TEAM_SHAPES[shape], `${theme}: shape ${shape} exists`);
+            // Colors and shape are separate: no color theme carries a size, no shape a color.
+            for (const [name, t] of Object.entries(m.TEAM_THEMES)) assert.ok(!("radius" in t) && !("font" in t), `${name} has only colors`);
+            for (const [name, t] of Object.entries(m.TEAM_SHAPES)) assert.ok(!("bg" in t) && !("accent" in t) && t.radius, `${name} has only shape`);
         });
     }
 }
@@ -265,4 +272,37 @@ test("flag attributes are on when present without a value", async () => {
     assert.equal(attrValue("", false), "");
     assert.deepEqual(attrValue('{"accent":"red"}'), { accent: "red" });
     assert.equal(attrValue("[oops"), "[oops");
+});
+
+test("team themes: colors and shape resolve separately", async () => {
+    const { resolveTeamTheme } = await import(resolve(root, "src/core/team-ui.mjs"));
+    // A theme keeps its own shape unless one is picked.
+    assert.equal(resolveTeamTheme("trophy").radius, "14px");
+    assert.equal(resolveTeamTheme("ftc-events").font.includes("Roboto"), true);
+    let t = resolveTeamTheme("trophy", "square");
+    assert.equal(t.radius, "0");
+    assert.equal(t.titleSize, "16px");
+    assert.equal(t.bg, "#2b313d");
+    // Custom colors over a base, a shape object over a shape, and tokens in the theme still win.
+    t = resolveTeamTheme({ base: "auto", bg: "#fff7ed", dark: { bg: "#1c1917" } }, { base: "compact", radius: "2px" });
+    assert.equal(t.bg, "#fff7ed"); // no DOM: light mode
+    assert.equal(t.radius, "2px");
+    assert.equal(t.padding, "10px");
+    assert.equal(resolveTeamTheme({ base: "dark", radius: "3px" }).radius, "3px");
+});
+
+test("team widgets: number, date and time formats", async () => {
+    const { TeamWidget, dateRange, shortDate } = await import(resolve(root, "src/core/team-ui.mjs"));
+    // The formatting methods only read options: try them on a bare object.
+    const w = (options) => Object.assign(Object.create(TeamWidget.prototype), { options });
+    assert.equal(w({ locale: "en-US" }).num(1234.56), "1,234.6");
+    assert.equal(w({ locale: "en-US", numberFormat: "comma", decimals: 2 }).num(1234.5), "1.234,50");
+    assert.equal(w({ numberFormat: "plain" }).int(12345), "12345");
+    assert.equal(w({ locale: "en-US", hourCycle: 24, timeZone: "UTC" }).time("2026-02-07T14:30:00Z"), "14:30");
+    assert.match(w({ locale: "en-US", hourCycle: "12", timeZone: "UTC" }).time("2026-02-07T14:30:00Z"), /^02:30\sPM$/);
+    assert.equal(w({ locale: "en-US", timeZone: "Nowhere/Invalid", hourCycle: 24 }).time("2026-02-07T14:30:00Z").length, 5);
+    assert.equal(dateRange("2026-02-07", "2026-02-08", "en-US", "iso"), "2026-02-07 – 2026-02-08");
+    assert.equal(dateRange("2026-02-07", null, "en-US", "long"), "February 7, 2026");
+    assert.equal(dateRange("2026-02-07", null, "en-GB", "numeric"), "07/02/2026");
+    assert.equal(shortDate("2026-02-07", "en-US", "short"), "Feb 7");
 });

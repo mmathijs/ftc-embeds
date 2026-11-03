@@ -78,11 +78,12 @@ Importing the library registers `<ftc-pit-map>`.
 | `src` | Alternative: URL of a pit map JSON file (or set the `.data` property) |
 | `highlight`, `outline` | team numbers, comma/space separated |
 | `highlight-color`, `outline-color` | any CSS color |
-| `theme` | `auto` (default), `light`, `dark`, `ftcscout`, `ftcscout-dark`, `ftc-events` |
+| `theme` | `auto` (default), `light`, `dark`, `ftcscout`, `ftcscout-dark`, `ftcscout-auto`, `ftc-events`, `ftc-events-dark`, `ftc-events-auto` |
 | `dim-others`, `controls`, `pulse` | `true` / `false` |
 | `scroll-zoom` | `modifier` (default, ctrl/⌘ + wheel), `true`, `false` |
 | `click-action` | `popup` (default), `tooltip`, `focus`, `none` |
-| `theme` | also accepts JSON tokens: `theme='{"base":"ftc-events","pitRadius":0.2}'` |
+| `theme` | also accepts JSON tokens: `theme='{"base":"ftc-events","route":"#e11d48"}'` |
+| `shape` | `default`, `subtle`, `square`, `blocks`, `bubbly` (default: the theme's own), or JSON tokens |
 | `show-team-names` | `zoom` (default), `true`, `false` |
 
 Properties: `.data`, `.options` (any `PitMap` option, e.g. functions like `colorBy`), `.map` (the `PitMap` instance).
@@ -180,7 +181,8 @@ export class PitsComponent { /* ... */ }
 | `dimOthers` | `true` | Fade other pits while teams are highlighted/outlined |
 | `pulse` | `true` | Pulsing ring around highlighted pits |
 | `colorBy` | `null` | `(team, element) => color` to recolor pits (heatmaps, "visited" lists, …) |
-| `theme` | `"auto"` | Preset name or token object, see [Styling](#styling) |
+| `theme` | `"auto"` | Colors: preset name or token object, see [Styling](#styling) |
+| `shape` | `null` | Pit, area, field and wall corners and the gap between pits: `default`, `subtle`, `square`, `blocks`, `bubbly` (`SHAPES`), or `{ base, ...tokens }`; `null` is the theme's own (`THEME_SHAPES`: FTCScout gets `subtle`, FTC-Events `blocks`) |
 | `watchTheme` | `true` | Re-read CSS variables when `<html>`/`<body>` class, style or `data-theme` changes |
 | `pitStyle` | `null` | `(team, element, { highlighted, outlined, theme }) => ({ fill, stroke, strokeWidth, radius, text, opacity })` |
 | `className` | `""` | Extra class(es) on the root element |
@@ -201,22 +203,31 @@ export class PitsComponent { /* ... */ }
 
 ## Styling
 
-Pick a preset, then override any token. Presets: `auto` (default, light/dark from the OS), `light`, `dark`, `ftcscout`, `ftcscout-dark`, `ftc-events`.
+Pick a preset, then override any token. Presets: `auto` (default, light/dark from the OS), `light`, `dark`, `ftcscout`, `ftcscout-dark`, `ftc-events`, `ftc-events-dark`. The `-auto` ones (`ftcscout-auto`, `ftc-events-auto`) switch between a light and a dark preset with the OS, like `auto` (`THEME_MODES` lists the pairs).
+
+The shape is separate from the colors: `shape` picks the corners and gaps (`default`, `subtle`, `square`, `blocks`, `bubbly`), and any colors go with any shape. Without one, a preset brings its own (FTCScout `subtle`, FTC-Events `blocks`).
 
 ```js
 new PitMap(el, { data, theme: "ftc-events" });
+new PitMap(el, { data, theme: "ftc-events-dark", shape: "bubbly" });
 
 // Tokens layered over a preset
 new PitMap(el, {
     data,
     theme: {
         base: "ftcscout",
-        pitRadius: 0.25,          // map cells
         fontFamily: "'Space Grotesk', sans-serif",
         route: "#e11d48",
         routeCornerRadius: 0,     // sharp corners
     },
+    shape: { base: "square", pitRadius: 0.1 },  // map cells
 });
+```
+
+**Your own colors.** A theme object takes the same six colors as the team widgets (`bg`, `surface`, `text`, `muted`, `border`, `accent`); each fills in the map tokens it stands for (`bg`: background, pits, tooltip; `surface`: empty pits, areas; `text`: walls, tooltip text; `muted`: labels; `border`: outlines, grid; `accent`: route, focus). Tokens under `dark` apply only in dark mode:
+
+```js
+theme: { base: "auto", bg: "#fff7ed", text: "#431407", accent: "#ea580c", dark: { bg: "#1c1917", text: "#fafaf9", accent: "#fb923c" } }
 ```
 
 **CSS variables.** Any token can be a CSS expression, resolved against the page:

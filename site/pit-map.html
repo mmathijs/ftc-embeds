@@ -141,6 +141,7 @@
 <header class="top">
     <a class="wordmark" href="/">ftc<b>-</b>embeds</a>
     <nav>
+        <a href="/setup">setup</a>
         <a href="/pit-map" aria-current="page">pit map</a>
         <a href="/team">team widgets</a>
         <a href="https://github.com/mmathijs/ftc-embeds/blob/main/docs/pit-map.md">docs</a>
@@ -205,12 +206,21 @@
             <legend><span>03</span>Look</legend>
             <label class="f">Theme
                 <select id="theme">
-                    <option value="auto">Light or dark, following the visitor</option>
-                    <option value="light">Light</option>
-                    <option value="dark">Dark</option>
-                    <option value="ftcscout">FTCScout</option>
-                    <option value="ftcscout-dark">FTCScout, dark</option>
-                    <option value="ftc-events">FTC-Events</option>
+                    <optgroup label="Default">
+                        <option value="auto">Light or dark, following the visitor</option>
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                    </optgroup>
+                    <optgroup label="FTCScout">
+                        <option value="ftcscout-auto">FTCScout, following the visitor</option>
+                        <option value="ftcscout">FTCScout light</option>
+                        <option value="ftcscout-dark">FTCScout dark</option>
+                    </optgroup>
+                    <optgroup label="FTC-Events">
+                        <option value="ftc-events-auto">FTC-Events, following the visitor</option>
+                        <option value="ftc-events">FTC-Events light</option>
+                        <option value="ftc-events-dark">FTC-Events dark</option>
+                    </optgroup>
                 </select>
             </label>
             <label class="f">Pit corners <input type="range" id="t-pitRadius" min="0" max="1" step="0.02"></label>

@@ -162,6 +162,7 @@
 <header class="top">
     <a class="wordmark" href="/">ftc<b>-</b>embeds</a>
     <nav>
+        <a href="/setup">setup</a>
         <a href="/pit-map">pit map</a>
         <a href="/team" aria-current="page">team widgets</a>
         <a href="https://github.com/mmathijs/ftc-embeds/blob/main/docs/team-widgets.md">docs</a>
@@ -195,13 +196,26 @@
             <legend><span>02</span>Look</legend>
             <label class="f">Theme
                 <select id="theme">
-                    <option value="auto">Light or dark, following the visitor</option>
-                    <option value="light">Light</option>
-                    <option value="dark">Dark</option>
-                    <option value="trophy">Trophy case (dark, metallic)</option>
-                    <option value="ftcscout">FTCScout</option>
-                    <option value="ftcscout-dark">FTCScout dark</option>
-                    <option value="ftc-events">FTC Events</option>
+                    <optgroup label="Default">
+                        <option value="auto">Light or dark, following the visitor</option>
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                    </optgroup>
+                    <optgroup label="Trophy case (metallic)">
+                        <option value="trophy-auto">Trophy case, following the visitor</option>
+                        <option value="trophy-light">Trophy case light</option>
+                        <option value="trophy">Trophy case dark</option>
+                    </optgroup>
+                    <optgroup label="FTCScout">
+                        <option value="ftcscout-auto">FTCScout, following the visitor</option>
+                        <option value="ftcscout">FTCScout light</option>
+                        <option value="ftcscout-dark">FTCScout dark</option>
+                    </optgroup>
+                    <optgroup label="FTC Events">
+                        <option value="ftc-events-auto">FTC Events, following the visitor</option>
+                        <option value="ftc-events">FTC Events light</option>
+                        <option value="ftc-events-dark">FTC Events dark</option>
+                    </optgroup>
                 </select>
             </label>
             <label class="f">Layout <select id="layout"></select></label>
@@ -244,6 +258,39 @@
             <label class="f">Show at most <input type="number" id="limit" placeholder="no limit" min="1"></label>
             <label class="f">Leave out (comma separated) <input type="text" id="hide" placeholder="website, location" autocomplete="off"></label>
             <p class="hint" id="hide-hint"></p>
+        </fieldset>
+
+        <fieldset>
+            <legend><span>04</span>Formats</legend>
+            <label class="f">Language for numbers, dates and times <input type="text" id="locale" placeholder="the visitor's, or e.g. en-GB" autocomplete="off"></label>
+            <div class="row">
+                <label class="f" style="flex:1">Numbers
+                    <select id="number-format">
+                        <option value="locale">Like the language</option>
+                        <option value="point">1,234.5</option>
+                        <option value="comma">1.234,5</option>
+                        <option value="space">1 234,5</option>
+                        <option value="apostrophe">1'234.5</option>
+                        <option value="plain">1234.5</option>
+                    </select>
+                </label>
+                <label class="f" style="flex:0 0 90px">Decimals <input type="number" id="decimals" min="0" max="3"></label>
+            </div>
+            <label class="f">Dates
+                <select id="date-format">
+                    <option value="short">Short (Feb 7, 2026)</option>
+                    <option value="long">Long (February 7, 2026)</option>
+                    <option value="numeric">Numbers (2/7/2026)</option>
+                    <option value="iso">ISO (2026-02-07)</option>
+                </select>
+            </label>
+            <div class="row">
+                <label class="f" style="flex:0 0 130px">Clock
+                    <select id="hour-cycle"><option value="">Like the language</option><option value="24">24-hour</option><option value="12">12-hour</option></select>
+                </label>
+                <label class="f" style="flex:1">Time zone <input type="text" id="time-zone" placeholder="the visitor's" list="time-zones" autocomplete="off"></label>
+            </div>
+            <datalist id="time-zones"></datalist>
         </fieldset>
     </form>
 
