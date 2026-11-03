@@ -257,3 +257,12 @@ test("the default API is FTCScout's, and a GraphQL endpoint alone replaces it", 
     api.configure({ apiBase: api.DEFAULT_API_BASE, graphqlUrl: null });
     assert.equal(api.restBase(), api.DEFAULT_API_BASE);
 });
+
+test("flag attributes are on when present without a value", async () => {
+    const { attrValue } = await import(resolve(root, "src/core/team-ui.mjs"));
+    assert.equal(attrValue("", true), true);
+    assert.equal(attrValue("false", true), false);
+    assert.equal(attrValue("", false), "");
+    assert.deepEqual(attrValue('{"accent":"red"}'), { accent: "red" });
+    assert.equal(attrValue("[oops"), "[oops");
+});
