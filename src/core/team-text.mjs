@@ -99,6 +99,12 @@ export const TEAM_TEXT = {
     notFinal: "Not final yet",
     noAdvancement: "No advancement points for this event.",
     advancementLater: "Advancement points appear as the event goes.",
+    leagueStandings: "League standings",
+    leagueTitle: "{league} League",
+    leagueParent: "part of {league}",
+    colAvgRp: "Avg RP",
+    notALeagueEvent: "This event isn't part of a league.",
+    noLeagueStandings: "No league standings for this league yet.",
     // results
     seasonTitle: "{season} season",
     seasonResults: "Season results",

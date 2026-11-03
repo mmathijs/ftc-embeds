@@ -138,6 +138,7 @@ const TEAM_WIDGETS = [
     { name: "event-rankings", cls: "EventRankings", define: "defineEventRankingsElement", api: ["getEventRankings", "parseEventCode", "EVENT_RANKINGS_QUERY"] },
     { name: "event-matches", cls: "EventMatches", define: "defineEventMatchesElement", api: ["getEventMatches", "matchRows", "EVENT_MATCHES_QUERY"] },
     { name: "event-advancement", cls: "EventAdvancement", define: "defineEventAdvancementElement", api: ["getEventAdvancement", "advancementRows", "EVENT_ADVANCEMENT_QUERY"] },
+    { name: "league-standings", cls: "LeagueStandings", define: "defineLeagueStandingsElement", api: ["getEventLeague", "EVENT_LEAGUE_QUERY"] },
 ];
 
 for (const w of TEAM_WIDGETS) {
@@ -319,7 +320,16 @@ test("event presets use REST paths with the season, and GraphQL with the same va
     const { fetch, calls } = mockFetch({ status: 200, body: { data: { eventByCode: event } } });
     await api.getEventRankings("nlhaq", { apiBase: "https://ev1.test/v1/", season: 2025, fetch });
     await api.getEventRankings("NLCMP", { apiBase: "https://ev2.test/v1", fetch });
-    assert.deepEqual(calls.map((c) => c.url), ["https://ev1.test/v1/events/2025/NLHAQ/rankings", `https://ev2.test/v1/events/${seasonOf()}/NLCMP/rankings`]);
+    await api.getEventMatches("NLCMP", { apiBase: "https://ev5.test/v1", season: 2025, fetch });
+    await api.getEventAdvancement("NLCMP", { apiBase: "https://ev6.test/v1", season: 2025, fetch });
+    await api.getEventLeague("HUHWM3", { apiBase: "https://ev7.test/v1", season: 2025, fetch });
+    assert.deepEqual(calls.map((c) => c.url), [
+        "https://ev1.test/v1/events/2025/NLHAQ/rankings",
+        `https://ev2.test/v1/events/${seasonOf()}/NLCMP/rankings`,
+        "https://ev5.test/v1/events/2025/NLCMP/matches",
+        "https://ev6.test/v1/events/2025/NLCMP/advancement",
+        "https://ev7.test/v1/events/2025/HUHWM3/league",
+    ]);
     const gql = mockFetch({ status: 200, body: { data: { eventByCode: event } } });
     await api.getEventRankings("NLHAQ", { graphqlUrl: "https://g2.test/graphql", season: "2024", fetch: gql.fetch });
     const body = JSON.parse(gql.calls[0].init.body);

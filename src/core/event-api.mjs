@@ -67,6 +67,29 @@ export const EVENT_ADVANCEMENT_QUERY = `query EmbedEventAdvancement($season: Int
     }
 }`;
 
+const EVENT_RECORD_FRAGMENT = `fragment EmbedRecord on TeamEventStats {
+    ... on TeamEventStats2019 { rank wins losses ties }
+    ... on TeamEventStats2020Trad { rank wins losses ties }
+    ... on TeamEventStats2021Trad { rank wins losses ties }
+    ... on TeamEventStats2022 { rank wins losses ties }
+    ... on TeamEventStats2023 { rank wins losses ties }
+    ... on TeamEventStats2024 { rank wins losses ties }
+    ... on TeamEventStats2025 { rank wins losses ties }
+    ... on TeamEventStats2026 { rank wins losses ties }
+}`;
+
+/** The GraphQL query behind GET {apiBase}/events/{season}/{code}/league. */
+export const EVENT_LEAGUE_QUERY = `query EmbedEventLeague($season: Int!, $code: String!) {
+    eventByCode(season: $season, code: $code) {
+        ${EVENT_FIELDS}
+        leagueRankings {
+            league { code name regionCode parentLeagueCode parentLeagueName }
+            teams { teamNumber avgRp team { name } stats { ...EmbedRecord } }
+        }
+    }
+}
+${EVENT_RECORD_FRAGMENT}`;
+
 /** "nlcmp" -> "NLCMP"; throws for anything that isn't an event code. */
 export function parseEventCode(code) {
     let c = String(code ?? "").trim().toUpperCase();
@@ -100,4 +123,12 @@ export function getEventMatches(event, options = {}) {
 /** An event's advancement: slots, and each team's advancement points: GET {apiBase}/events/{season}/{code}/advancement. */
 export function getEventAdvancement(event, options = {}) {
     return eventPreset("advancement", event, EVENT_ADVANCEMENT_QUERY, options);
+}
+
+/**
+ * The standings of the league an event (a league meet or tournament) belongs to: GET
+ * {apiBase}/events/{season}/{code}/league. Any event of the league gives its current standings.
+ */
+export function getEventLeague(event, options = {}) {
+    return eventPreset("league", event, EVENT_LEAGUE_QUERY, options);
 }

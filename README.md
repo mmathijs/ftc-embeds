@@ -13,8 +13,9 @@ Embeddable widgets for FIRST Tech Challenge events and teams. Each widget is a s
 | Event rankings | `ftc-embeds/event-rankings` | [docs/event-rankings.md](docs/event-rankings.md) |
 | Event matches | `ftc-embeds/event-matches` | [docs/event-matches.md](docs/event-matches.md) |
 | Event advancement | `ftc-embeds/event-advancement` | [docs/event-advancement.md](docs/event-advancement.md) |
+| League standings | `ftc-embeds/league-standings` | [docs/league-standings.md](docs/league-standings.md) |
 
-The team widgets share their options, themes (including a trophy-case look), icons and styling hooks: see [docs/team-widgets.md](docs/team-widgets.md). The event widgets (rankings, matches, advancement, …) take an event code instead of a team: see [docs/event-widgets.md](docs/event-widgets.md).
+The team widgets share their options, themes (including a trophy-case look), icons and styling hooks: see [docs/team-widgets.md](docs/team-widgets.md). The event widgets (rankings, matches, advancement, league standings, …) take an event code instead of a team: see [docs/event-widgets.md](docs/event-widgets.md).
 
 Widgets load their own data from FTCScout's [ftc-embeds API](docs/api.md) by default: REST endpoints that are cached presets of GraphQL queries (`configure({ apiBase })`), or the same queries sent to a GraphQL endpoint (`configure({ graphqlUrl })`).
 
@@ -31,7 +32,7 @@ import { PitMap } from "ftc-embeds/pit-map";
 new PitMap(document.getElementById("map"), { event: "2025/FPEEUR", theme: "ftcscout", highlight: "19444" });
 ```
 
-Without a bundler: `<script src="https://ftc-embeds.com/lib/<widget>.umd.js"></script>` (globals `FtcPitMap`, `FtcTeamCard`, `FtcTeamResults`, `FtcTeamAwards`, `FtcNextMatch`, `FtcTeamSeason`, `FtcEventRankings`, `FtcEventMatches`, `FtcEventAdvancement`), or `dist/<widget>.umd.js` from a build.
+Without a bundler: `<script src="https://ftc-embeds.com/lib/<widget>.umd.js"></script>` (globals `FtcPitMap`, `FtcTeamCard`, `FtcTeamResults`, `FtcTeamAwards`, `FtcNextMatch`, `FtcTeamSeason`, `FtcEventRankings`, `FtcEventMatches`, `FtcEventAdvancement`, `FtcLeagueStandings`), or `dist/<widget>.umd.js` from a build.
 
 ## Install
 
