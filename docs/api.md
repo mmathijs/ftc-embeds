@@ -78,6 +78,26 @@ Response:
 | Event exists, no pit map | `200`, `"pitMap": null` |
 | Unknown event | `200`, `"eventByCode": null` |
 
+### Loading a missing pit map
+
+Pit maps aren't loaded from FTC Events automatically. Anyone can ask for one; the dashboard on ftc-embeds.com does this for events without a pit map. These are not presets: they are never cached, and they spend more of the client's rate limit.
+
+| Request | |
+| --- | --- |
+| `POST {apiBase}/events/{season}/{code}/pit-map/request` | Load the pit map from FTC Events. At most once an hour per event. |
+| `POST {apiBase}/events/{season}/{code}/pit-map/upload` | Load it from a saved copy of the event's FTC Events pit map page (the request body, `text/plain`). Only for events without a pit map, and the page's teams must be the event's registered teams. |
+| `GET {apiBase}/events/{season}/{code}/pit-map/request` | How the last request went. |
+
+The POSTs answer `202` with the request, which is then handled in the background (usually within seconds):
+
+```json
+{ "status": "pending", "source": "fetch", "error": null, "requestedAt": "…", "finishedAt": null, "fetchAllowedAt": null }
+```
+
+`status` becomes `done` or `failed` (with `error`). Other answers: `400` invalid season or not a pit map page, `404` unknown event, `409` an upload for an event that has a pit map, `429` loaded from FTC Events less than an hour ago (`Retry-After`, `fetchAllowedAt`) or the client's rate limit, `503` too many requests waiting. Errors have a `message`.
+
+After `done`, fetch the pit map with a cache-busting query parameter: the event without a pit map may still be in the browser's cache.
+
 ## Client
 
 ```js

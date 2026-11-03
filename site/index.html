@@ -90,6 +90,11 @@
     .seg button:disabled { color: var(--ink-2); cursor: not-allowed; text-decoration: line-through; text-decoration-thickness: 1px; }
     .link-btn { justify-self: start; border: 0; background: none; padding: 0; font: 13px var(--sans); color: var(--ink-2); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
     .link-btn:hover { color: var(--accent); }
+    .request { margin-top: 12px; padding: 12px; border: 1px dashed var(--ink-2); display: grid; gap: 10px; font-size: 14px; }
+    .request p { margin: 0; }
+    .request-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .request[data-state="error"] #request-msg { color: var(--accent); }
+    #request-refresh { margin-top: 10px; font-size: 12.5px; }
 
     .work { padding: 24px 28px 32px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px; align-content: start; min-width: 0; }
     .sheet { position: relative; border: 2px solid var(--ink); background: var(--paper); }
@@ -163,6 +168,15 @@
                     <label class="f" style="flex:1">Event code <input type="text" id="code" placeholder="FPEEUR" autocomplete="off"></label>
                 </div>
                 <p class="hint" id="live-hint"></p>
+                <div class="request" id="request-box" hidden>
+                    <p id="request-msg">FTCScout doesn't have this event's pit map yet.</p>
+                    <div class="request-actions" id="request-actions">
+                        <button type="button" class="btn" id="request-fetch">Load it from FTC Events</button>
+                        <label class="link-btn" id="request-upload">or upload the saved page<input type="file" id="request-file" accept=".html,.htm,text/html" hidden></label>
+                    </div>
+                    <p class="hint" id="request-help">To upload: open the event's pit map on <a id="request-link" target="_blank" rel="noopener">FTC Events</a>, save the page (Ctrl+S), and choose the file.</p>
+                </div>
+                <button type="button" class="link-btn" id="request-refresh" hidden>Out of date? Reload it from FTC Events</button>
             </div>
         </fieldset>
 

@@ -200,7 +200,12 @@
     // ------------------------------------------------------------ preview
 
     const map = new PitMap($("preview"), mapOptions());
-    if (LIVE_API) configure({ apiBase: SITE.apiBase || null, graphqlUrl: SITE.graphqlUrl || null });
+    // Right after FTCScout loaded a pit map, the browser (and CDN) may still have the event without
+    // one: that reload asks for a fresh copy.
+    let freshAfter = null;
+    const freshFetch = (url, init) =>
+        freshAfter ? fetch(`${url}${url.includes("?") ? "&" : "?"}fresh=${encodeURIComponent(freshAfter)}`, { ...init, cache: "reload" }) : fetch(url, init);
+    if (LIVE_API) configure({ apiBase: SITE.apiBase || null, graphqlUrl: SITE.graphqlUrl || null, fetch: freshFetch });
     let shownEvent = null;
 
     function updatePreview() {
@@ -208,11 +213,104 @@
         let key = state.source + ":" + eventRef();
         if (key !== shownEvent && hasEvent()) {
             shownEvent = key;
+            hideRequest();
             if (state.source == "example") map.setData(EXAMPLES[state.example] || null);
             else map.load(eventRef());
             if ((state.focus || "").trim()) setTimeout(() => map.focusTeam(state.focus.trim(), { flash: false }), 50);
         }
     }
+
+    // ------------------------------------------------------------ pit map requests
+
+    // An event without a pit map on FTCScout can be loaded on request: from FTC Events, or from a
+    // saved copy of its pit map page. Only with the REST API (apiBase).
+    const CAN_REQUEST = !!SITE.apiBase;
+    let pollTimer = null;
+    let hasMap = false;
+    const requestUrl = (what) => `${SITE.apiBase.replace(/\/+$/, "")}/events/${state.season}/${encodeURIComponent((state.code || "").trim().toUpperCase())}/pit-map/${what}`;
+    const ftcEventsUrl = () => `https://ftc-events.firstinspires.org/${state.season}/${encodeURIComponent((state.code || "").trim().toUpperCase())}/pitMap`;
+
+    // The buttons only make sense while there is no pit map: an existing one is updated through the
+    // "Reload" link, and uploads can't replace it.
+    function showRequest(msg, { error = false, actions = !hasMap } = {}) {
+        $("request-box").hidden = false;
+        $("request-box").dataset.state = error ? "error" : "";
+        $("request-msg").textContent = msg;
+        $("request-actions").hidden = !actions;
+        $("request-help").hidden = !actions;
+        $("request-link").href = ftcEventsUrl();
+    }
+    function hideRequest() {
+        clearTimeout(pollTimer);
+        hasMap = false;
+        $("request-box").hidden = true;
+        $("request-refresh").hidden = true;
+    }
+    const when = (iso) => new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+    // Follows a request until the loader is done with it.
+    function follow(r, key) {
+        clearTimeout(pollTimer);
+        if (key !== shownEvent) return;
+        if (r.status == "pending" || r.status == "running") {
+            showRequest(r.source == "upload" ? "Reading the uploaded page…" : "Loading the pit map from FTC Events…", { actions: false });
+            pollTimer = setTimeout(async () => {
+                try {
+                    let res = await fetch(requestUrl("request"), { cache: "no-store" });
+                    follow(await res.json(), key);
+                } catch {
+                    pollTimer = setTimeout(() => follow(r, key), 5000);
+                }
+            }, 2500);
+        } else if (r.status == "done") {
+            freshAfter = r.finishedAt;
+            map.load(eventRef()).finally(() => (freshAfter = null));
+        } else if (r.status == "failed") {
+            showRequest(`That didn't work: ${r.error}`, { error: true });
+        }
+    }
+
+    async function send(what, body) {
+        let key = shownEvent;
+        showRequest(what == "upload" ? "Uploading…" : "Asking FTCScout to load it…", { actions: false });
+        try {
+            let res = await fetch(requestUrl(what), body == null ? { method: "POST" } : { method: "POST", headers: { "Content-Type": "text/plain" }, body });
+            let json = await res.json().catch(() => ({}));
+            if (res.status == 202) return follow(json, key);
+            if (res.status == 429 && json.fetchAllowedAt) {
+                return showRequest(`It was loaded from FTC Events less than an hour ago. You can try again after ${when(json.fetchAllowedAt)}.`, { error: true });
+            }
+            if (res.status == 404 && !json.message) throw new Error("this server can't load pit maps yet");
+            showRequest(json.message || `The server answered ${res.status}.`, { error: true });
+        } catch (e) {
+            showRequest(`Couldn't reach FTCScout: ${e.message}`, { error: true });
+        }
+    }
+
+    map.on("load", () => {
+        if (state.source != "live" || !CAN_REQUEST) return;
+        hasMap = true;
+        $("request-box").hidden = true;
+        $("request-refresh").hidden = false;
+    });
+    map.on("error", async ({ error }) => {
+        if (state.source != "live" || !CAN_REQUEST || !error?.notFound) return;
+        let key = shownEvent;
+        showRequest("FTCScout doesn't have this event's pit map yet.");
+        // Pick up a request someone already made.
+        try {
+            let r = await (await fetch(requestUrl("request"), { cache: "no-store" })).json();
+            if (r.status == "pending" || r.status == "running") follow(r, key);
+            else if (r.status == "failed" && key === shownEvent) showRequest(`The last try didn't work: ${r.error}`, { error: true });
+        } catch {}
+    });
+    $("request-fetch").onclick = () => send("request");
+    $("request-refresh").onclick = () => send("request");
+    $("request-file").onchange = async (e) => {
+        let file = e.target.files[0];
+        e.target.value = "";
+        if (file) send("upload", await file.text());
+    };
 
     // ------------------------------------------------------------ controls
 
