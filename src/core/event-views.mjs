@@ -91,11 +91,24 @@ export function limitRows(rows, limit, isMine) {
     return mine.length ? [...top, null, ...mine] : top;
 }
 
-/** Scroll a highlighted row (or `selector`'s first) into view inside the widget (with maxHeight), not the page. */
-export function scrollToMine(w, selector = "tr.me") {
+/**
+ * With maxHeight: scroll the widget (not the page) to a row. scrollTo picks which: "auto" (the
+ * widget's choice: the next match, else the marked team), "team", "next" or "none". With
+ * scrollOffset, that many rows stay above it (under the column names); otherwise it's centered.
+ */
+export function scrollToMine(w, auto = ["tr.me"]) {
+    let mode = w.options.scrollTo || "auto";
+    if (mode === "none") return;
     let card = w.root.querySelector(".ftcw");
-    let row = w.root.querySelector(selector);
+    let selectors = mode === "team" ? ["tr.me"] : mode === "next" ? ["tr.nextm"] : auto;
+    let row = selectors.map((s) => w.root.querySelector(s)).find(Boolean);
     if (!card || !row || card.scrollHeight <= card.clientHeight) return;
-    let offset = row.getBoundingClientRect().top - card.getBoundingClientRect().top;
-    card.scrollTop = Math.max(0, card.scrollTop + offset - card.clientHeight / 2 + row.offsetHeight / 2);
+    let top = (el) => el.getBoundingClientRect().top - card.getBoundingClientRect().top + card.scrollTop;
+    let n = w.options.scrollOffset;
+    if (n != null && n !== "" && Number(n) >= 0) {
+        let anchor = row;
+        for (let i = 0; i < Number(n) && anchor.previousElementSibling; i++) anchor = anchor.previousElementSibling;
+        let head = card.querySelector(".tbl thead");
+        card.scrollTop = Math.max(0, top(anchor) - (head ? head.offsetHeight : 0));
+    } else card.scrollTop = Math.max(0, top(row) - card.clientHeight / 2 + row.offsetHeight / 2);
 }

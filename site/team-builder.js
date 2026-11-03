@@ -72,6 +72,7 @@
         stats: ["opr", "epa", "record"], upcoming: 1, skipScrimmages: false, oldest: false, onlyWon: false, seasons: "", limit: "", hide: "",
         locale: "", numberFormat: "locale", decimals: 1, dateFormat: "short", hourCycle: "", timeZone: "",
         // event widgets
+        scrollTo: "auto", scrollOffset: "",
         event: "", shape: "", highlight: "", columns: "", maxHeight: "", level: "all", matchState: "all", onlyTeam: false, names: false,
     };
     let state = { ...DEFAULTS };
@@ -111,6 +112,10 @@
         if (state.shape) o.shape = state.shape;
         if (state.layout !== "list") o.layout = state.layout;
         if (state.maxHeight.trim()) o.maxHeight = /^\d+$/.test(state.maxHeight.trim()) ? `${state.maxHeight.trim()}px` : state.maxHeight.trim();
+        if (o.maxHeight && kind !== "team" && w !== "countdown") {
+            if (state.scrollTo !== "auto") o.scrollTo = state.scrollTo;
+            if (state.scrollOffset !== "") o.scrollOffset = +state.scrollOffset;
+        }
         if (kind !== "team" && w !== "countdown" && state.highlight.trim()) o.highlight = state.highlight.split(/[\s,;]+/).filter(Boolean).join(",");
         if ((w === "event-rankings" || w === "event-advancement") && state.columns.trim()) o.columns = state.columns.split(/[\s,]+/).filter(Boolean).join(",");
         if (w === "event-matches") {
@@ -202,7 +207,7 @@
         if (state.widget === "team-card") o = { stats: "opr,epa,record", upcoming: 1, ...o };
         if (state.widget === "team-awards") o = { onlyWon: false, seasons: null, ...o };
         if (state.widget === "team-results" || state.widget === "team-season") o = { skipTypes: null, order: "newest", ...o };
-        if (subject(state.widget) !== "team") o = { ...lib[w.cls].defaults, event: null, team: null, shape: null, maxHeight: null, highlight: null, ...o };
+        if (subject(state.widget) !== "team") o = { ...lib[w.cls].defaults, event: null, team: null, shape: null, maxHeight: null, highlight: null, scrollTo: "auto", scrollOffset: null, ...o };
         else o = { shape: null, maxHeight: null, ...o };
         if (shown !== state.widget || !widget) {
             widget?.destroy();
@@ -242,6 +247,9 @@
         $("only-team").checked = state.onlyTeam;
         $("names").checked = state.names;
         if (document.activeElement !== $("max-height")) $("max-height").value = state.maxHeight;
+        $("scroll-box").hidden = !state.maxHeight.trim() || kind === "team" || state.widget === "countdown";
+        $("scroll-to").value = state.scrollTo;
+        $("scroll-offset").value = state.scrollOffset;
         $("theme").value = state.theme;
         $("layout").replaceChildren(...Object.entries(w.layouts).map(([v, label]) => new Option(label, v)));
         if (!w.layouts[state.layout]) state.layout = "list";
@@ -334,6 +342,8 @@
     $("highlight").onchange = (e) => set({ highlight: e.target.value });
     $("columns").onchange = (e) => set({ columns: e.target.value });
     $("max-height").onchange = (e) => set({ maxHeight: e.target.value.trim() });
+    $("scroll-to").onchange = (e) => set({ scrollTo: e.target.value });
+    $("scroll-offset").onchange = (e) => set({ scrollOffset: e.target.value.trim() });
     $("level").onchange = (e) => set({ level: e.target.value });
     $("match-state").onchange = (e) => set({ matchState: e.target.value });
     $("only-team").onchange = (e) => set({ onlyTeam: e.target.checked });

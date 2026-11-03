@@ -293,6 +293,10 @@
             </div>
             <label class="f">Show at most <input type="number" id="limit" placeholder="no limit" min="1"></label>
             <label class="f">Height <input type="text" id="max-height" placeholder="fit everything, or e.g. 400px (scrolls)" autocomplete="off"></label>
+            <div class="row" id="scroll-box">
+                <label class="f" style="flex:1">Scroll to <select id="scroll-to"><option value="auto">Next match, else the team</option><option value="team">The highlighted team</option><option value="next">The next match</option><option value="none">Don't scroll</option></select></label>
+                <label class="f" style="flex:0 0 110px">Rows above <input type="number" id="scroll-offset" placeholder="centered" min="0" max="20"></label>
+            </div>
             <label class="f">Leave out (comma separated) <input type="text" id="hide" placeholder="website, location" autocomplete="off"></label>
             <p class="hint" id="hide-hint"></p>
         </fieldset>

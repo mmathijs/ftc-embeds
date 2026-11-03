@@ -130,6 +130,10 @@ export interface TeamWidgetOptions {
     limit?: number | string | null;
     /** e.g. "320px": the content scrolls inside the widget. */
     maxHeight?: string | null;
+    /** Tables with maxHeight: the row to scroll to: "auto" (the next match, else the marked team), "team", "next" or "none". */
+    scrollTo?: "auto" | "team" | "next" | "none";
+    /** Rows to keep above that row (default: centered). */
+    scrollOffset?: number | string | null;
     /** No card around it: no background, border or padding. */
     bare?: boolean;
     /** Replace icons: text, an "<svg …>" string, or an image URL. "" hides one. */

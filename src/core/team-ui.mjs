@@ -389,6 +389,8 @@ const DEFAULTS = {
     css: "", // extra CSS inside the widget (style anything; parts are also open to ::part())
     skin: null, // a theme's extra CSS without its colors, e.g. "trophy"; default: the theme's own
     maxHeight: null, // e.g. "320px": the list scrolls inside the widget
+    scrollTo: "auto", // tables with maxHeight: "auto" | "team" | "next" | "none": the row to scroll to
+    scrollOffset: null, // rows to keep above that row (null: centered)
     now: null, // pretend it is this time (demos, tests)
 };
 
@@ -691,6 +693,7 @@ export function defineTeamElement(tagName, Widget, extraAttrs = {}) {
     const ATTRS = {
         team: "team", event: "event", season: "season", theme: "theme", shape: "shape", "api-base": "apiBase", "graphql-url": "graphqlUrl", "site-url": "siteUrl", title: "title",
         layout: "layout", density: "density", hide: "hide", limit: "limit", "max-height": "maxHeight", "link-target": "linkTarget", bare: "bare", now: "now",
+        "scroll-to": "scrollTo", "scroll-offset": "scrollOffset",
         icons: "icons", css: "css", skin: "skin", text: "text", locale: "locale", decimals: "decimals",
         "number-format": "numberFormat", "date-format": "dateFormat", "hour-cycle": "hourCycle", "time-zone": "timeZone",
         "award-names": "awardNames", "event-types": "eventTypes", "link-to": "linkTo", "team-url": "teamUrl", "event-url": "eventUrl",

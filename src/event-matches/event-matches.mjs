@@ -151,7 +151,7 @@ export class EventMatches extends TeamWidget {
 
     render() {
         super.render();
-        if (this.options.maxHeight) requestAnimationFrame(() => scrollToMine(this, this.root.querySelector("tr.nextm") ? "tr.nextm" : "tr.me"));
+        if (this.options.maxHeight) requestAnimationFrame(() => scrollToMine(this, ["tr.nextm", "tr.me"]));
     }
 }
 

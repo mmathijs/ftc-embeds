@@ -27,6 +27,8 @@ The event widgets take the [team widgets' options](team-widgets.md#options) (the
 | `season` | `season` | the event's season (default: the current one) |
 | `highlight` | `highlight` | team numbers to mark: `"19444,16236"` |
 | `refresh` | `refresh` | seconds between refreshes while the event is on (default 30) |
+| `scrollTo` | `scroll-to` | with `max-height`: the row to scroll to: `auto` (the next match, else the highlighted team), `team`, `next`, `none` |
+| `scrollOffset` | `scroll-offset` | rows to keep above that row (default: centered) |
 
 Themes, icons, texts and `::part()` styling work as described in [team-widgets.md](team-widgets.md); the event widgets' texts are in `TEAM_TEXT` too.
 
