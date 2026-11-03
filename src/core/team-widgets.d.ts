@@ -20,6 +20,7 @@ export interface TeamTheme {
     bad: string;
     gold: string;
     shadow: string;
+    // Shape (TEAM_SHAPES): corners, spacing, sizes and type
     // Corners
     /** The card. */
     radius: string;
@@ -71,7 +72,16 @@ export interface TeamTheme {
     glowRoom: string;
 }
 
-export type TeamThemeOption = TeamThemeName | (Partial<TeamTheme> & { base?: TeamThemeName });
+/** The color tokens: what a color theme (TEAM_THEMES) sets. */
+export type TeamColorToken = "bg" | "surface" | "text" | "muted" | "border" | "accent" | "accentText" | "red" | "blue" | "good" | "bad" | "gold" | "shadow";
+export type TeamColors = Pick<TeamTheme, TeamColorToken>;
+export type TeamShapeTokens = Omit<TeamTheme, TeamColorToken>;
+export type TeamShapeName = "default" | "square" | "compact" | "spacious" | "bubbly" | "showcase" | "ftcscout" | "ftc-events";
+
+/** A color theme, or tokens over one; `dark` holds tokens used only when the visitor is in dark mode. */
+export type TeamThemeOption = TeamThemeName | (Partial<TeamTheme> & { base?: TeamThemeName; dark?: Partial<TeamTheme> });
+/** A shape, or shape tokens over one. */
+export type TeamShapeOption = TeamShapeName | (Partial<TeamShapeTokens> & { base?: TeamShapeName });
 
 /** Icon names; override with --ftcw-icon-<name>: "★" on the page, or the `icons` option. */
 export type IconName = "trophy" | "medal" | "advanced" | "live" | "upcoming" | "calendar" | "location" | "website" | "prev" | "next";
@@ -97,7 +107,10 @@ export interface TeamWidgetOptions {
     team?: number | string | null;
     /** Season (e.g. 2025); default: the current one. */
     season?: number | string | null;
+    /** Colors. Default "auto" (light or dark, following the visitor). */
     theme?: TeamThemeOption;
+    /** Corners, spacing and type, separate from the colors. Default: the theme's own (TEAM_THEME_SHAPES). */
+    shape?: TeamShapeOption | null;
     apiBase?: string | null;
     graphqlUrl?: string | null;
     /** Where team and event names link to; "" for no links. Default "https://ftcscout.mmathijs.nl". */
@@ -175,7 +188,10 @@ export declare class EmbedsApiError extends Error {
     readonly notFound: boolean;
 }
 
-export declare const TEAM_THEMES: Record<Exclude<TeamThemeName, TeamThemeModeName>, TeamTheme>;
+export declare const TEAM_THEMES: Record<Exclude<TeamThemeName, TeamThemeModeName>, TeamColors>;
+export declare const TEAM_SHAPES: Record<TeamShapeName, TeamShapeTokens>;
+/** The shape each color theme gets when `shape` isn't set ("default" for the ones not listed). */
+export declare const TEAM_THEME_SHAPES: Partial<Record<TeamThemeName, TeamShapeName>>;
 /** Each theme that follows light/dark mode, with the [light, dark] themes it switches between. */
 export declare const TEAM_THEME_MODES: Record<TeamThemeModeName, [Exclude<TeamThemeName, TeamThemeModeName>, Exclude<TeamThemeName, TeamThemeModeName>]>;
 export declare const ICONS: Record<IconName, string>;

@@ -94,6 +94,17 @@
     .choice .tag { justify-self: start; margin-top: 6px; font: 10.5px var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--accent-ink); background: var(--accent); padding: 1px 6px; border-radius: 2px; }
     .swatch { display: flex; height: 26px; margin: 0 20px 8px 0; border: 1px solid var(--rule); border-radius: 2px; overflow: hidden; }
     .swatch i { flex: 1; }
+    .custom { margin-top: 14px; padding: 16px 18px 18px; border: 1px solid var(--ink); background: var(--field); }
+    .custom .q:first-of-type { margin-top: 18px; }
+    .custom-grid { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px 14px; align-items: center; font-size: 14px; }
+    .custom-grid b { font: 500 12px var(--mono); color: var(--ink-2); text-transform: uppercase; letter-spacing: .06em; text-align: center; }
+    .custom-grid input[type="color"] { width: 56px; height: 32px; }
+    .custom[data-mode="light"] [data-col="dark"], .custom[data-mode="dark"] [data-col="light"] { display: none; }
+    .custom:not([data-mode="auto"]) .custom-grid { grid-template-columns: minmax(0, 1fr) auto; }
+    .starts { display: flex; flex-wrap: wrap; gap: 8px; }
+    .tpl-wrap { position: relative; display: grid; }
+    .tpl-del { position: absolute; right: 6px; bottom: 6px; width: 26px; height: 26px; border: 1px solid transparent; background: none; color: var(--ink-2); font-size: 17px; line-height: 1; cursor: pointer; border-radius: 2px; }
+    .tpl-del:hover { border-color: var(--accent); color: var(--accent); }
     .mode-ico { display: block; width: 34px; height: 20px; margin-bottom: 6px; border: 1px solid var(--ink-2); border-radius: 2px; }
     .mode-ico.light { background: #ffffff; }
     .mode-ico.dark { background: #16191e; }

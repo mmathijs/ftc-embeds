@@ -43,12 +43,7 @@ const BASE_STYLE = {
     labelWeight: 700, // floor labels ("B STREET")
     labelTransform: "uppercase", // "uppercase" | "none" | "capitalize"
     labelLetterSpacing: 0.08, // em
-    pitRadius: 0.3, // cells
-    pitGap: 0.08, // inset per side, cells
     pitStrokeWidth: 0.05,
-    objectRadius: 0.25, // labelled areas ("Pit Admin", "Queue", …)
-    fieldRadius: 0.3, // field elements; the field square and stations scale from this
-    wallRadius: 0.12, // corners of each connected wall outline
     elementStroke: "none", // outline drawn around walls/objects/fields ("none" = off)
     elementStrokeWidth: 0.05,
     fieldStyle: "detailed", // "detailed" (tiles, alliance sides, table) | "stations" (FTC-Events style outlines)
@@ -151,11 +146,6 @@ const ftcscout = (d) => ({
     labelWeight: 600,
     labelTransform: "uppercase",
     labelLetterSpacing: 0.06,
-    pitRadius: 0.16,
-    pitGap: 0.07,
-    objectRadius: 0.16,
-    fieldRadius: 0.16,
-    wallRadius: 0.06,
     uiRadius: 8,
     glow: false,
     background: `var(--fg-color, ${d ? "rgb(45, 45, 45)" : "#ffffff"})`,
@@ -211,12 +201,7 @@ THEMES["ftc-events"] = {
     labelWeight: 500,
     labelTransform: "none",
     labelLetterSpacing: 0,
-    pitRadius: 0,
-    pitGap: 0,
     pitStrokeWidth: 0.05,
-    objectRadius: 0,
-    fieldRadius: 0,
-    wallRadius: 0,
     elementStroke: "#000000",
     elementStrokeWidth: 0.05,
     fieldStyle: "stations",
@@ -294,6 +279,43 @@ THEMES["ftc-events-dark"] = {
     shadow: "rgba(0, 0, 0, 0.5)",
 };
 
+/**
+ * Shapes, separate from the color themes (the `shape` option): pit corners and gaps, and the
+ * corners of areas, fields and walls. Sizes in cells.
+ */
+const shape = (pitRadius, pitGap, objectRadius, fieldRadius, wallRadius) => ({ pitRadius, pitGap, objectRadius, fieldRadius, wallRadius });
+export const SHAPES = {
+    default: shape(0.3, 0.08, 0.25, 0.3, 0.12),
+    subtle: shape(0.16, 0.07, 0.16, 0.16, 0.06), // FTCScout's
+    square: shape(0, 0.07, 0, 0, 0),
+    blocks: shape(0, 0, 0, 0, 0), // FTC-Events': pits touching
+    bubbly: shape(0.5, 0.1, 0.45, 0.4, 0.3),
+};
+
+/** The shape a color theme gets when the `shape` option isn't set (the rest get "default"). */
+export const THEME_SHAPES = {
+    ftcscout: "subtle", "ftcscout-dark": "subtle", "ftcscout-auto": "subtle",
+    "ftc-events": "blocks", "ftc-events-dark": "blocks", "ftc-events-auto": "blocks",
+};
+
+// A theme object may set colors with the same six names as the team widgets' themes; each fills in
+// the map's tokens it stands for (unless the object sets those itself).
+const PALETTE = {
+    bg: ["background", "pitBase", "routeCasing", "tooltipBg", "controlBg"],
+    surface: ["pitDefault", "pitEmpty", "objectFill", "fieldZone"],
+    text: ["wall", "tooltipText", "controlText"],
+    muted: ["objectText", "label", "tooltipMuted"],
+    border: ["gridDot", "pitStroke", "objectStroke", "objectHatch", "tooltipBorder"],
+    accent: ["route", "focus"],
+};
+function expandPalette(tokens) {
+    let out = {};
+    for (let [k, v] of Object.entries(tokens)) {
+        if (PALETTE[k]) for (let t of PALETTE[k]) if (!(t in tokens)) out[t] = v;
+    }
+    return { ...out, ...tokens };
+}
+
 /** The themes that follow the visitor's light or dark mode: [light theme, dark theme]. */
 export const THEME_MODES = {
     auto: ["light", "dark"],
@@ -315,8 +337,10 @@ const DEFAULTS = {
     },
     // "auto" | "light" | "dark" | "ftcscout" | "ftcscout-dark" | "ftc-events" | "ftc-events-dark",
     // "ftcscout-auto" | "ftc-events-auto" (the -auto ones follow the visitor's light/dark mode),
-    // or an object of tokens: { base: "ftc-events", pitRadius: 0.2, route: "var(--brand)" }
+    // or an object of tokens: { base: "ftc-events", route: "var(--brand)", dark: { route: "#a78bfa" } }
+    // (bg, surface, text, muted, border and accent set the colors they stand for, like the team widgets')
     theme: "auto",
+    shape: null, // "default" | "subtle" | "square" | "blocks" | "bubbly" (SHAPES) or { base, ...tokens }; null: the theme's own
     watchTheme: true, // re-resolve CSS variables when <html>/<body> class/style/data-theme change
     highlight: null, // "16236" | ["1","2"] | {"16236": "#f00"} | [{team, color}]
     outline: null, // same forms as highlight
@@ -960,7 +984,7 @@ export class PitMap {
             this.load(options.event);
             return this;
         }
-        let full = ["theme", "showPitNumbers", "showPitAddresses", "padding", "controls", "colorBy", "className", "fieldAlliances"].some(
+        let full = ["theme", "shape", "showPitNumbers", "showPitAddresses", "padding", "controls", "colorBy", "className", "fieldAlliances"].some(
             (k) => k in options && options[k] !== prev[k]
         );
         if (full) this._renderAll(false);
@@ -1254,13 +1278,17 @@ export class PitMap {
     _rawTheme() {
         let t = this.options.theme;
         let dark = () => typeof matchMedia !== "undefined" && matchMedia("(prefers-color-scheme: dark)").matches;
-        let named = (name) => {
-            let pair = THEME_MODES[name || "auto"];
-            if (pair) name = pair[dark() ? 1 : 0];
-            return THEMES[name] || THEMES.light;
-        };
-        if (t && typeof t === "object") return { ...named(t.base || t.extends || "auto"), ...t };
-        return named(t);
+        // theme: a name, or { base, ...tokens, dark: { ...tokens used in dark mode } }; shape: a name or { base, ...tokens }.
+        let obj = t && typeof t === "object" ? t : { base: t || "auto" };
+        let { base, extends: ext, dark: darkTokens = null, ...tokens } = obj;
+        let name = base || ext || "auto";
+        let isDark = dark();
+        let pair = THEME_MODES[name];
+        let colors = THEMES[pair ? pair[isDark ? 1 : 0] : name] || THEMES.light;
+        let s = this.options.shape;
+        let shapeOf = (n) => SHAPES[n] || SHAPES[THEME_SHAPES[name]] || SHAPES.default;
+        let shapeTokens = s && typeof s === "object" ? (({ base: b, ...rest }) => ({ ...shapeOf(b), ...rest }))(s) : shapeOf(s);
+        return { ...colors, ...shapeTokens, ...expandPalette(tokens), ...(isDark && darkTokens ? expandPalette(darkTokens) : {}) };
     }
 
     _resolveTheme() {
@@ -2089,6 +2117,7 @@ export function definePitMapElement(tagName = "ftc-pit-map") {
         "highlight-color": "highlightColor",
         "outline-color": "outlineColor",
         theme: "theme",
+        shape: "shape",
         "dim-others": "dimOthers",
         controls: "controls",
         "scroll-zoom": "scrollZoom",
@@ -2144,7 +2173,7 @@ export function definePitMapElement(tagName = "ftc-pit-map") {
                 let v = this.getAttribute(attr);
                 if (BOOL.has(key)) o[key] = v !== "false";
                 else if (key === "scrollZoom" || key === "showTeamNames") o[key] = v === "true" ? true : v === "false" ? false : v;
-                else if (key === "theme" && /^\s*\{/.test(v)) {
+                else if ((key === "theme" || key === "shape") && /^\s*\{/.test(v)) {
                     try {
                         o[key] = JSON.parse(v); // theme='{"base":"ftc-events","pitRadius":0.2}'
                     } catch {

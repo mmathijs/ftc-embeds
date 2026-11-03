@@ -37,8 +37,19 @@
     const themeName = typeof theme == "string" ? theme : theme.base || "auto";
     document.body.style.colorScheme = themeName == "auto" || themeName.endsWith("-auto") ? "light dark" : themeName.endsWith("dark") ? "dark" : "light";
 
+    // shape: a name ("square"), or JSON tokens like the theme
+    let shape = q.get("shape") || null;
+    if (shape && /^\s*\{/.test(shape)) {
+        try {
+            shape = JSON.parse(shape);
+        } catch {
+            shape = null;
+        }
+    }
+
     const options = {
         theme,
+        shape,
         highlight: q.get("highlight") || null,
         outline: q.get("outline") || null,
         highlightColor: q.get("highlightColor") || null,

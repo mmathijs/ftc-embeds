@@ -6,9 +6,12 @@ import { TEAM_TEXT, fill } from "./team-text.mjs";
 
 const PREFIX = "ftcw";
 
-// Theme tokens. Sizes and type are shared (SIZES) and themes override what they change; every token
-// can also be set from the page as --ftcw-<kebab-name>, or in a theme object.
-const SIZES = {
+// Theme tokens come in two independent halves: colors (TEAM_THEMES, the `theme` option) and shape
+// (TEAM_SHAPES, the `shape` option: corners, spacing, type). Every token can also be set from the
+// page as --ftcw-<kebab-name>, or in a theme or shape object.
+
+/** Shapes: corners, spacing, sizes and type. */
+const DEFAULT_SHAPE = {
     radius: "12px", // the card
     innerRadius: "8px", // tiles, stat blocks, the next-match box
     chipRadius: "999px", // chips and the scroll buttons
@@ -44,10 +47,32 @@ const SIZES = {
     font: 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
 };
 
+export const TEAM_SHAPES = {
+    default: DEFAULT_SHAPE,
+    square: { ...DEFAULT_SHAPE, radius: "0", innerRadius: "0", chipRadius: "0", avatarRadius: "0" },
+    compact: {
+        ...DEFAULT_SHAPE, radius: "6px", innerRadius: "4px", chipRadius: "4px", avatarSize: "36px", padding: "10px", gap: "6px", rowPadding: "6px",
+        fontSize: "13px", titleSize: "15px", valueSize: "17px", nameSize: "16px", tileWidth: "156px",
+    },
+    spacious: {
+        ...DEFAULT_SHAPE, radius: "16px", innerRadius: "12px", avatarRadius: "10px", avatarSize: "52px", padding: "24px", gap: "14px", rowPadding: "14px",
+        tileWidth: "196px", fontSize: "15px", titleSize: "18px",
+    },
+    bubbly: { ...DEFAULT_SHAPE, radius: "24px", innerRadius: "18px", avatarRadius: "50%", padding: "20px", gap: "10px", rowPadding: "12px" },
+    // Big, bold type: the trophy case's own shape.
+    showcase: {
+        ...DEFAULT_SHAPE, radius: "14px", innerRadius: "12px", padding: "20px", gap: "12px", tileWidth: "200px", cardHeight: "264px",
+        titleSize: "20px", titleWeight: "800", titleTransform: "uppercase", titleLetterSpacing: ".01em",
+        valueSize: "26px", valueWeight: "850", labelLetterSpacing: ".06em", nameSize: "24px", nameWeight: "850",
+        chipFontSize: "10.5px", chipWeight: "700", chipPadding: "3px 9px", glow: "0 0 24px 5px", glowRoom: "18px",
+    },
+    ftcscout: { ...DEFAULT_SHAPE, radius: "8px", innerRadius: "5px", padding: "14px", font: 'var(--font-family, "Inter", sans-serif)' },
+    "ftc-events": { ...DEFAULT_SHAPE, radius: "4px", innerRadius: "4px", chipRadius: "4px", avatarRadius: "0", font: '"Roboto", "Helvetica Neue", Arial, sans-serif' },
+};
+
 // FTCScout: its own CSS variables, with its light or dark values as fallback (so on FTCScout it
 // follows the site's dark mode; elsewhere "ftcscout-dark" gives the dark look).
 const ftcscout = (d) => ({
-    ...SIZES,
     bg: `var(--fg-color, ${d ? "rgb(45, 45, 45)" : "#ffffff"})`, surface: `var(--bg-color, ${d ? "#161616" : "#f2f2f2"})`,
     text: `var(--text-color, ${d ? "#dfe2e6" : "#000000"})`, muted: `var(--secondary-text-color, ${d ? "#b7b7b8" : "#636466"})`,
     border: `var(--sep-color, ${d ? "#4a4e51" : "lightgray"})`,
@@ -55,32 +80,16 @@ const ftcscout = (d) => ({
     red: `var(--red-team-text-color, ${d ? "rgb(255, 83, 71)" : "rgb(175, 29, 29)"})`, blue: `var(--blue-team-text-color, ${d ? "rgb(33, 150, 243)" : "rgb(27, 87, 179)"})`,
     good: `var(--generic-advanced-color, ${d ? "#14d55b" : "#097a34"})`, bad: `var(--red-team-text-color, ${d ? "rgb(255, 83, 71)" : "rgb(175, 29, 29)"})`,
     gold: d ? "#e0b23a" : "#c99a06", shadow: "none",
-    radius: "8px", innerRadius: "5px", padding: "14px", font: 'var(--font-family, "Inter", sans-serif)',
 });
 
-// Trophy case and FTC Events: the same shape in their light and dark versions.
-const TROPHY_SIZES = {
-    ...SIZES,
-    radius: "14px", innerRadius: "12px", padding: "20px", gap: "12px", tileWidth: "200px", cardHeight: "264px",
-    titleSize: "20px", titleWeight: "800", titleTransform: "uppercase", titleLetterSpacing: ".01em",
-    valueSize: "26px", valueWeight: "850", labelLetterSpacing: ".06em", nameSize: "24px", nameWeight: "850",
-    chipFontSize: "10.5px", chipWeight: "700", chipPadding: "3px 9px", glow: "0 0 24px 5px", glowRoom: "18px",
-};
-const FTC_EVENTS_SIZES = {
-    ...SIZES,
-    shadow: "none", radius: "4px", innerRadius: "4px", chipRadius: "4px", avatarRadius: "0",
-    font: '"Roboto", "Helvetica Neue", Arial, sans-serif',
-};
-
+/** Color themes. */
 export const TEAM_THEMES = {
     light: {
-        ...SIZES,
         bg: "#ffffff", surface: "#f5f6f8", text: "#1d2329", muted: "#5d6773", border: "#e2e5ea",
         accent: "#2563eb", accentText: "#ffffff", red: "#d32f2f", blue: "#1e63d6", good: "#1f8a4c", bad: "#c62828", gold: "#c99a06",
         shadow: "0 1px 3px rgba(16,24,40,.08)",
     },
     dark: {
-        ...SIZES,
         bg: "#16191e", surface: "#1e2228", text: "#e8ebef", muted: "#9aa3ad", border: "#2c313a",
         accent: "#6b9cff", accentText: "#0b1220", red: "#ef5350", blue: "#5b9bff", good: "#43c47a", bad: "#ef5350", gold: "#e0b23a",
         shadow: "none",
@@ -90,26 +99,24 @@ export const TEAM_THEMES = {
     // Trophy-case look (dark slate, metallic award cards, amber for wins; trophy-light on warm
     // paper). Both add the widgets' "trophy" CSS (TeamWidget.skins.trophy).
     trophy: {
-        ...TROPHY_SIZES,
         bg: "#2b313d", surface: "rgba(255,255,255,.07)", text: "#f8fafc", muted: "#cbd5e1", border: "rgba(255,255,255,.09)",
         accent: "#fbbf24", accentText: "#111827", red: "#f87171", blue: "#60a5fa", good: "#4ade80", bad: "#f87171", gold: "#fbbf24",
         shadow: "0 10px 30px rgba(0,0,0,.25)",
     },
     "trophy-light": {
-        ...TROPHY_SIZES,
         bg: "#f7f5f0", surface: "rgba(15,23,42,.05)", text: "#1c2230", muted: "#5b6474", border: "rgba(15,23,42,.10)",
         accent: "#b45309", accentText: "#ffffff", red: "#dc2626", blue: "#2563eb", good: "#15803d", bad: "#dc2626", gold: "#d97706",
         shadow: "0 10px 30px rgba(15,23,42,.12)",
     },
     "ftc-events": {
-        ...FTC_EVENTS_SIZES,
         bg: "#ffffff", surface: "#f2f2f2", text: "#212529", muted: "#6c757d", border: "#dee2e6",
         accent: "#0066b3", accentText: "#ffffff", red: "#ed1c24", blue: "#0066b3", good: "#198754", bad: "#dc3545", gold: "#c99a06",
+        shadow: "none",
     },
     "ftc-events-dark": {
-        ...FTC_EVENTS_SIZES,
         bg: "#212529", surface: "#2b3035", text: "#dee2e6", muted: "#adb5bd", border: "#495057",
         accent: "#4d9fe0", accentText: "#0b1220", red: "#f1555b", blue: "#4d9fe0", good: "#4cc38a", bad: "#ea868f", gold: "#e0b23a",
+        shadow: "none",
     },
 };
 
@@ -119,6 +126,13 @@ export const TEAM_THEME_MODES = {
     "ftcscout-auto": ["ftcscout", "ftcscout-dark"],
     "ftc-events-auto": ["ftc-events", "ftc-events-dark"],
     "trophy-auto": ["trophy-light", "trophy"],
+};
+
+/** The shape a color theme gets when the `shape` option isn't set (the rest get "default"). */
+export const TEAM_THEME_SHAPES = {
+    ftcscout: "ftcscout", "ftcscout-dark": "ftcscout", "ftcscout-auto": "ftcscout",
+    "ftc-events": "ftc-events", "ftc-events-dark": "ftc-events", "ftc-events-auto": "ftc-events",
+    trophy: "showcase", "trophy-light": "showcase", "trophy-auto": "showcase",
 };
 
 /** The icons and their default glyphs; override with --ftcw-icon-<name> or the `icons` option. */
@@ -152,15 +166,19 @@ const SKINS = {
 .metal{background:linear-gradient(160deg,#e4e4e7 0%,#b4b4bb 45%,#8e8e97 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.65),inset 0 -2px 6px rgba(0,0,0,.12),0 8px 18px rgba(0,0,0,.28)}`,
 };
 
-/** A theme name (see TEAM_THEMES, or TEAM_THEME_MODES for the ones following light/dark mode), or { base, ...tokens }. */
-export function resolveTeamTheme(theme) {
-    let named = (name) => {
-        let pair = TEAM_THEME_MODES[name || "auto"];
-        if (pair) name = pair[DARK?.matches ? 1 : 0];
-        return TEAM_THEMES[name] || TEAM_THEMES.light;
-    };
-    if (theme && typeof theme === "object") return { ...named(theme.base || "auto"), ...theme };
-    return named(theme);
+/**
+ * The tokens for a color theme and a shape. theme: a name (TEAM_THEMES, or TEAM_THEME_MODES for the
+ * ones following light/dark mode), or { base, ...tokens, dark: { ...tokens used in dark mode } }.
+ * shape: a name (TEAM_SHAPES), { base, ...tokens }, or nothing for the theme's own (TEAM_THEME_SHAPES).
+ */
+export function resolveTeamTheme(theme, shape = null) {
+    let { base: name = "auto", dark: darkTokens = null, ...tokens } = theme && typeof theme === "object" ? theme : { base: theme || "auto" };
+    let isDark = !!DARK?.matches;
+    let shapeOf = (s) => TEAM_SHAPES[s] || TEAM_SHAPES[TEAM_THEME_SHAPES[name]] || DEFAULT_SHAPE;
+    let shapeTokens = shape && typeof shape === "object" ? (({ base, ...rest }) => ({ ...shapeOf(base), ...rest }))(shape) : shapeOf(shape);
+    let pair = TEAM_THEME_MODES[name];
+    let colors = TEAM_THEMES[pair ? pair[isDark ? 1 : 0] : name] || TEAM_THEMES.light;
+    return { ...shapeTokens, ...colors, ...tokens, ...(isDark && darkTokens ? darkTokens : {}) };
 }
 
 const kebab = (s) => s.replace(/[A-Z]/g, (c) => "-" + c.toLowerCase());
@@ -326,6 +344,7 @@ const DEFAULTS = {
     team: null,
     season: null, // default: the current season
     theme: "auto",
+    shape: null, // "default" | "square" | "compact" | … (TEAM_SHAPES) or { base, ...tokens }; null: the theme's own
     apiBase: null,
     graphqlUrl: null,
     siteUrl: "https://ftcscout.mmathijs.nl", // links to the team/event pages; "" for no links
@@ -540,7 +559,7 @@ export class TeamWidget {
     }
 
     render() {
-        let t = resolveTeamTheme(this.options.theme);
+        let t = resolveTeamTheme(this.options.theme, this.options.shape);
         // Every token can also be set from the page: --ftcw-accent, --ftcw-radius, ...
         // Internally --_<token>, so a theme can use the page's own variables of the same name
         // (accent: "var(--accent)") without referring to itself.
@@ -610,7 +629,7 @@ export function attrValue(v, flag = false) {
 export function defineTeamElement(tagName, Widget, extraAttrs = {}) {
     if (typeof customElements === "undefined" || customElements.get(tagName)) return;
     const ATTRS = {
-        team: "team", season: "season", theme: "theme", "api-base": "apiBase", "graphql-url": "graphqlUrl", "site-url": "siteUrl", title: "title",
+        team: "team", season: "season", theme: "theme", shape: "shape", "api-base": "apiBase", "graphql-url": "graphqlUrl", "site-url": "siteUrl", title: "title",
         layout: "layout", density: "density", hide: "hide", limit: "limit", "max-height": "maxHeight", "link-target": "linkTarget", bare: "bare", now: "now",
         icons: "icons", css: "css", skin: "skin", text: "text", locale: "locale", decimals: "decimals",
         "award-names": "awardNames", "event-types": "eventTypes", "link-to": "linkTo", "team-url": "teamUrl", "event-url": "eventUrl",

@@ -20,12 +20,14 @@
         "team-season": { global: "FtcTeamSeason", cls: "TeamSeason", tag: "ftc-team-season", label: "Season + next match", text: "Season results, with the live next match on top while you compete.", layouts: { list: "List", strip: "Scrolling tiles" }, height: 520 },
     };
     // Colors: a family, in a light, a dark, or a follow-the-visitor version. The theme names are the
-    // libraries' own. Swatches (background, accent) are close to each theme, for picking only.
+    // libraries' own ("custom" is the wizard's: the visitor's own colors, sent as tokens). Swatches
+    // (background, accent) are close to each theme, for picking only.
     const FAMILIES = {
         default: { label: "Default", text: "Clean, with blue accents", names: { auto: "auto", light: "light", dark: "dark" }, light: ["#ffffff", "#2563eb"], dark: ["#16191e", "#6b9cff"] },
         trophy: { label: "Trophy case", text: "Metallic cards, amber for wins", names: { auto: "trophy-auto", light: "trophy-light", dark: "trophy" }, light: ["#f7f5f0", "#d97706"], dark: ["#2b313d", "#fbbf24"], teamOnly: true },
         ftcscout: { label: "FTCScout", text: "Looks like FTCScout", names: { auto: "ftcscout-auto", light: "ftcscout", dark: "ftcscout-dark" }, light: ["#ffffff", "#2c666e"], dark: ["#2d2d2d", "#39848e"] },
         "ftc-events": { label: "FTC Events", text: "Looks like FIRST's site", names: { auto: "ftc-events-auto", light: "ftc-events", dark: "ftc-events-dark" }, light: ["#ffffff", "#0066b3"], dark: ["#212529", "#4d9fe0"] },
+        custom: { label: "Custom", text: "Your own colors", names: { auto: "custom", light: "custom-light", dark: "custom-dark" } },
     };
     const MODES = { auto: ["Follow the visitor", "Light or dark, like their device"], light: ["Light", "For light websites"], dark: ["Dark", "For dark websites"] };
     /** [family, mode] of a theme name; unknown names count as the default family. */
@@ -55,50 +57,94 @@
         return { [field]: FAMILIES[parts[0]].names[parts[1]] };
     }
 
-    // Shape & spacing, separate from the colors: each preset sets every shape token, so it looks the
-    // same on any color theme ("" keeps the color theme's own shape). Only the tokens that differ from
-    // the picked color theme end up in the code.
-    const SHAPE_DEFAULTS = {
-        radius: "12px", innerRadius: "8px", chipRadius: "999px", avatarRadius: "4px", avatarSize: "44px", padding: "16px", gap: "8px", rowPadding: "10px",
-        tileWidth: "176px", cardHeight: "150px", fontSize: "14px", titleSize: "16px", titleWeight: "650", titleTransform: "none", titleLetterSpacing: "normal",
-        valueSize: "19px", valueWeight: "700", labelLetterSpacing: ".04em", nameSize: "18px", nameWeight: "700", chipFontSize: "11.5px", chipWeight: "550", chipPadding: "2px 8px",
+    // Custom colors: the six tokens both libraries understand, for light and for dark mode. Saved
+    // ones ("templates") live in this browser, and in the link of a setup that uses them.
+    const PALETTE = { bg: "Background", surface: "Cards & tiles", text: "Text", muted: "Quiet text", border: "Lines", accent: "Accent" };
+    const CUSTOM_DEFAULT = {
+        light: { bg: "#ffffff", surface: "#f5f6f8", text: "#1d2329", muted: "#5d6773", border: "#e2e5ea", accent: "#2563eb" },
+        dark: { bg: "#16191e", surface: "#1e2228", text: "#e8ebef", muted: "#9aa3ad", border: "#2c313a", accent: "#6b9cff" },
     };
-    const TEAM_SHAPES = {
-        "": ["Theme's own", "Whatever the colors come with", null],
-        rounded: ["Rounded", "Soft corners, normal spacing", {}],
-        square: ["Square", "Sharp corners, flat", { radius: "0", innerRadius: "0", chipRadius: "0", avatarRadius: "0" }],
-        compact: ["Compact", "Tight, for sidebars", { radius: "6px", innerRadius: "4px", chipRadius: "4px", avatarSize: "36px", padding: "10px", gap: "6px", rowPadding: "6px", fontSize: "13px", titleSize: "15px", valueSize: "17px", nameSize: "16px", tileWidth: "156px" }],
-        spacious: ["Spacious", "More room to breathe", { radius: "16px", innerRadius: "12px", avatarRadius: "10px", avatarSize: "52px", padding: "24px", gap: "14px", rowPadding: "14px", tileWidth: "196px", fontSize: "15px", titleSize: "18px" }],
-        bubbly: ["Bubbly", "Round everything", { radius: "24px", innerRadius: "18px", avatarRadius: "50%", padding: "20px", gap: "10px", rowPadding: "12px" }],
-        showcase: ["Showcase", "Big, bold type", { radius: "14px", innerRadius: "12px", padding: "20px", gap: "12px", tileWidth: "200px", cardHeight: "264px", titleSize: "20px", titleWeight: "800", titleTransform: "uppercase", titleLetterSpacing: ".01em", valueSize: "26px", valueWeight: "850", labelLetterSpacing: ".06em", nameSize: "24px", nameWeight: "850", chipFontSize: "10.5px", chipWeight: "700", chipPadding: "3px 9px" }],
-    };
-    const MAP_SHAPE_KEYS = ["pitRadius", "pitGap", "objectRadius", "fieldRadius", "wallRadius"];
-    const MAP_SHAPES = {
-        "": ["Theme's own", "Whatever the colors come with", null],
-        rounded: ["Rounded", "Soft pits with gaps", [0.3, 0.08, 0.25, 0.3, 0.12]],
-        soft: ["Subtle", "Slightly rounded", [0.16, 0.07, 0.16, 0.16, 0.06]],
-        square: ["Square", "Sharp, with gaps", [0, 0.07, 0, 0, 0]],
-        blocks: ["Blocks", "Sharp, pits touching", [0, 0, 0, 0, 0]],
-        bubbly: ["Bubbly", "Round pits, round walls", [0.5, 0.1, 0.45, 0.4, 0.3]],
-    };
-    /** The picked color theme's own token values (light for "auto"). */
-    // A follow-the-visitor theme compares as its light version: both versions have the same shape.
-    const lightOf = (name) => FAMILIES[splitTheme(name)[0]].names.light;
-    const teamBase = () => (window.FtcTeamCard?.TEAM_THEMES || {})[lightOf(state.theme)] || {};
-    const mapBase = () => (window.FtcPitMap?.THEMES || {})[lightOf(state.mapTheme)] || {};
-    function shapeTokens() {
-        let preset = TEAM_SHAPES[state.shape]?.[2];
-        if (!preset) return {};
-        let full = { ...SHAPE_DEFAULTS, ...preset };
-        let base = teamBase();
-        return Object.fromEntries(Object.entries(full).filter(([k, v]) => String(base[k]) !== v));
+    const TEMPLATES_KEY = "ftc-embeds:color-templates";
+    function loadTemplates() {
+        try {
+            let list = JSON.parse(localStorage.getItem(TEMPLATES_KEY) || "[]");
+            return Array.isArray(list) ? list.filter((t) => t && t.name && t.light && t.dark) : [];
+        } catch {
+            return [];
+        }
     }
-    function mapShapeTokens() {
-        let preset = MAP_SHAPES[state.mapShape]?.[2];
-        if (!preset) return {};
-        let base = mapBase();
-        return Object.fromEntries(MAP_SHAPE_KEYS.map((k, i) => [k, preset[i]]).filter(([k, v]) => base[k] !== v));
+    function saveTemplates(list) {
+        try {
+            localStorage.setItem(TEMPLATES_KEY, JSON.stringify(list));
+            return true;
+        } catch {
+            return false;
+        }
     }
+    // Any CSS color (also var(--x, fallback) and rgba over a background) as #rrggbb, for <input type=color>.
+    const ctx = Object.assign(document.createElement("canvas"), { width: 1, height: 1 }).getContext("2d", { willReadFrequently: true });
+    function toHex(color, under = "#ffffff") {
+        let c = String(color).trim().replace(/^var\([^,]+,\s*(.*)\)$/, "$1");
+        ctx.clearRect(0, 0, 1, 1);
+        ctx.fillStyle = under;
+        ctx.fillRect(0, 0, 1, 1);
+        ctx.fillStyle = "#000";
+        ctx.fillStyle = c;
+        ctx.fillRect(0, 0, 1, 1);
+        let [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+        return "#" + [r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("");
+    }
+    /** A built-in family's colors, to start a custom one from. */
+    function familyPalette(f) {
+        let themes = window.FtcTeamCard?.TEAM_THEMES || {};
+        let one = (name) => {
+            let t = themes[name] || {};
+            let bg = toHex(t.bg || "#fff");
+            return Object.fromEntries(Object.keys(PALETTE).map((k) => [k, k == "bg" ? bg : toHex(t[k] || "#888", bg)]));
+        };
+        return { light: one(FAMILIES[f].names.light), dark: one(FAMILIES[f].names.dark) };
+    }
+    const readableOn = (hex) => {
+        let [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.4 ? "#111111" : "#ffffff";
+    };
+
+    /**
+     * The `theme` option: a name, or for custom colors (and the own accent) { base, ...tokens,
+     * dark: { ...tokens } }. team: also sets accentText, which only the team widgets have.
+     */
+    function themeOption(name, extra = {}, team = true) {
+        let [f, m] = splitTheme(name);
+        if (f != "custom") return Object.keys(extra).length ? { base: name, ...extra } : name;
+        let colors = (mode) => {
+            let c = { ...state.custom[mode], ...extra };
+            return team ? { ...c, accentText: readableOn(c.accent) } : c;
+        };
+        if (m != "auto") return { base: m, ...colors(m) };
+        return { base: "auto", ...colors("light"), dark: colors("dark") };
+    }
+
+    // Shapes: corners, spacing and type, separate from the colors. The values come from the
+    // libraries (TEAM_SHAPES, SHAPES); "" keeps the color theme's own.
+    const TEAM_SHAPE_LABELS = {
+        "": ["Theme's own", "Whatever the colors come with"],
+        default: ["Rounded", "Soft corners, normal spacing"],
+        square: ["Square", "Sharp corners, flat"],
+        compact: ["Compact", "Tight, for sidebars"],
+        spacious: ["Spacious", "More room to breathe"],
+        bubbly: ["Bubbly", "Round everything"],
+        showcase: ["Showcase", "Big, bold type"],
+        ftcscout: ["FTCScout", "FTCScout's corners and font"],
+        "ftc-events": ["FTC Events", "Small corners, Roboto"],
+    };
+    const MAP_SHAPE_LABELS = {
+        "": ["Theme's own", "Whatever the colors come with"],
+        default: ["Rounded", "Soft pits with gaps"],
+        subtle: ["Subtle", "Slightly rounded"],
+        square: ["Square", "Sharp, with gaps"],
+        blocks: ["Blocks", "Sharp, pits touching"],
+        bubbly: ["Bubbly", "Round pits, round walls"],
+    };
     const STATS = { opr: "OPR", epa: "EPA", "region-rank": "Rank in region", record: "Season record", "record-total": "All-time record", "win-rate": "Win rate", awards: "Season awards", "awards-total": "All awards", matches: "Season matches", events: "Season events", seasons: "Seasons", rookie: "Since" };
     const EXAMPLE_NAMES = {
         FPEEUR: "European Premier Event", NLCMP: "Netherlands Championship", FTCCMP1: "FIRST Championship",
@@ -168,6 +214,7 @@
     const DEFAULTS = {
         kind: "",
         // team widgets (same names as the /team builder)
+        custom: CUSTOM_DEFAULT,
         team: "", season: "", widget: "team-card", theme: "auto", shape: "", layout: "list", accent: "#2563eb", useAccent: false,
         stats: ["opr", "epa", "record"], upcoming: 1, skipScrimmages: false, oldest: false, onlyWon: false, seasons: "",
         // pit map (same names as the /pit-map dashboard)
@@ -191,8 +238,10 @@
         const known = (name) => Object.values(FAMILIES).some((f) => Object.values(f.names).includes(name));
         if (!known(state.theme)) state.theme = "auto";
         if (!known(state.mapTheme) || FAMILIES[splitTheme(state.mapTheme)[0]].teamOnly) state.mapTheme = "auto";
-        if (!TEAM_SHAPES[state.shape]) state.shape = "";
-        if (!MAP_SHAPES[state.mapShape]) state.mapShape = "";
+        if (!TEAM_SHAPE_LABELS[state.shape]) state.shape = "";
+        if (!MAP_SHAPE_LABELS[state.mapShape]) state.mapShape = "";
+        let hex = (v) => typeof v == "string" && /^#[0-9a-f]{6}$/i.test(v);
+        if (!["light", "dark"].every((m) => Object.keys(PALETTE).every((k) => hex(state.custom?.[m]?.[k])))) state.custom = CUSTOM_DEFAULT;
         if (!EXAMPLES[state.example]) state.example = Object.keys(EXAMPLES)[0] || DEFAULTS.example;
         if (!LIVE_API) state.source = "example";
         let s = new URLSearchParams(location.search).get("step") || "kind";
@@ -221,10 +270,9 @@
     function teamOptions() {
         let o = { team: +state.team || null };
         if (state.season) o.season = +state.season;
-        let tokens = shapeTokens();
-        if (state.useAccent) tokens.accent = state.accent;
-        if (Object.keys(tokens).length) o.theme = { base: state.theme, ...tokens };
-        else if (state.theme !== "auto") o.theme = state.theme;
+        let theme = themeOption(state.theme, state.useAccent && splitTheme(state.theme)[0] != "custom" ? { accent: state.accent } : {});
+        if (theme !== "auto") o.theme = theme;
+        if (state.shape) o.shape = state.shape;
         if (state.layout !== "list" && WIDGETS[state.widget].layouts[state.layout]) o.layout = state.layout;
         let w = state.widget;
         if (w == "team-card") {
@@ -266,9 +314,8 @@
 
     const eventRef = () => (state.source == "example" ? `2025/${state.example}` : `${state.eventSeason}/${state.code.trim().toUpperCase()}`);
     const teamList = () => state.highlight.split(/[\s,;]+/).filter(Boolean).join(", ");
-    /** "auto", a theme name, or { base, ...shape tokens }. */
-    const mapTheme = () => (Object.keys(mapShapeTokens()).length ? { base: state.mapTheme, ...mapShapeTokens() } : state.mapTheme);
-    const mapOptions = () => ({ theme: mapTheme(), highlight: teamList() || null });
+    const mapTheme = () => themeOption(state.mapTheme, {}, false);
+    const mapOptions = () => ({ theme: mapTheme(), shape: state.mapShape || null, highlight: teamList() || null });
 
     function mapCode(method) {
         let theme = mapTheme();
@@ -276,6 +323,7 @@
         let p = new URLSearchParams({ event: eventRef() });
         if (state.source == "example") p.set("source", "example");
         if (theme != "auto") p.set("theme", themeText);
+        if (state.mapShape) p.set("shape", state.mapShape);
         if (teamList()) p.set("highlight", teamList());
         let url = `${ORIGIN}/embed/pit-map?${p}`;
         if (method == "url") return url;
@@ -285,6 +333,7 @@
             let attrs = state.source == "example" ? [["src", `${ORIGIN}/examples/${state.example}.json`]] : [["event", eventRef()]];
             if (state.source == "live" && custom) attrs.push(SITE.apiBase ? ["api-base", SITE.apiBase] : ["graphql-url", SITE.graphqlUrl]);
             if (theme != "auto") attrs.push(["theme", themeText]);
+            if (state.mapShape) attrs.push(["shape", state.mapShape]);
             if (teamList()) attrs.push(["highlight", teamList()]);
             // JSON goes in single quotes, so it stays readable.
             let lines = attrs.map(([k, v]) => (v.includes('"') ? `    ${k}='${v.replace(/'/g, "&#39;")}'` : `    ${k}="${esc(v)}"`)).concat(`    style="display: block; height: ${state.height}px;"`);
@@ -292,6 +341,7 @@
         }
         let opts = [];
         if (theme != "auto") opts.push(`    theme: ${JSON.stringify(theme).replace(/"([a-zA-Z]+)":/g, "$1: ").replace(/,(?=\S)/g, ", ")},`);
+        if (state.mapShape) opts.push(`    shape: "${state.mapShape}",`);
         if (teamList()) opts.push(`    highlight: "${teamList()}",`);
         let head = `// npm install ftc-embeds\nimport { PitMap${state.source == "live" && custom ? ", configure" : ""} } from "ftc-embeds/pit-map";\n\n`;
         if (state.source == "example") return `${head}const data = await fetch("${ORIGIN}/examples/${state.example}.json").then((r) => r.json());\nnew PitMap(document.getElementById("pit-map"), {\n    data,\n${opts.join("\n")}\n});`;
@@ -302,16 +352,29 @@
     /** The same settings in the full dashboard, to fine-tune what the wizard doesn't ask. */
     function editorLink() {
         if (state.kind == "event") {
-            let s = { source: state.source, example: state.example, season: state.eventSeason, code: state.code, highlight: state.highlight, theme: state.mapTheme, overrides: mapShapeTokens(), height: state.height };
+            // The dashboard knows theme names and token overrides: custom colors and the shape go along as tokens.
+            let t = mapTheme();
+            let { base, ...colorTokens } = typeof t == "object" ? t : { base: t };
+            let shape = state.mapShape ? window.FtcPitMap?.SHAPES?.[state.mapShape] || {} : {};
+            let s = { source: state.source, example: state.example, season: state.eventSeason, code: state.code, highlight: state.highlight, theme: base, overrides: { ...colorTokens, ...shape }, height: state.height };
             let d = { source: "example", example: "FPEEUR", season: 2025, code: "", highlight: "", theme: "auto", overrides: {}, height: 600 };
             let diff = Object.fromEntries(Object.entries(s).filter(([k, v]) => JSON.stringify(v) !== JSON.stringify(d[k])));
             return "/pit-map" + (Object.keys(diff).length ? "#" + encodeURIComponent(JSON.stringify(diff)) : "");
         }
         let keys = ["widget", "team", "season", "theme", "layout", "accent", "useAccent", "stats", "upcoming", "skipScrimmages", "oldest", "onlyWon", "seasons"];
         let s = Object.fromEntries(keys.filter((k) => JSON.stringify(state[k]) !== JSON.stringify(DEFAULTS[k]) || k == "team").map((k) => [k, state[k]]));
-        // The editor has no shape presets: the shape goes along as CSS variables in its custom CSS.
-        let shape = Object.entries(shapeTokens());
-        if (shape.length) s.css = `:host {\n${shape.map(([k, v]) => `    --ftcw-${kebab(k)}: ${v};`).join("\n")}\n}`;
+        // The editor has no shapes or custom colors: those go along as CSS variables in its custom CSS.
+        let vars = (tokens) => Object.entries(tokens).map(([k, v]) => `    --ftcw-${kebab(k)}: ${v};`).join("\n");
+        let css = [];
+        let shape = state.shape ? window.FtcTeamCard?.TEAM_SHAPES?.[state.shape] : null;
+        let custom = splitTheme(state.theme)[0] == "custom" ? themeOption(state.theme) : null;
+        if (custom) {
+            s.theme = custom.base;
+            let { base, dark, ...light } = custom;
+            css.push(`:host {\n${vars({ ...(shape || {}), ...light })}\n}`);
+            if (dark) css.push(`@media (prefers-color-scheme: dark) {\n:host {\n${vars(dark)}\n}\n}`);
+        } else if (shape) css.push(`:host {\n${vars(shape)}\n}`);
+        if (css.length) s.css = css.join("\n\n");
         return "/team#" + encodeURIComponent(JSON.stringify(s));
     }
 
@@ -322,24 +385,48 @@
     // Light half and dark half of a family; the mode cards show which half is used.
     const familySwatch = (f) => `<div class="swatch">${[...f.light, ...f.dark].map((c) => `<i style="background:${c}"></i>`).join("")}</div>`;
     const modeIcon = (m) => `<span class="mode-ico ${m}"></span>`;
+    const customSwatch = (c) => [c.light.bg, c.light.accent, c.dark.bg, c.dark.accent];
+    const swatchCells = (colors) => colors.map((c) => `<i style="background:${c}"></i>`).join("");
     function colorPicker(familyKey, modeKey, map) {
         let fams = Object.entries(FAMILIES).filter(([, f]) => !(map && f.teamOnly));
-        return `<div class="choices">${fams.map(([id, f]) => choice(familyKey, id, f.label, f.text, familySwatch(f))).join("")}</div>
+        let cards = fams.map(([id, f]) =>
+            choice(familyKey, id, f.label, f.text, id == "custom" ? `<div class="swatch" id="custom-swatch">${swatchCells(customSwatch(state.custom))}</div>` : familySwatch(f))
+        );
+        let saved = loadTemplates().map(
+            (t, i) =>
+                `<div class="tpl-wrap"><button type="button" class="choice tpl" data-tpl="${i}"><div class="swatch">${swatchCells(customSwatch(t))}</div><b>${esc(t.name)}</b><span>Saved colors</span></button><button type="button" class="tpl-del" data-tpl-del="${i}" aria-label="Delete ${esc(t.name)}" title="Delete">×</button></div>`
+        );
+        return `<div class="choices">${cards.join("")}${saved.join("")}</div>
+            <div class="custom" id="custom-box">
+                <div class="custom-grid">
+                    <span></span><b data-col="light">Light</b><b data-col="dark">Dark</b>
+                    ${Object.entries(PALETTE).map(([k, label]) => `<span>${label}</span>${["light", "dark"].map((m) => `<input type="color" data-custom="${m}.${k}" data-col="${m}" aria-label="${label}, ${m}">`).join("")}`).join("")}
+                </div>
+                <p class="q">Start from <small>Copies a look's colors, light and dark</small></p>
+                <div class="starts">${Object.entries(FAMILIES).filter(([id, f]) => id != "custom" && !(map && f.teamOnly)).map(([id, f]) => `<button type="button" class="btn sm" data-start="${id}">${f.label}</button>`).join("")}</div>
+                <p class="q">Save these colors <small>To use them again, in this browser</small></p>
+                <div class="row">
+                    <input type="text" id="tpl-name" placeholder="e.g. Team colors" autocomplete="off" maxlength="40" style="flex:1 1 180px;width:auto">
+                    <button type="button" class="btn sm" id="tpl-save">Save as template</button>
+                </div>
+                <p class="hint" id="tpl-status"></p>
+            </div>
             <p class="q">Light or dark?</p>
             <div class="choices small">${Object.entries(MODES).map(([m, [label, text]]) => choice(modeKey, m, label, text, modeIcon(m))).join("")}</div>`;
     }
     const swatch = (colors) => `<div class="swatch">${colors.map((c) => `<i style="background:${c}"></i>`).join("")}</div>`;
     // Small drawings of a shape preset, in the site's own colors: a card with three blocks, at half size.
     const half = (v) => (/%$/.test(v) ? v : `${Math.min(parseFloat(v) || 0, 60) / 2}px`);
-    function teamShapeDemo(tokens) {
-        let t = tokens ? { ...SHAPE_DEFAULTS, ...tokens } : null;
+    function teamShapeDemo(name) {
+        let t = name ? window.FtcTeamCard?.TEAM_SHAPES?.[name] : null;
         if (!t) return `<div class="shape own"><i></i><i></i><i></i></div>`;
         return `<div class="shape" style="border-radius:${half(t.radius)};padding:${half(t.padding)};gap:${half(t.gap)}"><b style="border-radius:${t.avatarRadius == "50%" ? "50%" : half(t.avatarRadius)}"></b><i style="border-radius:${half(t.innerRadius)}"></i><i style="border-radius:${half(t.innerRadius)}"></i></div>`;
     }
     // A row of pits between two walls; values are in cells (one pit ≈ 18px here).
-    function mapShapeDemo(v) {
-        if (!v) return `<div class="pits own">${"<i></i>".repeat(5)}</div>`;
-        let [pit, gap, , , wall] = v;
+    function mapShapeDemo(name) {
+        let t = name ? window.FtcPitMap?.SHAPES?.[name] : null;
+        if (!t) return `<div class="pits own">${"<i></i>".repeat(5)}</div>`;
+        let { pitRadius: pit, pitGap: gap, wallRadius: wall } = t;
         return `<div class="pits" style="gap:${gap * 36}px;border-radius:${wall * 18}px">${`<i style="border-radius:${pit * 18}px"></i>`.repeat(5)}</div>`;
     }
 
@@ -383,7 +470,7 @@
             ${colorPicker("mapFamily", "mapMode", true)}
             <h2 class="sec"><span>B</span>Shape & spacing <small>Works with any colors</small></h2>
             <div class="choices">
-                ${Object.entries(MAP_SHAPES).map(([id, [name, text, v]]) => choice("mapShape", id, name, text, mapShapeDemo(v))).join("")}
+                ${Object.entries(MAP_SHAPE_LABELS).map(([id, [name, text]]) => choice("mapShape", id, name, text, mapShapeDemo(id))).join("")}
             </div>
             <p class="q">How tall?</p>
             <div class="choices small">
@@ -395,14 +482,14 @@
             <p class="sub">Colors and shape are picked separately, so any two go together. The preview follows along.</p>
             <h2 class="sec"><span>A</span>Colors</h2>
             ${colorPicker("family", "mode", false)}
-            <p class="q">Your team's color? <small>Optional, replaces the accent</small></p>
-            <div class="row">
+            <p class="q" data-accent-row>Your team's color? <small>Optional, replaces the accent</small></p>
+            <div class="row" data-accent-row>
                 <label class="check"><input type="checkbox" data-check="useAccent"> Use my own accent color</label>
                 <input type="color" data-color="accent" aria-label="Accent color">
             </div>
             <h2 class="sec"><span>B</span>Shape & spacing <small>Works with any colors</small></h2>
             <div class="choices">
-                ${Object.entries(TEAM_SHAPES).map(([id, [name, text, tokens]]) => choice("shape", id, name, text, teamShapeDemo(tokens))).join("")}
+                ${Object.entries(TEAM_SHAPE_LABELS).map(([id, [name, text]]) => choice("shape", id, name, text, teamShapeDemo(id))).join("")}
             </div>
             <p class="q">Arrangement</p>
             <div class="choices small">
@@ -478,8 +565,8 @@
             let p = PLATFORMS[state.site] || PLATFORMS.other;
             let what = state.kind == "event" ? `Pit map · ${state.source == "example" ? EXAMPLE_NAMES[state.example] || state.example : eventRef()}` : `${WIDGETS[state.widget].label} · team ${state.team}`;
             let rows = state.kind == "event"
-                ? [["event", "Event", what.split(" · ")[1]], ["highlight", "Teams", teamList() || "none"], ["look", "Look", `${themeLabel(state.mapTheme)} colors, ${MAP_SHAPES[state.mapShape][0].toLowerCase()} shape, ${state.height}px`], ["site", "Website", p.label]]
-                : [["team", "Team", `${state.team}${state.season ? `, ${state.season}` : ""}`], ["widget", "Widget", WIDGETS[state.widget].label], ["look", "Look", `${themeLabel(state.theme)} colors, ${TEAM_SHAPES[state.shape][0].toLowerCase()} shape, ${(WIDGETS[state.widget].layouts[state.layout] || "list").toLowerCase()}`], ["site", "Website", p.label]];
+                ? [["event", "Event", what.split(" · ")[1]], ["highlight", "Teams", teamList() || "none"], ["look", "Look", `${themeLabel(state.mapTheme)} colors, ${MAP_SHAPE_LABELS[state.mapShape][0].toLowerCase()} shape, ${state.height}px`], ["site", "Website", p.label]]
+                : [["team", "Team", `${state.team}${state.season ? `, ${state.season}` : ""}`], ["widget", "Widget", WIDGETS[state.widget].label], ["look", "Look", `${themeLabel(state.theme)} colors, ${TEAM_SHAPE_LABELS[state.shape][0].toLowerCase()} shape, ${(WIDGETS[state.widget].layouts[state.layout] || "list").toLowerCase()}`], ["site", "Website", p.label]];
             return `
             <span class="kicker">Done</span>
             <h1>Here's your code.</h1>
@@ -639,6 +726,26 @@
             input.checked = i >= 0;
             input.parentElement.dataset.order = i >= 0 ? i + 1 : "";
         }
+        let field = state.kind == "event" ? "mapTheme" : "theme";
+        let [family, mode] = splitTheme(state[field]);
+        if ($("custom-box")) {
+            $("custom-box").hidden = family != "custom";
+            $("custom-box").dataset.mode = mode;
+            for (let el of ask.querySelectorAll("[data-custom]")) {
+                let [m, k] = el.dataset.custom.split(".");
+                if (document.activeElement !== el) el.value = state.custom[m][k];
+            }
+            $("custom-swatch").innerHTML = swatchCells(customSwatch(state.custom));
+            let templates = loadTemplates();
+            for (let b of ask.querySelectorAll("[data-tpl]")) {
+                let t = templates[+b.dataset.tpl];
+                b.setAttribute("aria-pressed", family == "custom" && !!t && JSON.stringify({ light: t.light, dark: t.dark }) == JSON.stringify(state.custom));
+            }
+            // A saved template is picked: the Custom card itself stays unpressed.
+            let fromTemplate = ask.querySelector('[data-tpl][aria-pressed="true"]');
+            if (fromTemplate) ask.querySelector('.choice[data-value=\'"custom"\']')?.setAttribute("aria-pressed", "false");
+        }
+        for (let el of ask.querySelectorAll("[data-accent-row]")) el.hidden = family == "custom";
         if ($("live-box")) $("live-box").hidden = state.source != "live";
         if ($("example-box")) $("example-box").hidden = state.source != "example";
         if ($("code")) {
@@ -703,6 +810,32 @@
             }
             return go(a.dataset.step);
         }
+        let start = e.target.closest("[data-start]");
+        if (start) return setCustom(familyPalette(start.dataset.start));
+        let tpl = e.target.closest("[data-tpl]");
+        if (tpl) {
+            let t = loadTemplates()[+tpl.dataset.tpl];
+            if (t) setCustom({ light: { ...t.light }, dark: { ...t.dark } });
+            return;
+        }
+        let del = e.target.closest("[data-tpl-del]");
+        if (del) {
+            let list = loadTemplates();
+            let [gone] = list.splice(+del.dataset.tplDel, 1);
+            if (gone && confirm(`Delete the saved colors "${gone.name}"?`)) {
+                saveTemplates(list);
+                renderStep();
+            }
+            return;
+        }
+        if (e.target.id == "tpl-save") {
+            let name = $("tpl-name").value.trim() || `My colors ${loadTemplates().length + 1}`;
+            let list = loadTemplates().filter((t) => t.name != name);
+            list.push({ name, light: state.custom.light, dark: state.custom.dark });
+            if (saveTemplates(list)) renderStep();
+            else $("tpl-status").textContent = "Couldn't save here (private window?). The colors are still in this setup's link.";
+            return;
+        }
         let t = e.target.closest("[data-tab]");
         if (t) {
             tab = t.dataset.tab;
@@ -721,6 +854,12 @@
             teamStatus();
             typing = setTimeout(sync, 450);
         } else if (el.dataset.color) set({ [el.dataset.color]: el.value, useAccent: true });
+        else if (el.dataset.custom) {
+            let [m, k] = el.dataset.custom.split(".");
+            state.custom = { ...state.custom, [m]: { ...state.custom[m], [k]: el.value } };
+            clearTimeout(typing);
+            typing = setTimeout(sync, 60);
+        }
     });
     document.addEventListener("change", (e) => {
         let el = e.target;
@@ -741,6 +880,12 @@
         readUrl();
         renderStep();
     });
+
+    /** Use these custom colors (and the Custom family, keeping light/dark/follow). */
+    function setCustom(custom) {
+        let field = state.kind == "event" ? "mapTheme" : "theme";
+        set({ custom, [field]: FAMILIES.custom.names[splitTheme(state[field])[1]] });
+    }
 
     async function copy(text, button) {
         let label = button.textContent;
