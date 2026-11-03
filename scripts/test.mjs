@@ -125,6 +125,7 @@ test("identical requests at the same time share one fetch", async () => {
 const TEAM_WIDGETS = [
     { name: "team-card", cls: "TeamCard", define: "defineTeamCardElement", api: ["getTeamCard", "getTeamStats", "TEAM_CARD_QUERY"] },
     { name: "team-results", cls: "TeamResults", define: "defineTeamResultsElement", api: ["getTeamResults", "TEAM_RESULTS_QUERY"] },
+    { name: "team-awards", cls: "TeamAwards", define: "defineTeamAwardsElement", api: ["getTeamAwards", "TEAM_AWARDS_QUERY"] },
 ];
 
 for (const w of TEAM_WIDGETS) {

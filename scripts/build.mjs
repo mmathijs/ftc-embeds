@@ -13,6 +13,7 @@ const WIDGETS = [
     { name: "pit-map", global: "FtcPitMap" },
     { name: "team-card", global: "FtcTeamCard" },
     { name: "team-results", global: "FtcTeamResults" },
+    { name: "team-awards", global: "FtcTeamAwards" },
 ];
 
 const IMPORT_RE = /^import\s*\{[^}]*\}\s*from\s*"(\.{1,2}\/[^"]+)";\s*$/gm;
