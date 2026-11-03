@@ -190,6 +190,11 @@
     footer { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 18px 28px 28px; border-top: 2px solid var(--ink); font: 12px/1.6 var(--mono); color: var(--ink-2); }
 
     .preview-jump { display: none; }
+    .search-results { display: grid; gap: 6px; margin-top: 8px; max-width: 520px; }
+    .search-results:empty { display: none; }
+    .search-results .result { all: unset; cursor: pointer; display: flex; flex-direction: column; gap: 2px; padding: 8px 12px; border: 1px solid var(--rule); background: var(--field); }
+    .search-results .result:hover, .search-results .result:focus-visible { border-color: var(--ink); }
+    .search-results .result span { font-size: 13px; color: var(--ink-2); }
     @media (max-width: 920px) {
         .preview-jump { display: inline-flex; }
         .top, .ask, .side, footer { padding-left: 16px; padding-right: 16px; }

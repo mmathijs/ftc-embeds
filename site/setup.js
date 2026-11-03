@@ -622,6 +622,9 @@
             <p class="sub">The widgets fill in everything else themselves, from FTCScout and <i>FIRST</i>.</p>
             <input class="big" type="text" inputmode="numeric" pattern="[0-9]*" id="team-input" data-input="team" placeholder="e.g. ${SITE.demoTeam || 19444}" autocomplete="off" aria-label="Team number">
             <div class="status" id="team-status"></div>
+            ${SITE.apiBase ? `<p class="q">Don't know the number? <small>Search by name</small></p>
+            <input type="text" inputmode="search" data-search="teams" placeholder="e.g. Lorentz" autocomplete="off" aria-label="Search teams by name" style="max-width:320px">
+            <div class="search-results" id="search-teams"></div>` : ""}
             <p class="q">Which season? <small>Most people keep "current": it moves on by itself.</small></p>
             <div class="choices small">
                 ${choice("season", "", "Current")}
@@ -723,6 +726,8 @@
             <p class="sub">${!isMap() ? "By its FTC event code and season." : LIVE_API ? "Your own event, by its FTC event code, or one of the examples to try things out." : "Pick one of the example events."}</p>
             ${LIVE_API && isMap() ? `<div class="choices two">${choice("source", "live", "My event", "By its event code, from FTC Events")}${choice("source", "example", "An example", "To try it out first")}</div>` : ""}
             <div id="live-box">
+                ${SITE.apiBase ? `<label class="f" style="margin-top:20px">Search by name or place <input type="text" inputmode="search" data-search="events" placeholder="e.g. Hasselt, Benelux Championship" autocomplete="off"></label>
+                <div class="search-results" id="search-events"></div>` : ""}
                 <div class="row" style="margin-top:20px">
                     <label class="f" style="flex:1 1 200px">Event code <input class="big" type="text" data-input="code" placeholder="e.g. NLCMP" autocomplete="off" style="text-transform:uppercase"></label>
                     <label class="f" style="flex:0 0 140px">Season
@@ -1153,9 +1158,50 @@
             sync();
         }
     });
+    // Search boxes: events (in the picked season) or teams, from the embeds API.
+    let searching;
+    async function search(kind, q) {
+        let box = $(`search-${kind}`);
+        if (!box) return;
+        if (q.trim().length < 2) return box.replaceChildren();
+        let url = `${SITE.apiBase.replace(/\/+$/, "")}/search/${kind}?q=${encodeURIComponent(q.trim())}${kind == "events" ? `&season=${state.eventSeason}` : ""}`;
+        try {
+            let data = (await (await fetch(url)).json()).data;
+            let list = (kind == "events" ? data.eventsSearch : data.teamsSearch) || [];
+            let where = (l) => [l?.city, l?.country].filter(Boolean).join(", ");
+            box.innerHTML = list.length
+                ? list.slice(0, 8).map((x) => kind == "events"
+                    ? `<button type="button" class="result" data-pick-event="${esc(x.code)}" data-season="${x.season}"><b>${esc(x.name)}</b><span>${esc(x.code)} · ${esc(x.start)}${where(x.location) ? " · " + esc(where(x.location)) : ""}</span></button>`
+                    : `<button type="button" class="result" data-pick-team="${x.number}"><b>${x.number} ${esc(x.name)}</b><span>${esc(where(x.location))}</span></button>`).join("")
+                : `<p class="hint">Nothing found.</p>`;
+        } catch {
+            box.innerHTML = `<p class="hint">Search isn't available right now.</p>`;
+        }
+    }
+    document.addEventListener("click", (e) => {
+        let ev = e.target.closest("[data-pick-event]");
+        if (ev) {
+            set({ code: ev.dataset.pickEvent, eventSeason: +ev.dataset.season, source: "live" });
+            let input = document.querySelector('[data-input="code"]');
+            if (input) input.value = ev.dataset.pickEvent;
+            $("search-events")?.replaceChildren();
+        }
+        let tm = e.target.closest("[data-pick-team]");
+        if (tm) {
+            set({ team: tm.dataset.pickTeam });
+            let input = document.querySelector('[data-input="team"]');
+            if (input) input.value = tm.dataset.pickTeam;
+            $("search-teams")?.replaceChildren();
+        }
+    });
     let typing;
     document.addEventListener("input", (e) => {
         let el = e.target;
+        if (el.dataset.search) {
+            clearTimeout(searching);
+            searching = setTimeout(() => search(el.dataset.search, el.value), 250);
+            return;
+        }
         if (el.dataset.input) {
             state[el.dataset.input] = el.value.trim();
             clearTimeout(typing);
