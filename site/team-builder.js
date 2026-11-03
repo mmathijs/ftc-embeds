@@ -10,7 +10,14 @@
         "team-awards": { global: "FtcTeamAwards", cls: "TeamAwards", tag: "ftc-team-awards", label: "Awards", hint: "Every award, by season.", layouts: { list: "List", strip: "Award cards" }, parts: "count, icon, placement, event, season, date" },
         "next-match": { global: "FtcNextMatch", cls: "NextMatch", tag: "ftc-next-match", label: "Next match", hint: "During an event: the next match and the last result, updating itself. Otherwise the next event.", layouts: { list: "Full", compact: "Two lines" }, parts: "event, time, countdown, alliances, names, last, rank, upcoming" },
         "team-season": { global: "FtcTeamSeason", cls: "TeamSeason", tag: "ftc-team-season", label: "Season + next match", hint: "Season results, with the next match on top while competing.", layouts: { list: "List", strip: "Scrolling tiles" }, parts: "live, team, date, type, location, division, rank, record, awards, advanced, event, time, countdown, alliances, names, last, upcoming" },
+        countdown: { global: "FtcCountdown", cls: "Countdown", tag: "ftc-countdown", label: "Countdown", hint: "To an event's first day (with an event code), or to the team's next match or event.", layouts: { list: "Boxes", compact: "One line" }, parts: "event, date, location, stream", subject: "either", height: 200 },
+        "event-rankings": { global: "FtcEventRankings", cls: "EventRankings", tag: "ftc-event-rankings", label: "Event rankings", hint: "An event's rankings; or without an event code, those of the team's current or latest event.", layouts: { list: "Table" }, parts: "event, date, location, type, names, divisions", subject: "either", columns: "rp, tb1, tb2, record, matches, opr", demo: [2025, "NLHAQ"], height: 560 },
+        "event-matches": { global: "FtcEventMatches", cls: "EventMatches", tag: "ftc-event-matches", label: "Match schedule", hint: "An event's matches: times, alliances, scores; the next match marked.", layouts: { list: "Table" }, parts: "event, date, location, type, time, days", subject: "event", demo: [2025, "NLHAQ"], height: 600 },
+        "event-advancement": { global: "FtcEventAdvancement", cls: "EventAdvancement", tag: "ftc-event-advancement", label: "Advancement", hint: "An event's slots, each team's advancement points, and who advanced.", layouts: { list: "Table" }, parts: "event, date, location, type, names, summary", subject: "event", columns: "qual, alliance, playoff, award, total", demo: [2025, "NLCMP"], height: 600 },
+        "league-standings": { global: "FtcLeagueStandings", cls: "LeagueStandings", tag: "ftc-league-standings", label: "League standings", hint: "A league's standings, from any of its meets (or its tournament).", layouts: { list: "Table" }, parts: "region, parent, record, names", subject: "event", demo: [2023, "NLBNM7"], height: 560 },
     };
+    // What a widget is about: a team (default), an event, or either (an event code, else the team).
+    const subject = (id) => WIDGETS[id].subject || "team";
     // Starting points for the custom CSS: for every widget, and per widget.
     const CSS_EXAMPLES = {
         all: [
@@ -50,6 +57,11 @@
         "team-awards": ".ftcw, .head, .title, .count, .season, .sname, .aw, .an, .ae, .strip, .card, .card.won, .card.alliance, .card.judged, .card.p1 / .p2 / …, .card.type-Inspire / …, .c-icon, .c-name, .c-place, .c-event, .c-season",
         "next-match": ".ftcw, .live-head, .nm, .nm-label, .nm-desc, .nm-when, .alliances, .al.red, .al.blue, .al .t.me, .last, .upnext, .cm (compact)",
         "team-season": "those of season results and next match, plus .now (the live part)",
+        countdown: ".ftcw, .cd-what, .cd-label, .cd-boxes, .cd-box, .cd-num, .cd-unit, .cd-line (compact), .cd-pair, .cd-state",
+        "event-rankings": ".ftcw, .evline, .tabs, .tbl, .tbl th, .tbl td, tr.me, tr.gap, .rk, .tm, .num, .nm, .c-rp / .c-tb1 / .c-record / .c-matches / .c-opr",
+        "event-matches": ".ftcw, .evline, .tbl, tr.day, tr.played, tr.nextm, tr.me, .md, .tt, .al.red, .al.blue, .tn, .tn.me, .tnm, .sc, .scg",
+        "event-advancement": ".ftcw, .evline, .adv-sum, .tbl, tr.me, tr.cut, tr.out, .c-qual / .c-alliance / .c-playoff / .c-award / .c-total, .nf (not final), td.st",
+        "league-standings": ".ftcw, .lg-sub, .tbl, tr.me, tr.gap, .rk, .tm, .c-record",
     };
 
     const STATS = { opr: "OPR", epa: "EPA", "region-rank": "Rank in region", record: "Season record", "record-total": "All-time record", "win-rate": "Win rate", awards: "Season awards", "awards-total": "All awards", matches: "Season matches", "matches-total": "All matches", events: "Season events", "events-total": "All events", seasons: "Seasons", rookie: "Since" };
@@ -59,6 +71,8 @@
         radius: -1, avatarRadius: "", linkTo: "ftcscout", css: "",
         stats: ["opr", "epa", "record"], upcoming: 1, skipScrimmages: false, oldest: false, onlyWon: false, seasons: "", limit: "", hide: "",
         locale: "", numberFormat: "locale", decimals: 1, dateFormat: "short", hourCycle: "", timeZone: "",
+        // event widgets
+        event: "", shape: "", highlight: "", columns: "", maxHeight: "", level: "all", matchState: "all", onlyTeam: false, names: false,
     };
     let state = { ...DEFAULTS };
     let tab = "element";
@@ -80,7 +94,12 @@
     /** The widget's options (camelCase), only those that differ from the widget's defaults. */
     function options() {
         let w = state.widget;
-        let o = { team: +state.team || null };
+        let kind = subject(w);
+        let code = state.event.trim().toUpperCase();
+        let o = {};
+        // An event widget takes the event; "either" takes the event when one is given, else the team.
+        if (kind === "event" || (kind === "either" && code)) o.event = code || null;
+        if (kind === "team" || (kind === "either" && !code) || (w === "event-matches" && state.onlyTeam)) o.team = +state.team || null;
         if (state.season) o.season = +state.season;
         // Tokens on top of the theme: accent, corners (card; tiles 4px less), avatar corners.
         let tokens = {};
@@ -89,7 +108,16 @@
         if (state.avatarRadius) tokens.avatarRadius = state.avatarRadius;
         if (Object.keys(tokens).length) o.theme = { base: state.theme, ...tokens };
         else if (state.theme !== "auto") o.theme = state.theme;
+        if (state.shape) o.shape = state.shape;
         if (state.layout !== "list") o.layout = state.layout;
+        if (state.maxHeight.trim()) o.maxHeight = /^\d+$/.test(state.maxHeight.trim()) ? `${state.maxHeight.trim()}px` : state.maxHeight.trim();
+        if (kind !== "team" && w !== "countdown" && state.highlight.trim()) o.highlight = state.highlight.split(/[\s,;]+/).filter(Boolean).join(",");
+        if ((w === "event-rankings" || w === "event-advancement") && state.columns.trim()) o.columns = state.columns.split(/[\s,]+/).filter(Boolean).join(",");
+        if (w === "event-matches") {
+            if (state.level !== "all") o.level = state.level;
+            if (state.matchState !== "all") o.state = state.matchState;
+            if (state.names) o.names = true;
+        }
         if (state.density !== "normal") o.density = state.density;
         if (state.bare) o.bare = true;
         if (state.linkTo === "none") o.linkTarget = "none";
@@ -139,9 +167,10 @@
         }
         if (tab === "iframe") {
             let q = new URLSearchParams(Object.entries(o).map(([k, v]) => [k, attrValue(v)]));
-            let height = { "team-card": 300, "team-results": 460, "team-awards": 420, "next-match": 230, "team-season": 520 }[state.widget];
+            let height = { "team-card": 300, "team-results": 460, "team-awards": 420, "next-match": 230, "team-season": 520 }[state.widget] || w.height || 500;
             if (state.layout === "strip") height = 260;
             if (state.layout === "compact") height = 140;
+            if (o.maxHeight && /px$/.test(o.maxHeight)) height = parseInt(o.maxHeight) + 4;
             return `<iframe src="${ORIGIN}/embed/${state.widget}?${q}" title="${w.label}" style="width:100%;height:${height}px;border:0" loading="lazy"></iframe>`;
         }
         let body = JSON.stringify(o, null, 4).replace(/"([a-zA-Z]+)":/g, "$1:");
@@ -173,6 +202,8 @@
         if (state.widget === "team-card") o = { stats: "opr,epa,record", upcoming: 1, ...o };
         if (state.widget === "team-awards") o = { onlyWon: false, seasons: null, ...o };
         if (state.widget === "team-results" || state.widget === "team-season") o = { skipTypes: null, order: "newest", ...o };
+        if (subject(state.widget) !== "team") o = { ...lib[w.cls].defaults, event: null, team: null, shape: null, maxHeight: null, highlight: null, ...o };
+        else o = { shape: null, maxHeight: null, ...o };
         if (shown !== state.widget || !widget) {
             widget?.destroy();
             $("preview").replaceChildren();
@@ -191,6 +222,26 @@
         $("widget-hint").textContent = w.hint;
         $("team").value = state.team;
         $("season").value = state.season;
+        let kind = subject(state.widget);
+        if (document.activeElement !== $("event")) $("event").value = state.event;
+        $("event-field").hidden = kind === "team";
+        $("team-field").hidden = kind === "event" && !(state.widget === "event-matches" && state.onlyTeam);
+        $("event-label").textContent = kind === "either" ? "Event code (optional)" : "Event code";
+        $("subject-hint").textContent = kind === "either" ? "Leave the event code empty for the team's own: " + (state.widget === "countdown" ? "its next match or event." : "its current or latest event.") : state.widget === "league-standings" ? "Any meet of the league, or its tournament." : "";
+        $("shape").value = state.shape;
+        $("layout-field").hidden = Object.keys(w.layouts).length < 2;
+        $("event-box").hidden = kind === "team" || state.widget === "countdown";
+        $("columns-field").hidden = !w.columns;
+        $("columns-hint").hidden = !w.columns;
+        $("columns-hint").textContent = w.columns ? `Any of: ${w.columns}. Empty: the default.` : "";
+        if (document.activeElement !== $("columns")) $("columns").value = state.columns;
+        if (document.activeElement !== $("highlight")) $("highlight").value = state.highlight;
+        $("matches-box").hidden = state.widget !== "event-matches";
+        $("level").value = state.level;
+        $("match-state").value = state.matchState;
+        $("only-team").checked = state.onlyTeam;
+        $("names").checked = state.names;
+        if (document.activeElement !== $("max-height")) $("max-height").value = state.maxHeight;
         $("theme").value = state.theme;
         $("layout").replaceChildren(...Object.entries(w.layouts).map(([v, label]) => new Option(label, v)));
         if (!w.layouts[state.layout]) state.layout = "list";
@@ -204,6 +255,7 @@
         $("bare").checked = state.bare;
         $("link-to").value = state.linkTo;
         $("card-box").hidden = state.widget !== "team-card";
+        // (countdown and the event widgets have their own boxes, set above)
         $("results-box").hidden = !(state.widget === "team-results" || state.widget === "team-season");
         $("awards-box").hidden = state.widget !== "team-awards";
         for (let input of $("stats").querySelectorAll("input")) {
@@ -253,7 +305,12 @@
         render();
     }
 
-    for (let [id, w] of Object.entries(WIDGETS)) $("widget").appendChild(new Option(w.label, id));
+    for (let [label, ids] of [["Team widgets", Object.keys(WIDGETS).filter((id) => subject(id) === "team" || id === "countdown")], ["Event widgets", Object.keys(WIDGETS).filter((id) => subject(id) !== "team" && id !== "countdown")]]) {
+        let group = document.createElement("optgroup");
+        group.label = label;
+        for (let id of ids) group.appendChild(new Option(WIDGETS[id].label, id));
+        $("widget").appendChild(group);
+    }
     for (let [key, label] of Object.entries(STATS)) {
         let input = document.createElement("input");
         input.type = "checkbox";
@@ -264,7 +321,23 @@
         input.onchange = () => set({ stats: input.checked ? [...state.stats, key] : state.stats.filter((s) => s !== key) });
     }
 
-    $("widget").onchange = (e) => set({ widget: e.target.value });
+    $("widget").onchange = (e) => {
+        let id = e.target.value;
+        let patch = { widget: id, columns: "" };
+        // An event widget without an event: start from an example one.
+        let demo = WIDGETS[id].demo;
+        if (subject(id) === "event" && !state.event.trim() && demo) Object.assign(patch, { season: String(demo[0]), event: demo[1] });
+        set(patch);
+    };
+    $("event").onchange = (e) => set({ event: e.target.value.trim().toUpperCase() });
+    $("shape").onchange = (e) => set({ shape: e.target.value });
+    $("highlight").onchange = (e) => set({ highlight: e.target.value });
+    $("columns").onchange = (e) => set({ columns: e.target.value });
+    $("max-height").onchange = (e) => set({ maxHeight: e.target.value.trim() });
+    $("level").onchange = (e) => set({ level: e.target.value });
+    $("match-state").onchange = (e) => set({ matchState: e.target.value });
+    $("only-team").onchange = (e) => set({ onlyTeam: e.target.checked });
+    $("names").onchange = (e) => set({ names: e.target.checked });
     $("team").onchange = (e) => set({ team: e.target.value.trim() });
     $("season").onchange = (e) => set({ season: e.target.value.trim() });
     $("theme").onchange = (e) => set({ theme: e.target.value });

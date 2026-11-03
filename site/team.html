@@ -185,7 +185,7 @@
 <section class="lede">
     <div>
         <h1>Put your team's stats on your own site.</h1>
-        <p>A team card with the stats you choose, your season's results, every award, or your next match while you compete. Pick one, make it look like your site, and copy the code. It keeps itself up to date.</p>
+        <p>A team card with the stats you choose, your season's results, every award, your next match while you compete, or a countdown. For events: rankings, the match schedule, advancement and league standings. Pick one, make it look like your site, and copy the code. It keeps itself up to date.</p>
     </div>
     <div class="note">FIRST Tech Challenge<br>team widgets</div>
 </section>
@@ -197,9 +197,11 @@
             <select id="widget" aria-label="Widget"></select>
             <p class="hint" id="widget-hint"></p>
             <div class="row">
-                <label class="f" style="flex:1">Team number <input type="number" id="team" value="3977" min="1"></label>
+                <label class="f" style="flex:1" id="team-field"><span id="team-label">Team number</span> <input type="number" id="team" value="3977" min="1"></label>
+                <label class="f" style="flex:1" id="event-field"><span id="event-label">Event code</span> <input type="text" id="event" placeholder="e.g. NLCMP" autocomplete="off" style="text-transform:uppercase"></label>
                 <label class="f" style="flex:0 0 100px">Season <input type="number" id="season" placeholder="current" min="2019" max="2040"></label>
             </div>
+            <p class="hint" id="subject-hint"></p>
         </fieldset>
 
         <fieldset>
@@ -228,7 +230,20 @@
                     </optgroup>
                 </select>
             </label>
-            <label class="f">Layout <select id="layout"></select></label>
+            <label class="f">Shape
+                <select id="shape">
+                    <option value="">The theme's own</option>
+                    <option value="default">Rounded</option>
+                    <option value="square">Square</option>
+                    <option value="compact">Compact</option>
+                    <option value="spacious">Spacious</option>
+                    <option value="bubbly">Bubbly</option>
+                    <option value="showcase">Showcase</option>
+                    <option value="ftcscout">FTCScout</option>
+                    <option value="ftc-events">FTC Events</option>
+                </select>
+            </label>
+            <label class="f" id="layout-field">Layout <select id="layout"></select></label>
             <label class="f">Spacing
                 <select id="density"><option value="normal">Normal</option><option value="compact">Compact</option></select>
             </label>
@@ -265,7 +280,19 @@
                 <label class="check"><input type="checkbox" id="only-won"> Only awards won</label>
                 <label class="f">Seasons to show <input type="number" id="seasons" placeholder="all" min="1"></label>
             </div>
+            <div id="event-box">
+                <label class="f">Teams to highlight <input type="text" id="highlight" placeholder="e.g. 19444, 16236" autocomplete="off"></label>
+                <label class="f" id="columns-field">Columns, in order <input type="text" id="columns" autocomplete="off"></label>
+                <p class="hint" id="columns-hint"></p>
+            </div>
+            <div id="matches-box">
+                <label class="f">Matches <select id="level"><option value="all">All</option><option value="quals">Qualification</option><option value="playoffs">Playoffs</option></select></label>
+                <label class="f">Which <select id="match-state"><option value="all">Played and to play</option><option value="upcoming">Still to play</option><option value="played">Played</option></select></label>
+                <label class="check"><input type="checkbox" id="only-team"> Only the team's matches</label>
+                <label class="check"><input type="checkbox" id="names"> Team names under the numbers</label>
+            </div>
             <label class="f">Show at most <input type="number" id="limit" placeholder="no limit" min="1"></label>
+            <label class="f">Height <input type="text" id="max-height" placeholder="fit everything, or e.g. 400px (scrolls)" autocomplete="off"></label>
             <label class="f">Leave out (comma separated) <input type="text" id="hide" placeholder="website, location" autocomplete="off"></label>
             <p class="hint" id="hide-hint"></p>
         </fieldset>
@@ -346,6 +373,11 @@
 <script src="lib/team-awards.umd.js"></script>
 <script src="lib/next-match.umd.js"></script>
 <script src="lib/team-season.umd.js"></script>
+<script src="lib/event-rankings.umd.js"></script>
+<script src="lib/event-matches.umd.js"></script>
+<script src="lib/event-advancement.umd.js"></script>
+<script src="lib/league-standings.umd.js"></script>
+<script src="lib/countdown.umd.js"></script>
 <script src="team-builder.js"></script>
 </body>
 </html>
