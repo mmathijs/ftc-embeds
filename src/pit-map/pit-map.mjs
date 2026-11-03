@@ -6,7 +6,7 @@
  */
 
 import { getPitMap, parseEventRef } from "../core/api.mjs";
-export { configure, getPitMap, EmbedsApiError, PIT_MAP_QUERY } from "../core/api.mjs";
+export { configure, getPitMap, EmbedsApiError, PIT_MAP_QUERY, DEFAULT_API_BASE } from "../core/api.mjs";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 const PREFIX = "ftcpm";

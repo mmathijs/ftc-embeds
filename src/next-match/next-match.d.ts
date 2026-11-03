@@ -2,7 +2,7 @@
 
 import type { TeamWidget, TeamWidgetOptions, ApiOptions, EventSummary, EventRecord, Award, Location } from "../core/team-widgets";
 export type { TeamWidgetOptions, TeamThemeName, TeamTheme, TeamThemeOption, IconName, ApiOptions, EmbedsConfig } from "../core/team-widgets";
-export { configure, EmbedsApiError, TEAM_THEMES, ICONS, TEAM_TEXT, seasonOf } from "../core/team-widgets";
+export { configure, EmbedsApiError, TEAM_THEMES, ICONS, TEAM_TEXT, seasonOf, DEFAULT_API_BASE } from "../core/team-widgets";
 
 export interface TeamMatchesData {
     number: number;

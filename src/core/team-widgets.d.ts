@@ -75,7 +75,7 @@ export type TeamThemeOption = TeamThemeName | (Partial<TeamTheme> & { base?: Tea
 export type IconName = "trophy" | "medal" | "advanced" | "live" | "upcoming" | "calendar" | "location" | "website" | "prev" | "next";
 
 export interface EmbedsConfig {
-    /** REST base, e.g. "https://ftcscout-api.mmathijs.nl/rest/embeds/v1". */
+    /** REST base; default DEFAULT_API_BASE (FTCScout's). null: only graphqlUrl. */
     apiBase: string | null;
     /** Fallback: a GraphQL endpoint that runs the same queries. */
     graphqlUrl: string | null;
@@ -161,7 +161,10 @@ export declare class TeamWidget<Data = unknown, Options extends TeamWidgetOption
     destroy(): void;
 }
 
+/** Set the API for every widget on the page. Default: FTCScout's (DEFAULT_API_BASE); setting only graphqlUrl uses GraphQL instead. */
 export declare function configure(options: Partial<EmbedsConfig>): EmbedsConfig;
+/** "https://ftcscout-api.mmathijs.nl/rest/embeds/v1" */
+export declare const DEFAULT_API_BASE: string;
 
 export declare class EmbedsApiError extends Error {
     readonly status: number;

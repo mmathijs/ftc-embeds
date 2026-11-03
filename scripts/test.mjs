@@ -101,7 +101,11 @@ test("getPitMap reports missing events, missing pit maps and config errors", asy
     await assert.rejects(getPitMap("2025/A", { apiBase: "https://b.test", fetch: noMap.fetch }), (e) => e.notFound);
     const serverError = mockFetch({ status: 500, body: { message: "boom" } });
     await assert.rejects(getPitMap("2025/B", { apiBase: "https://c.test", fetch: serverError.fetch }), (e) => e.status == 500 && !e.notFound);
+    const { configure, DEFAULT_API_BASE } = await import(resolve(root, "src/pit-map/pit-map.mjs"));
+    assert.equal(configure().apiBase, DEFAULT_API_BASE);
+    configure({ apiBase: null });
     await assert.rejects(getPitMap("2025/C"), (e) => e instanceof EmbedsApiError && /no ftc-embeds API configured/.test(e.message));
+    configure({ apiBase: DEFAULT_API_BASE });
     await assert.rejects(getPitMap("not an event", { apiBase: "https://d.test" }), /not an event reference/);
 });
 
@@ -140,7 +144,7 @@ for (const w of TEAM_WIDGETS) {
     ]) {
         test(`${w.name}: ${label} loads without a DOM and has its exports`, async () => {
             const m = await load();
-            for (const name of [w.cls, w.define, "configure", "EmbedsApiError", "TEAM_THEMES", "ICONS", "TEAM_TEXT", ...w.api]) assert.ok(name in m, `missing export ${name}`);
+            for (const name of [w.cls, w.define, "configure", "EmbedsApiError", "DEFAULT_API_BASE", "TEAM_THEMES", "ICONS", "TEAM_TEXT", ...w.api]) assert.ok(name in m, `missing export ${name}`);
             assert.equal(typeof m[w.cls], "function");
             assert.ok(m.TEAM_THEMES.trophy && m.TEAM_THEMES.light, "themes");
         });
@@ -241,4 +245,15 @@ test("texts can be filled and changed", async () => {
     const w = { options: { awardNames: { Think: "Think Tank Award" } }, t: (k, v) => fill({ pick: "pick {nth}" }[k] ?? TEAM_TEXT[k], v) };
     assert.deepEqual(awardParts("Think", 1, 2025, w), ["Think Tank Award", "Winner"]);
     assert.deepEqual(awardParts("Winner", 3, 2025, w), ["Winning Alliance", "pick 2nd"]);
+});
+
+test("the default API is FTCScout's, and a GraphQL endpoint alone replaces it", async () => {
+    const api = await import(resolve(root, "src/core/api.mjs"));
+    assert.equal(api.restBase(), api.DEFAULT_API_BASE);
+    assert.equal(api.restBase({ apiBase: "https://x.test" }), "https://x.test");
+    assert.equal(api.restBase({ graphqlUrl: "https://g.test/graphql" }), null);
+    api.configure({ graphqlUrl: "https://g.test/graphql" });
+    assert.equal(api.restBase(), null);
+    api.configure({ apiBase: api.DEFAULT_API_BASE, graphqlUrl: null });
+    assert.equal(api.restBase(), api.DEFAULT_API_BASE);
 });

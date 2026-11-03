@@ -4,7 +4,7 @@
  */
 import { TeamWidget, defineTeamElement, h, place, seasonName, daysUntil, ordinal, eventType } from "../core/team-ui.mjs";
 import { getTeamCard, getTeamStats } from "../core/team-api.mjs";
-export { configure, EmbedsApiError } from "../core/api.mjs";
+export { configure, EmbedsApiError, DEFAULT_API_BASE } from "../core/api.mjs";
 export { getTeamCard, getTeamStats, seasonOf, TEAM_CARD_QUERY } from "../core/team-api.mjs";
 export { TEAM_THEMES, ICONS } from "../core/team-ui.mjs";
 export { TEAM_TEXT } from "../core/team-text.mjs";

@@ -4,19 +4,20 @@ A team's card: number, name, location, rookie year, website, the stats you pick,
 
 ```html
 <script type="module" src="https://ftc-embeds.com/lib/team-card.mjs"></script>
-<ftc-team-card team="19444" api-base="https://ftcscout-api.mmathijs.nl/rest/embeds/v1" stats="opr,region-rank,record" upcoming="3"></ftc-team-card>
+<ftc-team-card team="19444" stats="opr,region-rank,record" upcoming="3"></ftc-team-card>
 ```
 
 ```js
-import { TeamCard, configure } from "ftc-embeds/team-card";
+import { TeamCard } from "ftc-embeds/team-card";
 
-configure({ apiBase: "https://ftcscout-api.mmathijs.nl/rest/embeds/v1" });
 const widget = new TeamCard(document.getElementById("here"), { team: 19444, theme: "trophy" });
 ```
 
-Or as an iframe: `https://ftc-embeds.com/embed/team-card?team=19444&theme=dark` (any option as a URL parameter, `apiBase` included when the site's default isn't wanted; the page posts `{ type: "ftc-embeds:height", height }` to the parent so it can size the iframe).
+Or as an iframe, or a plain link (to share, or behind a QR code): `https://ftc-embeds.com/embed/team-card?team=19444&theme=dark` (any option as a URL parameter; the page posts `{ type: "ftc-embeds:height", height }` to the parent so it can size the iframe).
 
 ## Options
+
+They use FTCScout's API by default; see [api.md](api.md) to use another.
 
 All the [shared options](team-widgets.md#options) (team, season, theme, layout, density, hide, limit, max-height, link-to, text, locale, decimals, icons, css, skin, …), and:
 

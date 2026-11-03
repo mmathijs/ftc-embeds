@@ -330,6 +330,8 @@ export declare function getPitMap(
 
 /** The GraphQL query behind the pit map REST endpoint. */
 export declare const PIT_MAP_QUERY: string;
+/** FTCScout's embeds API, used unless configure() says otherwise. */
+export declare const DEFAULT_API_BASE: string;
 
 export declare class PitMap {
     constructor(container: HTMLElement, options?: PitMapOptions);

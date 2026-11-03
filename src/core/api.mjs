@@ -4,11 +4,15 @@
 // for longer; the response is that query's result. Until the REST API is deployed, widgets can
 // send the same query to a GraphQL endpoint instead (FTCScout's API allows cross-origin use).
 //
-// Nothing is set by default: configure({ apiBase }) (REST) or configure({ graphqlUrl }), or
-// per widget with the apiBase / graphqlUrl options (api-base / graphql-url attributes).
+// By default widgets use FTCScout's API (DEFAULT_API_BASE). Change it with configure({ apiBase })
+// or configure({ graphqlUrl }), or per widget with the apiBase / graphqlUrl options
+// (api-base / graphql-url attributes).
+
+/** FTCScout's embeds API: used unless configure() or a widget says otherwise. */
+export const DEFAULT_API_BASE = "https://ftcscout-api.mmathijs.nl/rest/embeds/v1";
 
 const config = {
-    apiBase: null, // REST base URL, e.g. "https://ftcscout-api.mmathijs.nl/rest/embeds/v1"
+    apiBase: DEFAULT_API_BASE, // REST base URL; null to use only graphqlUrl
     graphqlUrl: null, // fallback: GraphQL endpoint, e.g. "https://ftcscout-api.mmathijs.nl/graphql"
     fetch: null, // custom fetch (SSR, tests, auth headers); null = globalThis.fetch
 };
@@ -30,13 +34,16 @@ export const PIT_MAP_QUERY = `query EmbedPitMap($season: Int!, $code: String!) {
 
 /** Set options for every widget on the page: configure({ apiBase }) or configure({ graphqlUrl }). */
 export function configure(options = {}) {
+    // Choosing a GraphQL endpoint (and no REST base) means: use that, not the default REST API.
+    if (options.graphqlUrl && !("apiBase" in options)) config.apiBase = null;
     Object.assign(config, options);
     return { ...config };
 }
 
 /** The REST base URL a request with these options uses, or null (GraphQL only, or nothing set). */
 export function restBase(options = {}) {
-    return options.apiBase || config.apiBase || null;
+    if (options.apiBase) return options.apiBase;
+    return options.graphqlUrl ? null : config.apiBase || null;
 }
 
 /** Error from the embeds API. `status` is the HTTP status (0 = network/config problem). */
@@ -117,7 +124,7 @@ function request(key, url, init, options) {
  * query to the GraphQL endpoint. Both return the query result ({ data: … }).
  */
 export async function preset(path, query, variables, options = {}) {
-    let apiBase = options.apiBase || config.apiBase;
+    let apiBase = restBase(options);
     let graphqlUrl = options.graphqlUrl || config.graphqlUrl;
     if (apiBase) {
         let url = `${String(apiBase).replace(/\/+$/, "")}${path}`;

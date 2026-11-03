@@ -122,7 +122,13 @@
             // JSON goes in single quotes, so it stays readable.
             let attr = (k, v) => (v === true ? ` ${kebab(k)}` : typeof v === "object" ? ` ${kebab(k)}='${JSON.stringify(v).replace(/'/g, "&#39;")}'` : ` ${kebab(k)}="${escapeAttr(String(v))}"`);
             let attrs = Object.entries(o).map(([k, v]) => attr(k, v)).join("");
-            return `<script type="module" src="${ORIGIN}/lib/${state.widget}.mjs"></script>\n<${w.tag}${attrs}${SITE.apiBase ? ` api-base="${SITE.apiBase}"` : ""}></${w.tag}>`;
+            // FTCScout's API is the default: only another one needs api-base.
+            let api = SITE.apiBase && SITE.apiBase !== window[w.global].DEFAULT_API_BASE ? ` api-base="${SITE.apiBase}"` : "";
+            return `<script type="module" src="${ORIGIN}/lib/${state.widget}.mjs"></script>\n<${w.tag}${attrs}${api}></${w.tag}>`;
+        }
+        if (tab === "url") {
+            let q = new URLSearchParams(Object.entries(o).map(([k, v]) => [k, attrValue(v)]));
+            return `${ORIGIN}/embed/${state.widget}?${q}`;
         }
         if (tab === "iframe") {
             let q = new URLSearchParams(Object.entries(o).map(([k, v]) => [k, attrValue(v)]));
@@ -132,13 +138,17 @@
             return `<iframe src="${ORIGIN}/embed/${state.widget}?${q}" title="${w.label}" style="width:100%;height:${height}px;border:0" loading="lazy"></iframe>`;
         }
         let body = JSON.stringify(o, null, 4).replace(/"([a-zA-Z]+)":/g, "$1:");
-        return `// npm install ftc-embeds\nimport { ${w.cls}, configure } from "ftc-embeds/${state.widget}";\n\nconfigure({ apiBase: "${SITE.apiBase || "https://…/rest/embeds/v1"}" });\nnew ${w.cls}(document.getElementById("team-widget"), ${body});`;
+        let custom = SITE.apiBase && SITE.apiBase !== window[w.global].DEFAULT_API_BASE;
+        let imports = custom ? `${w.cls}, configure` : w.cls;
+        let api = custom ? `configure({ apiBase: "${SITE.apiBase}" });\n` : "";
+        return `// npm install ftc-embeds\nimport { ${imports} } from "ftc-embeds/${state.widget}";\n\n${api}new ${w.cls}(document.getElementById("team-widget"), ${body});`;
     }
 
     const HINTS = {
         element: "Paste it where the widget should go. It fits the width of its container.",
         iframe: "For sites that don't allow scripts (Wix, Google Sites, …). Set the height to fit.",
         js: "For apps built with a bundler. The options are the same as the attributes.",
+        url: "A link to just the widget: to share, or behind a QR code at your pit.",
         css: "Style anything inside the widget: start from an example or write your own. The preview updates as you type, and the CSS goes into the code.",
     };
 

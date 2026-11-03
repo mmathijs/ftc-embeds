@@ -6,7 +6,7 @@
 import { TeamWidget, defineTeamElement, h } from "../core/team-ui.mjs";
 import { RESULTS_CSS, MATCH_CSS, RESULTS_TROPHY, MATCH_TROPHY, resultsView, resultsTitle, matchView, isLive } from "../core/team-views.mjs";
 import { getTeamResults, getTeamMatches } from "../core/team-api.mjs";
-export { configure, EmbedsApiError } from "../core/api.mjs";
+export { configure, EmbedsApiError, DEFAULT_API_BASE } from "../core/api.mjs";
 export { getTeamResults, getTeamMatches, seasonOf, TEAM_RESULTS_QUERY, TEAM_MATCHES_QUERY } from "../core/team-api.mjs";
 export { TEAM_THEMES, ICONS } from "../core/team-ui.mjs";
 export { TEAM_TEXT } from "../core/team-text.mjs";

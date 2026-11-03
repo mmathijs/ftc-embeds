@@ -149,7 +149,8 @@
             if (state.source == "example") attrs.push(["src", exampleJsonUrl()]);
             else {
                 attrs.push(["event", eventRef()]);
-                if (SITE.apiBase) attrs.push(["api-base", SITE.apiBase]);
+                // FTCScout's API is the default: only another one needs the attribute.
+                if (SITE.apiBase && SITE.apiBase !== FtcPitMap.DEFAULT_API_BASE) attrs.push(["api-base", SITE.apiBase]);
                 else if (SITE.graphqlUrl) attrs.push(["graphql-url", SITE.graphqlUrl]);
             }
             let theme = themeOption();
@@ -182,11 +183,12 @@
             return v != null && v !== "" && JSON.stringify(v) !== JSON.stringify(d[k]);
         });
         let body = entries.map(([k, v]) => `    ${k}: ${JSON.stringify(v, null, 4).replace(/\n/g, "\n    ")},`).join("\n");
-        let head = `// npm install ftc-embeds\nimport { PitMap${state.source == "live" ? ", configure" : ""} } from "ftc-embeds/pit-map";\n\n`;
+        let custom = SITE.apiBase ? SITE.apiBase !== FtcPitMap.DEFAULT_API_BASE : !!SITE.graphqlUrl;
+        let head = `// npm install ftc-embeds\nimport { PitMap${state.source == "live" && custom ? ", configure" : ""} } from "ftc-embeds/pit-map";\n\n`;
         if (state.source == "example") {
             return `${head}const data = await fetch("${exampleJsonUrl()}").then((r) => r.json());\nconst map = new PitMap(document.getElementById("pit-map"), {\n    data,\n${body}\n});${state.focus ? `\nmap.focusTeam("${state.focus.trim()}");` : ""}`;
         }
-        let api = SITE.apiBase ? `configure({ apiBase: "${SITE.apiBase}" });\n` : SITE.graphqlUrl ? `configure({ graphqlUrl: "${SITE.graphqlUrl}" });\n` : `configure({ apiBase: "…" }); // the ftc-embeds API\n`;
+        let api = !custom ? "" : SITE.apiBase ? `configure({ apiBase: "${SITE.apiBase}" });\n` : `configure({ graphqlUrl: "${SITE.graphqlUrl}" });\n`;
         return `${head}${api}const map = new PitMap(document.getElementById("pit-map"), {\n    event: "${eventRef()}",\n${body}\n});${state.focus ? `\nmap.on("load", () => map.focusTeam("${state.focus.trim()}"));` : ""}`;
     }
 

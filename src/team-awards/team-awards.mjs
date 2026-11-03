@@ -9,7 +9,7 @@ const ALLIANCE = new Set(["Winner", "Finalist", "DivisionWinner", "DivisionFinal
 const kinds = (a) => `${ALLIANCE.has(a.type) ? "alliance" : "judged"} p${a.placement}${isWinningAward(a.type, a.placement) ? " won" : ""} type-${a.type}`;
 const kindParts = (a) => `${ALLIANCE.has(a.type) ? "alliance" : "judged"}${isWinningAward(a.type, a.placement) ? " won" : ""}`;
 import { getTeamAwards } from "../core/team-api.mjs";
-export { configure, EmbedsApiError } from "../core/api.mjs";
+export { configure, EmbedsApiError, DEFAULT_API_BASE } from "../core/api.mjs";
 export { getTeamAwards, TEAM_AWARDS_QUERY } from "../core/team-api.mjs";
 export { TEAM_THEMES, ICONS } from "../core/team-ui.mjs";
 export { TEAM_TEXT } from "../core/team-text.mjs";

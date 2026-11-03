@@ -9,11 +9,12 @@ The API runs at `https://ftcscout-api.mmathijs.nl/rest/embeds/v1` (FTCScout, ser
 ```js
 import { configure } from "ftc-embeds/pit-map";
 
-configure({ apiBase: "https://ftcscout-api.mmathijs.nl/rest/embeds/v1" }); // REST presets (preferred)
-configure({ graphqlUrl: "https://ftcscout-api.mmathijs.nl/graphql" });  // fallback: same query over GraphQL
+// Nothing needed for FTCScout's API: it is the default (DEFAULT_API_BASE).
+configure({ apiBase: "https://api.example.org/rest/embeds/v1" }); // another REST API
+configure({ graphqlUrl: "https://ftcscout-api.mmathijs.nl/graphql" });  // or GraphQL: the same queries, POSTed
 ```
 
-Per widget: the `apiBase` / `graphqlUrl` options, or the `api-base` / `graphql-url` attributes on web components. When both are set, `apiBase` wins.
+Per widget: the `apiBase` / `graphqlUrl` options, or the `api-base` / `graphql-url` attributes on web components. When both are set, `apiBase` wins; setting only `graphqlUrl` replaces the default REST API.
 
 ## Conventions
 

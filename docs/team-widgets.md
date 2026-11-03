@@ -10,7 +10,7 @@ Five widgets about one team, each a separate module, web component and iframe pa
 | [next-match](next-match.md) | `<ftc-next-match>` | the next match and last result during an event |
 | [team-season](team-season.md) | `<ftc-team-season>` | team-results + next-match in one |
 
-They load from the ftc-embeds REST API: `configure({ apiBase: "https://ftcscout-api.mmathijs.nl/rest/embeds/v1" })` once per page, or the `api-base` attribute per widget (see [api.md](api.md)). The iframe pages on ftc-embeds.com already know it, and so does the builder at [ftc-embeds.com/team](https://ftc-embeds.com/team), which writes the code for you.
+They load from FTCScout's ftc-embeds API by default, so a widget needs nothing but a team number. For another API: `configure({ apiBase })` once per page, or the `api-base` attribute per widget (see [api.md](api.md)). The builder at [ftc-embeds.com/team](https://ftc-embeds.com/team) writes the code for you.
 
 ## Options
 
@@ -33,7 +33,7 @@ Every team widget takes these (as options, or kebab-case attributes on the eleme
 | `icons` | object | replace icons (see below) |
 | `css` | string | extra CSS inside the widget |
 | `skin` | `trophy` | the trophy theme's look with another theme's colors |
-| `apiBase`, `graphqlUrl` | URL | per widget instead of `configure()` |
+| `apiBase`, `graphqlUrl` | URL | another API than FTCScout's (the default), per widget instead of `configure()` |
 | `data` | object | show this data instead of loading it |
 | `text` | object | change any text: `{ nextMatch: "Up next", awards: "Trophies" }` (see `TEAM_TEXT`; `{name}` is filled in) |
 | `locale` | `"en-GB"` | dates, times and numbers (default: the visitor's) |

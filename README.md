@@ -13,20 +13,18 @@ Embeddable widgets for FIRST Tech Challenge events and teams. Each widget is a s
 
 The team widgets share their options, themes (including a trophy-case look), icons and styling hooks: see [docs/team-widgets.md](docs/team-widgets.md).
 
-Widgets can load their own data from the [ftc-embeds API](docs/api.md): REST endpoints that are cached presets of GraphQL queries (`configure({ apiBase })`), or the same queries sent to a GraphQL endpoint (`configure({ graphqlUrl })`).
+Widgets load their own data from FTCScout's [ftc-embeds API](docs/api.md) by default: REST endpoints that are cached presets of GraphQL queries (`configure({ apiBase })`), or the same queries sent to a GraphQL endpoint (`configure({ graphqlUrl })`).
 
 The quickest way: pick a widget and copy its code at [ftc-embeds.com](https://ftc-embeds.com) (pit maps at [/pit-map](https://ftc-embeds.com/pit-map), team widgets at [/team](https://ftc-embeds.com/team)). By hand:
 
 ```html
 <script type="module" src="https://ftc-embeds.com/lib/team-card.mjs"></script>
-<ftc-team-card team="19444" stats="opr,record,awards-total" api-base="https://ftcscout-api.mmathijs.nl/rest/embeds/v1"></ftc-team-card>
+<ftc-team-card team="19444" stats="opr,record,awards-total"></ftc-team-card>
 ```
 
 ```js
-import { configure } from "ftc-embeds/team-card";
 import { PitMap } from "ftc-embeds/pit-map";
 
-configure({ apiBase: "https://ftcscout-api.mmathijs.nl/rest/embeds/v1" });
 new PitMap(document.getElementById("map"), { event: "2025/FPEEUR", theme: "ftcscout", highlight: "19444" });
 ```
 

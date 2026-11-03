@@ -4,19 +4,20 @@ A team's events in a season, newest first: dates, rank and record, awards, advan
 
 ```html
 <script type="module" src="https://ftc-embeds.com/lib/team-results.mjs"></script>
-<ftc-team-results team="19444" api-base="https://ftcscout-api.mmathijs.nl/rest/embeds/v1" layout="strip" skip-types="Scrimmage"></ftc-team-results>
+<ftc-team-results team="19444" layout="strip" skip-types="Scrimmage"></ftc-team-results>
 ```
 
 ```js
-import { TeamResults, configure } from "ftc-embeds/team-results";
+import { TeamResults } from "ftc-embeds/team-results";
 
-configure({ apiBase: "https://ftcscout-api.mmathijs.nl/rest/embeds/v1" });
 const widget = new TeamResults(document.getElementById("here"), { team: 19444, theme: "trophy" });
 ```
 
-Or as an iframe: `https://ftc-embeds.com/embed/team-results?team=19444&theme=dark` (any option as a URL parameter, `apiBase` included when the site's default isn't wanted; the page posts `{ type: "ftc-embeds:height", height }` to the parent so it can size the iframe).
+Or as an iframe, or a plain link (to share, or behind a QR code): `https://ftc-embeds.com/embed/team-results?team=19444&theme=dark` (any option as a URL parameter; the page posts `{ type: "ftc-embeds:height", height }` to the parent so it can size the iframe).
 
 ## Options
+
+They use FTCScout's API by default; see [api.md](api.md) to use another.
 
 All the [shared options](team-widgets.md#options) (team, season, theme, layout, density, hide, limit, max-height, link-to, text, locale, decimals, icons, css, skin, …), and:
 
