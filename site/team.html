@@ -135,13 +135,18 @@
     .stats-pick label:has(input:checked) { border-color: var(--ink); background: var(--paper-2); }
     .preview.team { height: auto; min-height: 260px; resize: none; overflow: auto; padding: 22px; background: var(--field); }
     .preview.team.on-dark { background: #11151c; }
+    @media (max-width: 560px) {
+        .top { flex-wrap: wrap; row-gap: 8px; }
+        .top nav { flex-wrap: wrap; gap: 6px 16px; width: 100%; }
+        .wordmark { white-space: nowrap; }
+    }
 </style>
 </head>
 <body>
 <header class="top">
     <a class="wordmark" href="/">ftc<b>-</b>embeds</a>
     <nav>
-        <a href="/">pit map</a>
+        <a href="/pit-map">pit map</a>
         <a href="/team" aria-current="page">team widgets</a>
         <a href="https://github.com/mmathijs/ftc-embeds/blob/main/docs/team-widgets.md">docs</a>
         <a href="https://www.npmjs.com/package/ftc-embeds">npm</a>

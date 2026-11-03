@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ftc-embeds · pit maps for FTC events</title>
-<meta name="description" content="Put an FTC event's pit map on your own website. Pick an event, adjust it, copy the code.">
+<title>ftc-embeds · widgets for FTC teams and events</title>
+<meta name="description" content="Free embeddable widgets for FIRST Tech Challenge: pit maps for events, and team cards, season results, awards and live next-match info for team websites. Copy, paste, done.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%231c1b19'/%3E%3Crect x='3' y='3' width='4' height='4' fill='%23ff5a1f'/%3E%3Crect x='9' y='3' width='4' height='4' fill='%23f4f1ea'/%3E%3Crect x='3' y='9' width='4' height='4' fill='%23f4f1ea'/%3E%3Crect x='9' y='9' width='4' height='4' fill='%23f4f1ea'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -130,12 +130,77 @@
         .preview { height: 62vh; }
         .top nav { gap: 14px; }
     }
+
+    .hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 500px); gap: 64px; align-items: center; padding: 64px 28px 56px; max-width: 1320px; margin: 0 auto; box-sizing: border-box; }
+    .hero h1 { font-size: clamp(34px, 5vw, 58px); line-height: 1.02; letter-spacing: -0.03em; margin: 0 0 18px; }
+    .hero h1 em { font-style: normal; color: var(--accent); }
+    .hero p { margin: 0; max-width: 46ch; font-size: 18px; color: var(--ink-2); }
+    .cta { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 28px; }
+    .cta a { text-decoration: none; font-weight: 500; padding: 11px 18px; border: 1px solid var(--ink); border-radius: 2px; }
+    .cta a.go { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+    .cta a:hover { background: var(--paper-2); }
+    .cta a.go:hover { filter: brightness(1.05); background: var(--accent); }
+    .example { position: relative; }
+    .example .live { min-height: 190px; }
+    .example .cap { margin-top: 10px; font: 12px var(--mono); color: var(--ink-2); }
+    .paths { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); width: calc(100% - 56px); max-width: calc(1320px - 56px); margin: 0 auto; }
+    .path { padding: 40px 0 44px; min-width: 0; }
+    .path + .path { border-left: 1px solid var(--rule); padding-left: 48px; }
+    .path:first-child { padding-right: 48px; }
+    .eyebrow { font: 12px var(--mono); color: var(--accent); text-transform: uppercase; letter-spacing: .08em; }
+    .path h2 { margin: 8px 0 8px; font-size: 26px; letter-spacing: -0.02em; }
+    .path > p { margin: 0 0 22px; color: var(--ink-2); max-width: 44ch; }
+    .wlist { list-style: none; margin: 0; padding: 0; }
+    .wlist a { display: grid; grid-template-columns: 170px minmax(0, 1fr) auto; gap: 16px; align-items: baseline; padding: 12px 0; border-top: 1px solid var(--rule); text-decoration: none; }
+    .wlist li:last-child a { border-bottom: 1px solid var(--rule); }
+    .wlist b { font-weight: 600; }
+    .wlist span { color: var(--ink-2); font-size: 14px; }
+    .wlist i { font: normal 13px var(--mono); color: var(--ink-2); }
+    .wlist a:hover b, .wlist a:hover i { color: var(--accent); }
+    .pm { height: 300px; border: 1px solid var(--rule); background: var(--field); position: relative; overflow: hidden; margin-bottom: 18px; }
+    .go-link { font: 13px var(--mono); text-decoration: none; color: var(--ink); }
+    .go-link:hover { color: var(--accent); }
+    .facts { max-width: 1320px; box-sizing: border-box; padding: 26px 28px 30px; margin: 0 auto; font: 13px var(--mono); color: var(--ink-2); }
+    @media (max-width: 900px) {
+        .hero { grid-template-columns: minmax(0, 1fr); gap: 32px; padding: 40px 16px 36px; }
+        .paths { grid-template-columns: minmax(0, 1fr); width: calc(100% - 32px); }
+        .path, .path:first-child { padding: 32px 0; }
+        .path + .path { border-left: 0; border-top: 1px solid var(--rule); padding-left: 0; }
+        .wlist a { grid-template-columns: minmax(0, 1fr) auto; row-gap: 2px; }
+        .wlist span { grid-column: 1 / -1; grid-row: 2; }
+        .facts { padding: 22px 16px 36px; }
+    }
+    .details { max-width: 1320px; box-sizing: border-box; margin: 0 auto; padding: 8px 28px 56px; }
+    .d-head { border-top: 1px solid var(--rule); padding-top: 40px; margin-bottom: 30px; }
+    .d-head h2 { margin: 0 0 8px; font-size: 26px; letter-spacing: -0.02em; }
+    .d-head p { margin: 0; color: var(--ink-2); max-width: 62ch; }
+    .d-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px 48px; }
+    .d-card { border-top: 2px solid var(--ink); padding-top: 16px; display: flex; flex-direction: column; min-width: 0; }
+    .d-card h3 { margin: 6px 0 6px; font-size: 19px; }
+    .d-card p { margin: 0 0 12px; color: var(--ink-2); }
+    .d-card ul { margin: 0 0 16px; padding: 0; list-style: none; font-size: 14px; color: var(--ink-2); }
+    .d-card li { padding: 5px 0 5px 16px; position: relative; border-top: 1px solid var(--rule); }
+    .d-card li::before { content: "–"; position: absolute; left: 0; color: var(--accent); }
+    .d-foot { margin-top: auto; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+    .d-foot code { font: 12px var(--mono); color: var(--ink-2); }
+    @media (max-width: 1000px) { .d-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 900px) {
+        .details { padding: 0 16px 40px; }
+        .d-head { padding-top: 30px; }
+    }
+    @media (max-width: 620px) { .d-grid { grid-template-columns: minmax(0, 1fr); gap: 28px; } }
+    @media (max-width: 560px) {
+        .top { flex-wrap: wrap; row-gap: 8px; }
+        .top nav { flex-wrap: wrap; gap: 6px 16px; width: 100%; }
+        .wordmark { white-space: nowrap; }
+    }
 </style>
 </head>
 <body>
 <header class="top">
     <a class="wordmark" href="/">ftc<b>-</b>embeds</a>
     <nav>
+        <a href="/pit-map">pit map</a>
         <a href="/team">team widgets</a>
         <a href="https://github.com/mmathijs/ftc-embeds/blob/main/docs/pit-map.md">docs</a>
         <a href="https://www.npmjs.com/package/ftc-embeds">npm</a>
@@ -144,160 +209,89 @@
     </nav>
 </header>
 
-<section class="lede">
+<section class="hero">
     <div>
-        <h1>Put your event's pit map on your own site.</h1>
-        <p>Pick an event, mark the teams you care about, match the look of your site, and copy the code. Visitors can zoom in, search, and click a pit to see the team.</p>
+        <h1>FTC data on <em>your</em> website.</h1>
+        <p>Free widgets for <i>FIRST</i> Tech Challenge teams and events. They stay up to date by themselves and fit your site's look.</p>
+        <div class="cta">
+            <a class="go" href="/team">Widgets for your team</a>
+            <a href="/pit-map">A pit map for your event</a>
+        </div>
     </div>
-    <div class="note">FIRST Tech Challenge<br>pit map widget · v0.1</div>
+    <div class="example">
+        <div class="live" id="example"></div>
+        <div class="cap" id="example-cap"></div>
+    </div>
 </section>
 
-<div class="app">
-    <form onsubmit="return false">
-        <fieldset>
-            <legend><span>01</span>Event</legend>
-            <div class="seg" role="group" aria-label="Data source">
-                <button type="button" id="src-example" aria-pressed="true">Example events</button>
-                <button type="button" id="src-live" aria-pressed="false">Live event</button>
-            </div>
-            <div id="example-box">
-                <select id="example" aria-label="Example event"></select>
-            </div>
-            <div id="live-box" hidden>
-                <div class="row">
-                    <label class="f" style="flex:0 0 92px">Season <input type="number" id="season" value="2025" min="2019" max="2040"></label>
-                    <label class="f" style="flex:1">Event code <input type="text" id="code" placeholder="FPEEUR" autocomplete="off"></label>
-                </div>
-                <p class="hint" id="live-hint"></p>
-                <div class="request" id="request-box" hidden>
-                    <p id="request-msg">FTCScout doesn't have this event's pit map yet.</p>
-                    <div class="request-actions" id="request-actions">
-                        <button type="button" class="btn" id="request-fetch">Load it from FTC Events</button>
-                        <label class="link-btn" id="request-upload">or upload the saved page<input type="file" id="request-file" accept=".html,.htm,text/html" hidden></label>
-                    </div>
-                    <p class="hint" id="request-help">To upload: open the event's pit map on <a id="request-link" target="_blank" rel="noopener">FTC Events</a>, save the page (Ctrl+S), and choose the file.</p>
-                </div>
-                <button type="button" class="link-btn" id="request-refresh" hidden>Out of date? Reload it from FTC Events</button>
-            </div>
-        </fieldset>
-
-        <fieldset>
-            <legend><span>02</span>Teams</legend>
-            <label class="f">Highlight
-                <div class="row"><input type="text" id="highlight" placeholder="team numbers, e.g. 16236, 365"><input type="color" id="hl-color" title="Highlight color"></div>
-            </label>
-            <label class="f">Outline
-                <div class="row"><input type="text" id="outline" placeholder="team numbers"><input type="color" id="ol-color" title="Outline color"></div>
-            </label>
-            <label class="check"><input type="checkbox" id="theme-colors" checked> Colors from the theme</label>
-            <label class="check"><input type="checkbox" id="dim" checked> Fade the other pits</label>
-            <label class="check"><input type="checkbox" id="pulse" checked> Pulse highlighted pits</label>
-            <label class="f">Start zoomed in on <input type="text" id="focus" placeholder="team number (optional)"></label>
-        </fieldset>
-
-        <fieldset>
-            <legend><span>03</span>Look</legend>
-            <label class="f">Theme
-                <select id="theme">
-                    <option value="auto">Light or dark, following the visitor</option>
-                    <option value="light">Light</option>
-                    <option value="dark">Dark</option>
-                    <option value="ftcscout">FTCScout</option>
-                    <option value="ftcscout-dark">FTCScout, dark</option>
-                    <option value="ftc-events">FTC-Events</option>
-                </select>
-            </label>
-            <label class="f">Pit corners <input type="range" id="t-pitRadius" min="0" max="1" step="0.02"></label>
-            <label class="f">Area and field corners <input type="range" id="t-objectRadius" min="0" max="1" step="0.02"></label>
-            <label class="f">Wall corners <input type="range" id="t-wallRadius" min="0" max="0.5" step="0.02"></label>
-            <label class="f">Gap between pits <input type="range" id="t-pitGap" min="0" max="0.25" step="0.01"></label>
-            <label class="f">Team number size <input type="range" id="t-numberSize" min="0.14" max="0.36" step="0.01"></label>
-            <label class="f">How strong the event's pit colors are <input type="range" id="t-pitMix" min="0" max="0.9" step="0.05"></label>
-            <div class="row">
-                <label class="f" style="flex:1">Floor <input type="color" id="t-background"></label>
-                <label class="f" style="flex:1">Walls <input type="color" id="t-wall"></label>
-                <label class="f" style="flex:1">Route <input type="color" id="t-route"></label>
-            </div>
-            <label class="f">Font
-                <select id="t-fontFamily">
-                    <option value="">From the theme</option>
-                    <option value='Inter, ui-sans-serif, system-ui, sans-serif'>Inter</option>
-                    <option value='Roboto, "Helvetica Neue", Arial, sans-serif'>Roboto</option>
-                    <option value='"IBM Plex Sans", ui-sans-serif, system-ui, sans-serif'>IBM Plex Sans</option>
-                    <option value='ui-monospace, Menlo, Consolas, monospace'>Monospace</option>
-                    <option value='Georgia, "Times New Roman", serif'>Serif</option>
-                </select>
-            </label>
-            <button type="button" class="link-btn" id="reset-style">Undo my style changes</button>
-        </fieldset>
-
-        <fieldset>
-            <legend><span>04</span>Behavior</legend>
-            <label class="f">Clicking a pit
-                <select id="click">
-                    <option value="popup">opens a small card</option>
-                    <option value="focus">zooms in on it</option>
-                    <option value="tooltip">shows the tooltip</option>
-                    <option value="none">does nothing</option>
-                </select>
-            </label>
-            <label class="f">Team names inside pits
-                <select id="names">
-                    <option value="zoom">once zoomed in</option>
-                    <option value="true">always</option>
-                    <option value="false">never</option>
-                </select>
-            </label>
-            <label class="f">Field alliance sides
-                <select id="alliances">
-                    <option value="">unknown, keep them neutral</option>
-                    <option value="red-first">red at the top / left</option>
-                    <option value="blue-first">blue at the top / left</option>
-                </select>
-            </label>
-            <label class="f">Scroll wheel zooms
-                <select id="scroll">
-                    <option value="modifier">only with Ctrl / ⌘ held</option>
-                    <option value="true">always</option>
-                    <option value="false">never</option>
-                </select>
-            </label>
-            <label class="check"><input type="checkbox" id="controls" checked> Zoom buttons</label>
-            <label class="f">Height on your page, in pixels <input type="number" id="height" value="600" min="240" max="2000" step="20"></label>
-        </fieldset>
-    </form>
-
-    <main class="work">
-        <div class="sheet">
-            <div class="preview" id="preview"></div>
-            <div class="titleblock" aria-hidden="true">
-                <div><b>Event</b><span id="tb-event">2025 · FPEEUR</span></div>
-                <div><b>Sheet</b>preview</div>
-            </div>
-        </div>
-        <div class="sheet-foot">
-            <button class="btn" id="dl-svg">Download SVG</button>
-            <button class="btn" id="dl-png">Download PNG</button>
-        </div>
-
-        <section>
-            <div class="out-head">
-                <div class="tabs" role="tablist">
-                    <button role="tab" data-tab="iframe" aria-selected="true">iframe</button>
-                    <button role="tab" data-tab="element" aria-selected="false">HTML element</button>
-                    <button role="tab" data-tab="js" aria-selected="false">JavaScript</button>
-                    <button role="tab" data-tab="url" aria-selected="false">Link</button>
-                </div>
-                <div class="actions">
-                    <button class="btn" id="share">Copy link to these settings</button>
-                    <button class="btn go" id="copy">Copy code</button>
-                </div>
-            </div>
-            <p class="hint" id="tab-hint"></p>
-            <pre id="snippet"></pre>
-        </section>
-    </main>
+<div class="paths">
+    <section class="path">
+        <span class="eyebrow">For teams</span>
+        <h2>Your team, always current</h2>
+        <p>Pick what to show, match your site's colors, and paste it on your team's website.</p>
+        <ul class="wlist" id="team-widgets"></ul>
+    </section>
+    <section class="path">
+        <span class="eyebrow">For events</span>
+        <h2>A pit map visitors can search</h2>
+        <p>Your event's pit map on your own page: zoom in, search a team, and get walking routes to the fields.</p>
+        <div class="pm" id="pit-map"></div>
+        <a class="go-link" href="/pit-map">Make a pit map →</a>
+    </section>
 </div>
+
+<p class="facts">iframe, HTML element or npm package · works with any website builder · no account, no cookies · data from FTCScout and <i>FIRST</i></p>
+
+<section class="details">
+    <div class="d-head">
+        <h2>Each widget</h2>
+        <p>Every widget comes as an iframe, an HTML element and an npm package, with light, dark, FTCScout, FTC Events and trophy-case themes, and your own colors, corners, texts and links.</p>
+    </div>
+    <div class="d-grid">
+        <article class="d-card">
+            <span class="eyebrow">For events</span>
+            <h3>Pit map</h3>
+            <p>Your event&#x27;s pit map on your own page, ready for visitors on their phones.</p>
+            <ul><li>Search a team and get a walking route to its pit, the fields or queueing</li><li>Highlight and outline teams in your own colors</li><li>Load it from FTC Events, or upload the saved page</li></ul>
+            <div class="d-foot"><a class="go-link" href="/pit-map">Configure →</a><code>&lt;ftc-pit-map&gt;</code></div>
+        </article>
+        <article class="d-card">
+            <span class="eyebrow">For teams</span>
+            <h3>Team card</h3>
+            <p>Your team at a glance, for the top of your team&#x27;s website.</p>
+            <ul><li>Pick the stats: OPR, EPA, rank in your region, records, awards and more</li><li>Your next events with a countdown</li><li>A full card, or one compact row</li></ul>
+            <div class="d-foot"><a class="go-link" href="/team#%7B%22widget%22%3A%22team-card%22%7D">Configure →</a><code>&lt;ftc-team-card&gt;</code></div>
+        </article>
+        <article class="d-card">
+            <span class="eyebrow">For teams</span>
+            <h3>Season results</h3>
+            <p>Every event of a season with how it went.</p>
+            <ul><li>Rank and record per event</li><li>Awards and advancement as labels</li><li>A list, or a strip of tiles that scrolls sideways</li></ul>
+            <div class="d-foot"><a class="go-link" href="/team#%7B%22widget%22%3A%22team-results%22%7D">Configure →</a><code>&lt;ftc-team-results&gt;</code></div>
+        </article>
+        <article class="d-card">
+            <span class="eyebrow">For teams</span>
+            <h3>Awards</h3>
+            <p>Every award your team has won, from the first season on.</p>
+            <ul><li>Grouped by season</li><li>A list, or a strip of trophy cards</li><li>Only the awards won, or only some types</li></ul>
+            <div class="d-foot"><a class="go-link" href="/team#%7B%22widget%22%3A%22team-awards%22%2C%22layout%22%3A%22strip%22%7D">Configure →</a><code>&lt;ftc-team-awards&gt;</code></div>
+        </article>
+        <article class="d-card">
+            <span class="eyebrow">For teams</span>
+            <h3>Next match</h3>
+            <p>While you compete: what&#x27;s next, updating by itself.</p>
+            <ul><li>Your next match, its time and a countdown</li><li>Both alliances, your last result and your rank</li><li>Between events: your next event</li></ul>
+            <div class="d-foot"><a class="go-link" href="/team#%7B%22widget%22%3A%22next-match%22%7D">Configure →</a><code>&lt;ftc-next-match&gt;</code></div>
+        </article>
+        <article class="d-card">
+            <span class="eyebrow">For teams</span>
+            <h3>Season + next match</h3>
+            <p>Season results with the live match on top during events.</p>
+            <ul><li>One widget for a team homepage</li><li>Live part only shows while you compete</li><li>Same options as both widgets</li></ul>
+            <div class="d-foot"><a class="go-link" href="/team#%7B%22widget%22%3A%22team-season%22%7D">Configure →</a><code>&lt;ftc-team-season&gt;</code></div>
+        </article>
+    </div>
+</section>
 
 <footer>
     <span>Made for the FTC community by <a href="https://github.com/mmathijs">mmathijs</a>. Open source, MIT license.</span>
@@ -305,9 +299,13 @@
     <span>Embed loads are counted per website, without IP addresses or cookies: <a href="/stats">stats</a>.</span>
 </footer>
 
+<script>
+    // Pit map settings used to live on this page (ftc-embeds.com/#…): keep those links working.
+    if (location.hash.length > 1) location.replace("/pit-map" + location.hash);
+</script>
 <script src="config.js"></script>
 <script src="lib/pit-map.umd.js"></script>
-<script src="examples/events.js"></script>
-<script src="dashboard.js"></script>
+<script src="lib/team-card.umd.js"></script>
+<script src="home.js"></script>
 </body>
 </html>

@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pit map · ftc-embeds</title>
+<meta name="description" content="Put an FTC event's pit map on your own website. Pick an event, adjust it, copy the code.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%231c1b19'/%3E%3Crect x='3' y='3' width='4' height='4' fill='%23ff5a1f'/%3E%3Crect x='9' y='3' width='4' height='4' fill='%23f4f1ea'/%3E%3Crect x='3' y='9' width='4' height='4' fill='%23f4f1ea'/%3E%3Crect x='9' y='9' width='4' height='4' fill='%23f4f1ea'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+    :root {
+        --paper: #f4f1ea;
+        --paper-2: #ebe6db;
+        --ink: #1c1b19;
+        --ink-2: #5d5a53;
+        --rule: #cfc8b8;
+        --grid: rgba(28, 27, 25, 0.016);
+        --accent: #ff5a1f;
+        --accent-ink: #1c1b19;
+        --field: #fbf9f4;
+        --code-bg: #1c1b19;
+        --code-ink: #ece7dc;
+        --sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+        --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+        color-scheme: light;
+    }
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --paper: #161512;
+            --paper-2: #1f1e1a;
+            --ink: #ece7dc;
+            --ink-2: #a39d90;
+            --rule: #3a3731;
+            --grid: rgba(236, 231, 220, 0.018);
+            --field: #1b1a17;
+            --code-bg: #0e0d0b;
+            color-scheme: dark;
+        }
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html { background: var(--paper); }
+    body {
+        margin: 0;
+        color: var(--ink);
+        font: 15px/1.5 var(--sans);
+        background-color: var(--paper);
+        background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+        background-size: 32px 32px;
+    }
+    a { color: inherit; text-underline-offset: 3px; }
+    a:hover { color: var(--accent); }
+
+    .top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 14px 28px; border-bottom: 2px solid var(--ink); }
+    .wordmark { font: 500 17px var(--mono); text-decoration: none; letter-spacing: -0.02em; }
+    .wordmark b { font-weight: 500; color: var(--accent); }
+    .top nav { display: flex; gap: 20px; font: 13px var(--mono); }
+    .top nav a { text-decoration: none; color: var(--ink-2); }
+    .top nav a:hover { color: var(--ink); }
+
+    .lede { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: end; padding: 36px 28px 26px; border-bottom: 1px solid var(--rule); }
+    .lede h1 { margin: 0; font-size: 34px; line-height: 1.1; font-weight: 600; letter-spacing: -0.025em; max-width: 18ch; }
+    .lede p { margin: 12px 0 0; color: var(--ink-2); max-width: 52ch; }
+    .lede .note { font: 12px/1.6 var(--mono); color: var(--ink-2); text-align: right; }
+
+    .app { display: grid; grid-template-columns: 330px minmax(0, 1fr); }
+    form { border-right: 1px solid var(--rule); }
+    fieldset { margin: 0; padding: 20px 28px 22px; border: 0; border-bottom: 1px solid var(--rule); display: grid; gap: 12px; }
+    legend { float: left; width: 100%; padding: 0; margin-bottom: 4px; font-weight: 600; font-size: 15px; }
+    legend span { font: 12px var(--mono); color: var(--accent); margin-right: 8px; }
+    label.f { display: grid; gap: 5px; font-size: 13px; color: var(--ink-2); }
+    .row { display: flex; gap: 10px; align-items: end; }
+    .row > * { min-width: 0; }
+    input[type="text"], input[type="number"], select {
+        width: 100%; font: 14px var(--sans); color: var(--ink); background: var(--field);
+        border: 1px solid var(--rule); border-radius: 2px; padding: 7px 9px; outline: none;
+    }
+    input[type="text"]::placeholder { color: var(--ink-2); opacity: 0.7; }
+    input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+    input[type="color"] { width: 36px; height: 34px; padding: 2px; border: 1px solid var(--rule); border-radius: 2px; background: var(--field); cursor: pointer; flex: none; }
+    input[type="range"] { width: 100%; accent-color: var(--ink); }
+    input[type="checkbox"] { accent-color: var(--ink); width: 15px; height: 15px; margin: 0; }
+    .check { display: flex; align-items: center; gap: 9px; font-size: 14px; cursor: pointer; }
+    .hint { margin: 0; font-size: 12.5px; color: var(--ink-2); }
+    .seg { display: flex; border: 1px solid var(--ink); }
+    .seg button { flex: 1; border: 0; background: none; color: var(--ink); font: 13px var(--sans); padding: 7px 8px; cursor: pointer; }
+    .seg button + button { border-left: 1px solid var(--ink); }
+    .seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+    .seg button:disabled { color: var(--ink-2); cursor: not-allowed; text-decoration: line-through; text-decoration-thickness: 1px; }
+    .link-btn { justify-self: start; border: 0; background: none; padding: 0; font: 13px var(--sans); color: var(--ink-2); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+    .link-btn:hover { color: var(--accent); }
+    .request { margin-top: 12px; padding: 12px; border: 1px dashed var(--ink-2); display: grid; gap: 10px; font-size: 14px; }
+    .request p { margin: 0; }
+    .request-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .request[data-state="error"] #request-msg { color: var(--accent); }
+    #request-refresh { margin-top: 10px; font-size: 12.5px; }
+
+    .work { padding: 24px 28px 32px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px; align-content: start; min-width: 0; }
+    .sheet { position: relative; border: 2px solid var(--ink); background: var(--paper); }
+    .preview { height: 560px; resize: vertical; overflow: hidden; }
+    .titleblock { position: absolute; left: -2px; bottom: -2px; z-index: 5; display: grid; grid-template-columns: auto auto; border: 2px solid var(--ink); background: var(--paper); font: 11px/1 var(--mono); pointer-events: none; }
+    .titleblock div { padding: 6px 9px; border-left: 1px solid var(--ink); }
+    .titleblock div:first-child { border-left: 0; }
+    .titleblock b { display: block; margin-bottom: 4px; font-weight: 400; color: var(--ink-2); font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.06em; }
+
+    .out-head { display: flex; justify-content: space-between; align-items: end; gap: 12px; flex-wrap: wrap; border-bottom: 1px solid var(--rule); }
+    .tabs { display: flex; gap: 22px; }
+    .tabs button { border: 0; background: none; padding: 0 0 9px; margin-bottom: -1px; font: 14px var(--sans); color: var(--ink-2); border-bottom: 2px solid transparent; cursor: pointer; }
+    .tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+    .actions { display: flex; gap: 8px; padding-bottom: 8px; }
+    .sheet-foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: -12px; }
+    .btn { font: 13px var(--sans); border: 1px solid var(--ink); border-radius: 2px; background: none; color: var(--ink); padding: 6px 11px; cursor: pointer; }
+    .btn:hover { background: var(--paper-2); }
+    .btn.go { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 500; }
+    .btn.go:hover { filter: brightness(1.05); }
+    #tab-hint { margin: 12px 0 10px; }
+    pre { margin: 0; background: var(--code-bg); color: var(--code-ink); padding: 16px 18px; overflow-x: auto; font: 12.5px/1.6 var(--mono); white-space: pre; max-height: 380px; border-radius: 2px; }
+
+    footer { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 18px 28px 28px; border-top: 2px solid var(--ink); font: 12px/1.6 var(--mono); color: var(--ink-2); }
+
+    @media (max-width: 920px) {
+        .top, .lede, fieldset, .work, footer { padding-left: 16px; padding-right: 16px; }
+        .lede { grid-template-columns: 1fr; padding-top: 24px; }
+        .lede h1 { font-size: 27px; }
+        .lede .note { text-align: left; }
+        .app { grid-template-columns: minmax(0, 1fr); }
+        form { border-right: 0; }
+        .work { order: -1; padding-top: 16px; }
+        .preview { height: 62vh; }
+        .top nav { gap: 14px; }
+    }
+    @media (max-width: 560px) {
+        .top { flex-wrap: wrap; row-gap: 8px; }
+        .top nav { flex-wrap: wrap; gap: 6px 16px; width: 100%; }
+        .wordmark { white-space: nowrap; }
+    }
+</style>
+</head>
+<body>
+<header class="top">
+    <a class="wordmark" href="/">ftc<b>-</b>embeds</a>
+    <nav>
+        <a href="/pit-map" aria-current="page">pit map</a>
+        <a href="/team">team widgets</a>
+        <a href="https://github.com/mmathijs/ftc-embeds/blob/main/docs/pit-map.md">docs</a>
+        <a href="https://www.npmjs.com/package/ftc-embeds">npm</a>
+        <a href="https://github.com/mmathijs/ftc-embeds">source</a>
+        <a href="/stats">stats</a>
+    </nav>
+</header>
+
+<section class="lede">
+    <div>
+        <h1>Put your event's pit map on your own site.</h1>
+        <p>Pick an event, mark the teams you care about, match the look of your site, and copy the code. Visitors can zoom in, search, and click a pit to see the team.</p>
+    </div>
+    <div class="note">FIRST Tech Challenge<br>pit map widget · v0.1</div>
+</section>
+
+<div class="app">
+    <form onsubmit="return false">
+        <fieldset>
+            <legend><span>01</span>Event</legend>
+            <div class="seg" role="group" aria-label="Data source">
+                <button type="button" id="src-example" aria-pressed="true">Example events</button>
+                <button type="button" id="src-live" aria-pressed="false">Live event</button>
+            </div>
+            <div id="example-box">
+                <select id="example" aria-label="Example event"></select>
+            </div>
+            <div id="live-box" hidden>
+                <div class="row">
+                    <label class="f" style="flex:0 0 92px">Season <input type="number" id="season" value="2025" min="2019" max="2040"></label>
+                    <label class="f" style="flex:1">Event code <input type="text" id="code" placeholder="FPEEUR" autocomplete="off"></label>
+                </div>
+                <p class="hint" id="live-hint"></p>
+                <div class="request" id="request-box" hidden>
+                    <p id="request-msg">FTCScout doesn't have this event's pit map yet.</p>
+                    <div class="request-actions" id="request-actions">
+                        <button type="button" class="btn" id="request-fetch">Load it from FTC Events</button>
+                        <label class="link-btn" id="request-upload">or upload the saved page<input type="file" id="request-file" accept=".html,.htm,text/html" hidden></label>
+                    </div>
+                    <p class="hint" id="request-help">To upload: open the event's pit map on <a id="request-link" target="_blank" rel="noopener">FTC Events</a>, save the page (Ctrl+S), and choose the file.</p>
+                </div>
+                <button type="button" class="link-btn" id="request-refresh" hidden>Out of date? Reload it from FTC Events</button>
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend><span>02</span>Teams</legend>
+            <label class="f">Highlight
+                <div class="row"><input type="text" id="highlight" placeholder="team numbers, e.g. 16236, 365"><input type="color" id="hl-color" title="Highlight color"></div>
+            </label>
+            <label class="f">Outline
+                <div class="row"><input type="text" id="outline" placeholder="team numbers"><input type="color" id="ol-color" title="Outline color"></div>
+            </label>
+            <label class="check"><input type="checkbox" id="theme-colors" checked> Colors from the theme</label>
+            <label class="check"><input type="checkbox" id="dim" checked> Fade the other pits</label>
+            <label class="check"><input type="checkbox" id="pulse" checked> Pulse highlighted pits</label>
+            <label class="f">Start zoomed in on <input type="text" id="focus" placeholder="team number (optional)"></label>
+        </fieldset>
+
+        <fieldset>
+            <legend><span>03</span>Look</legend>
+            <label class="f">Theme
+                <select id="theme">
+                    <option value="auto">Light or dark, following the visitor</option>
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                    <option value="ftcscout">FTCScout</option>
+                    <option value="ftcscout-dark">FTCScout, dark</option>
+                    <option value="ftc-events">FTC-Events</option>
+                </select>
+            </label>
+            <label class="f">Pit corners <input type="range" id="t-pitRadius" min="0" max="1" step="0.02"></label>
+            <label class="f">Area and field corners <input type="range" id="t-objectRadius" min="0" max="1" step="0.02"></label>
+            <label class="f">Wall corners <input type="range" id="t-wallRadius" min="0" max="0.5" step="0.02"></label>
+            <label class="f">Gap between pits <input type="range" id="t-pitGap" min="0" max="0.25" step="0.01"></label>
+            <label class="f">Team number size <input type="range" id="t-numberSize" min="0.14" max="0.36" step="0.01"></label>
+            <label class="f">How strong the event's pit colors are <input type="range" id="t-pitMix" min="0" max="0.9" step="0.05"></label>
+            <div class="row">
+                <label class="f" style="flex:1">Floor <input type="color" id="t-background"></label>
+                <label class="f" style="flex:1">Walls <input type="color" id="t-wall"></label>
+                <label class="f" style="flex:1">Route <input type="color" id="t-route"></label>
+            </div>
+            <label class="f">Font
+                <select id="t-fontFamily">
+                    <option value="">From the theme</option>
+                    <option value='Inter, ui-sans-serif, system-ui, sans-serif'>Inter</option>
+                    <option value='Roboto, "Helvetica Neue", Arial, sans-serif'>Roboto</option>
+                    <option value='"IBM Plex Sans", ui-sans-serif, system-ui, sans-serif'>IBM Plex Sans</option>
+                    <option value='ui-monospace, Menlo, Consolas, monospace'>Monospace</option>
+                    <option value='Georgia, "Times New Roman", serif'>Serif</option>
+                </select>
+            </label>
+            <button type="button" class="link-btn" id="reset-style">Undo my style changes</button>
+        </fieldset>
+
+        <fieldset>
+            <legend><span>04</span>Behavior</legend>
+            <label class="f">Clicking a pit
+                <select id="click">
+                    <option value="popup">opens a small card</option>
+                    <option value="focus">zooms in on it</option>
+                    <option value="tooltip">shows the tooltip</option>
+                    <option value="none">does nothing</option>
+                </select>
+            </label>
+            <label class="f">Team names inside pits
+                <select id="names">
+                    <option value="zoom">once zoomed in</option>
+                    <option value="true">always</option>
+                    <option value="false">never</option>
+                </select>
+            </label>
+            <label class="f">Field alliance sides
+                <select id="alliances">
+                    <option value="">unknown, keep them neutral</option>
+                    <option value="red-first">red at the top / left</option>
+                    <option value="blue-first">blue at the top / left</option>
+                </select>
+            </label>
+            <label class="f">Scroll wheel zooms
+                <select id="scroll">
+                    <option value="modifier">only with Ctrl / ⌘ held</option>
+                    <option value="true">always</option>
+                    <option value="false">never</option>
+                </select>
+            </label>
+            <label class="check"><input type="checkbox" id="controls" checked> Zoom buttons</label>
+            <label class="f">Height on your page, in pixels <input type="number" id="height" value="600" min="240" max="2000" step="20"></label>
+        </fieldset>
+    </form>
+
+    <main class="work">
+        <div class="sheet">
+            <div class="preview" id="preview"></div>
+            <div class="titleblock" aria-hidden="true">
+                <div><b>Event</b><span id="tb-event">2025 · FPEEUR</span></div>
+                <div><b>Sheet</b>preview</div>
+            </div>
+        </div>
+        <div class="sheet-foot">
+            <button class="btn" id="dl-svg">Download SVG</button>
+            <button class="btn" id="dl-png">Download PNG</button>
+        </div>
+
+        <section>
+            <div class="out-head">
+                <div class="tabs" role="tablist">
+                    <button role="tab" data-tab="iframe" aria-selected="true">iframe</button>
+                    <button role="tab" data-tab="element" aria-selected="false">HTML element</button>
+                    <button role="tab" data-tab="js" aria-selected="false">JavaScript</button>
+                    <button role="tab" data-tab="url" aria-selected="false">Link</button>
+                </div>
+                <div class="actions">
+                    <button class="btn" id="share">Copy link to these settings</button>
+                    <button class="btn go" id="copy">Copy code</button>
+                </div>
+            </div>
+            <p class="hint" id="tab-hint"></p>
+            <pre id="snippet"></pre>
+        </section>
+    </main>
+</div>
+
+<footer>
+    <span>Made for the FTC community by <a href="https://github.com/mmathijs">mmathijs</a>. Open source, MIT license.</span>
+    <span>Not affiliated with <i>FIRST</i>®. Pit maps are published by event organizers.</span>
+    <span>Embed loads are counted per website, without IP addresses or cookies: <a href="/stats">stats</a>.</span>
+</footer>
+
+<script src="config.js"></script>
+<script src="lib/pit-map.umd.js"></script>
+<script src="examples/events.js"></script>
+<script src="dashboard.js"></script>
+</body>
+</html>

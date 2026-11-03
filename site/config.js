@@ -5,4 +5,7 @@ window.FTC_EMBEDS_SITE = {
     apiBase: "https://ftcscout-api.mmathijs.nl/rest/embeds/v1",
     // Or a GraphQL endpoint with pit maps, used when apiBase is empty
     graphqlUrl: "",
+    // The team (and season, empty: the current one) the homepage previews show
+    demoTeam: 19444,
+    demoSeason: 2025,
 };

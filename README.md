@@ -15,7 +15,7 @@ The team widgets share their options, themes (including a trophy-case look), ico
 
 Widgets can load their own data from the [ftc-embeds API](docs/api.md): REST endpoints that are cached presets of GraphQL queries (`configure({ apiBase })`), or the same queries sent to a GraphQL endpoint (`configure({ graphqlUrl })`).
 
-The quickest way: pick a widget and copy its code at [ftc-embeds.com](https://ftc-embeds.com) (pit maps on the homepage, team widgets at [/team](https://ftc-embeds.com/team)). By hand:
+The quickest way: pick a widget and copy its code at [ftc-embeds.com](https://ftc-embeds.com) (pit maps at [/pit-map](https://ftc-embeds.com/pit-map), team widgets at [/team](https://ftc-embeds.com/team)). By hand:
 
 ```html
 <script type="module" src="https://ftc-embeds.com/lib/team-card.mjs"></script>
@@ -59,7 +59,7 @@ Open `dist/pit-map-demo.html` (self-contained) or `demo/pit-map/index.html` afte
 
 ## Website
 
-[ftc-embeds.com](https://ftc-embeds.com) hosts the configuration dashboard (`site/index.html`), the team widget builder (`site/team.html`), the iframe embed pages (`site/embed/`), the libraries (`/lib/<widget>.mjs` and `.umd.js`) and example data. `npm run build` builds it into `dist/site`; `scripts/deploy.sh [ssh host]` (default `ftc-embeds-server`) uploads it to `/opt/ftc-embeds` on the server, where the `ftc-embeds-web` container (`deploy/docker-compose.yml`, `deploy/Caddyfile`) serves it. The server's edge Caddy terminates TLS and forwards ftc-embeds.com to that container (`deploy/edge.Caddyfile`, added to it once by hand). `site/config.js` sets the embeds API (`apiBase`).
+[ftc-embeds.com](https://ftc-embeds.com) hosts the homepage (`site/index.html`), the configuration dashboards (`site/pit-map.html`, `site/team.html`), the iframe embed pages (`site/embed/`), the libraries (`/lib/<widget>.mjs` and `.umd.js`) and example data. `npm run build` builds it into `dist/site`; `scripts/deploy.sh [ssh host]` (default `ftc-embeds-server`) uploads it to `/opt/ftc-embeds` on the server, where the `ftc-embeds-web` container (`deploy/docker-compose.yml`, `deploy/Caddyfile`) serves it. The server's edge Caddy terminates TLS and forwards ftc-embeds.com to that container (`deploy/edge.Caddyfile`, added to it once by hand). `site/config.js` sets the embeds API (`apiBase`) and the team the homepage shows (`demoTeam`, `demoSeason`).
 
 The site counts how often the embed is loaded per website, using the Referer header browsers send; it stores no IP addresses and sets no cookies. The numbers are public at [ftc-embeds.com/stats](https://ftc-embeds.com/stats). Caddy writes the log (`deploy/stats/stats.caddy`), `embed-stats.py` turns it into the `stats.json` behind the page every 10 minutes, and `scripts/stats.sh install` sets all of that up on the server. `scripts/stats.sh [--days N]` prints the numbers in your terminal.
 
@@ -74,7 +74,7 @@ src/core/team-text.mjs        team widgets: every text
 src/<widget>/<widget>.mjs     source (ES module) + <widget>.d.ts types
 demo/<widget>/                demo pages and example data
 docs/<widget>.md              documentation
-site/                         ftc-embeds.com: dashboard, team widget builder, embed pages, config.js
+site/                         ftc-embeds.com: homepage, pit map and team dashboards, embed pages, config.js
 deploy/                       ftc-embeds-web container (compose + Caddyfile) and the edge Caddy site block
 deploy/stats/                 embed statistics: Caddy logging, embed-stats.py and the /stats page
 scripts/build.mjs             builds every widget and the site into dist/
