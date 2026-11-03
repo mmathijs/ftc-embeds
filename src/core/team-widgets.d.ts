@@ -1,4 +1,5 @@
-// Types shared by the team widgets (team-card, team-results, team-awards, next-match, team-season).
+// Types shared by the widgets (team-card, team-results, team-awards, next-match, team-season and
+// the event widgets).
 
 /** The themes that follow the visitor's light or dark mode (see TEAM_THEME_MODES). */
 export type TeamThemeModeName = "auto" | "ftcscout-auto" | "ftc-events-auto" | "trophy-auto";
@@ -103,8 +104,10 @@ export interface ApiOptions {
 }
 
 export interface TeamWidgetOptions {
-    /** Team number. */
+    /** Team number (team widgets). */
     team?: number | string | null;
+    /** Event code, e.g. "NLCMP" (event widgets), in `season`. */
+    event?: string | null;
     /** Season (e.g. 2025); default: the current one. */
     season?: number | string | null;
     /** Colors. Default "auto" (light or dark, following the visitor). */
@@ -229,6 +232,35 @@ export interface EventSummary {
     location?: Location;
     timezone?: string;
 }
+
+/** What every event preset says about the event itself. */
+export interface EventInfo {
+    season: number;
+    code: string;
+    name: string;
+    start: string;
+    end: string;
+    timezone: string;
+    type: string;
+    remote: boolean;
+    started: boolean;
+    ongoing: boolean;
+    finished: boolean;
+    /** A division's championship (its code). */
+    divisionCode: string | null;
+    leagueCode: string | null;
+    location: Location;
+}
+
+/** Options of every event widget. */
+export interface EventWidgetOptions extends TeamWidgetOptions {
+    /** Team numbers to mark: "19444,16236" or [19444]. */
+    highlight?: string | number[] | null;
+    /** Seconds between refreshes while the event is on (default 30). */
+    refresh?: number;
+}
+
+export declare function parseEventCode(code: string): string;
 
 export interface EventRecord {
     rank: number;

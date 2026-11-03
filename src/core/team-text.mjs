@@ -5,6 +5,8 @@ export const TEAM_TEXT = {
     // states
     noTeam: "No team set.",
     notFound: "There is no team {team}.",
+    noEvent: "No event set.",
+    eventNotFound: "There is no event {event} in {season}.",
     loadError: "Couldn't load this right now.",
     // shared
     team: "Team {team}",
@@ -59,6 +61,19 @@ export const TEAM_TEXT = {
     pick: "{nth} Pick",
     winner: "Winner",
     place: "{nth} Place",
+    // event widgets
+    rankings: "Rankings",
+    colRank: "#",
+    colTeam: "Team",
+    colRp: "RP",
+    colTb1: "TBP",
+    colTb2: "TBP2",
+    colRecord: "W-L-T",
+    colMatches: "Played",
+    colOpr: "OPR",
+    noRankings: "No rankings for this event.",
+    noRankingsYet: "Rankings appear once matches are played.",
+    rankedPerDivision: "Teams are ranked per division:",
     // results
     seasonTitle: "{season} season",
     seasonResults: "Season results",

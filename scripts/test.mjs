@@ -135,6 +135,7 @@ const TEAM_WIDGETS = [
     { name: "team-awards", cls: "TeamAwards", define: "defineTeamAwardsElement", api: ["getTeamAwards", "TEAM_AWARDS_QUERY"] },
     { name: "next-match", cls: "NextMatch", define: "defineNextMatchElement", api: ["getTeamMatches", "TEAM_MATCHES_QUERY"] },
     { name: "team-season", cls: "TeamSeason", define: "defineTeamSeasonElement", api: ["getTeamResults", "getTeamMatches"] },
+    { name: "event-rankings", cls: "EventRankings", define: "defineEventRankingsElement", api: ["getEventRankings", "parseEventCode", "EVENT_RANKINGS_QUERY"] },
 ];
 
 for (const w of TEAM_WIDGETS) {
@@ -305,4 +306,46 @@ test("team widgets: number, date and time formats", async () => {
     assert.equal(dateRange("2026-02-07", null, "en-US", "long"), "February 7, 2026");
     assert.equal(dateRange("2026-02-07", null, "en-GB", "numeric"), "07/02/2026");
     assert.equal(shortDate("2026-02-07", "en-US", "short"), "Feb 7");
+});
+
+// ------------------------------------------------------------------ event widgets
+
+test("event presets use REST paths with the season, and GraphQL with the same variables", async () => {
+    const api = await import(resolve(root, "src/core/event-api.mjs"));
+    const { seasonOf } = await import(resolve(root, "src/core/team-api.mjs"));
+    const event = { season: 2025, code: "NLHAQ", teams: [], relatedEvents: [] };
+    const { fetch, calls } = mockFetch({ status: 200, body: { data: { eventByCode: event } } });
+    await api.getEventRankings("nlhaq", { apiBase: "https://ev1.test/v1/", season: 2025, fetch });
+    await api.getEventRankings("NLCMP", { apiBase: "https://ev2.test/v1", fetch });
+    assert.deepEqual(calls.map((c) => c.url), ["https://ev1.test/v1/events/2025/NLHAQ/rankings", `https://ev2.test/v1/events/${seasonOf()}/NLCMP/rankings`]);
+    const gql = mockFetch({ status: 200, body: { data: { eventByCode: event } } });
+    await api.getEventRankings("NLHAQ", { graphqlUrl: "https://g2.test/graphql", season: "2024", fetch: gql.fetch });
+    const body = JSON.parse(gql.calls[0].init.body);
+    assert.equal(body.query, api.EVENT_RANKINGS_QUERY);
+    assert.deepEqual(body.variables, { season: 2024, code: "NLHAQ" });
+});
+
+test("unknown events are not found, and only event codes are accepted", async () => {
+    const api = await import(resolve(root, "src/core/event-api.mjs"));
+    const none = mockFetch({ status: 200, body: { data: { eventByCode: null } } });
+    await assert.rejects(api.getEventRankings("ZZZ", { apiBase: "https://ev3.test", season: 2025, fetch: none.fetch }), (e) => e.notFound);
+    await assert.rejects(api.getEventRankings("NL-HAQ", { apiBase: "https://ev4.test" }), /not an event code/);
+    assert.equal(api.parseEventCode(" fpeeur "), "FPEEUR");
+});
+
+test("event tables show the top rows plus the highlighted teams below them", async () => {
+    const { limitRows, highlighted, stat } = await import(resolve(root, "src/core/event-views.mjs"));
+    const rows = [1, 2, 3, 4, 5, 6].map((n) => ({ teamNumber: n }));
+    const mine = (r) => r.teamNumber === 5;
+    assert.deepEqual(limitRows(rows, 3, mine).map((r) => r && r.teamNumber), [1, 2, 3, null, 5]);
+    assert.deepEqual(limitRows(rows, 3, () => false).map((r) => r.teamNumber), [1, 2, 3]);
+    assert.equal(limitRows(rows, null, mine).length, 6);
+    assert.deepEqual([...highlighted({ options: { highlight: "19444, 16236,x" } })], [19444, 16236]);
+    assert.deepEqual([...highlighted({ options: { highlight: [3977] } })], [3977]);
+    const { TeamWidget } = await import(resolve(root, "src/core/team-ui.mjs"));
+    const w = (options) => Object.assign(Object.create(TeamWidget.prototype), { options });
+    assert.equal(stat(w({ locale: "en-US" }), 903), "903");
+    assert.equal(stat(w({ locale: "en-US" }), 2.6666), "2.67");
+    assert.equal(stat(w({ locale: "en-US", numberFormat: "comma" }), 2.6666), "2,67");
+    assert.equal(stat(w({}), null), "–");
 });

@@ -22,7 +22,7 @@ Per widget: the `apiBase` / `graphqlUrl` options, or the `api-base` / `graphql-u
 - `Access-Control-Allow-Origin: *` (widgets run on any site).
 - `Content-Type: application/json`; the body is the GraphQL result: `{ "data": { … } }`, plus `errors` if any.
 - Status codes: `200` for any GraphQL result (including a `null` event); `400` for invalid path parameters; `5xx` for server errors. The client treats a `null` event or `null` pit map as "not found", so the backend doesn't need to map those to `404` (it may).
-- Caching: `Cache-Control: public, max-age=300` (5 minutes), and 30 seconds for `teams/{number}/matches`, which the live widgets poll. FTCScout's response cache and CDN keep answers longer, until the data behind them changes.
+- Caching: `Cache-Control: public, max-age=300` (5 minutes), and 30 seconds for what the live widgets poll (`teams/{number}/matches`, `events/{season}/{code}/rankings`). FTCScout's response cache and CDN keep answers longer, until the data behind them changes.
 
 ## Endpoints
 
@@ -126,6 +126,14 @@ Presets of the queries in `src/core/team-api.mjs` (`TEAM_CARD_QUERY`, `TEAM_RESU
 
 `regionalOpr` ranks among the teams of the team's home region; `null` when it has none. Unknown team: `{"data":{"team":null}}`.
 
+## Event endpoints
+
+Presets of the queries in `src/core/event-api.mjs`, with variables `{ season, code }`. An unknown event answers `{"data":{"eventByCode":null}}`. Every answer has the event's `season code name start end timezone type remote started ongoing finished divisionCode leagueCode location`.
+
+| Endpoint | Query | Cache |
+| --- | --- | --- |
+| `GET {apiBase}/events/{season}/{code}/rankings` | `EVENT_RANKINGS_QUERY`: `relatedEvents` (divisions) and `teams { teamNumber team { name location } stats { rank rp tb1 tb2 wins losses ties qualMatchesPlayed opr } }` | 30 s (live) |
+
 ## Client
 
 ```js
@@ -150,7 +158,7 @@ const team = await getTeamCard(19444, { season: 2025 }); // { number, name, loca
 
 ## Adding an endpoint
 
-1. Write the GraphQL query and export it from the client (`src/core/api.mjs` for events, `src/core/team-api.mjs` for teams), e.g. `RANKINGS_QUERY`.
+1. Write the GraphQL query and export it from the client (`src/core/api.mjs` for the pit map, `src/core/event-api.mjs` for events, `src/core/team-api.mjs` for teams), e.g. `EVENT_RANKINGS_QUERY`.
 2. Add a `get…()` function there that calls `preset(path, query, variables)` and unwraps the result.
 3. Document the path, query and response here.
-4. Register the same query under that path in FTCScout's server-rs (`src/embed_presets.rs` for teams, `src/rest/embeds.rs` for events), with its cache time.
+4. Register the same query under that path in FTCScout's server-rs (`src/embed_presets.rs` for teams and events, `src/rest/embeds.rs` for the pit map), with its cache time.

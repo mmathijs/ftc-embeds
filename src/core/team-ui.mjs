@@ -1,5 +1,6 @@
-// Shared by the team widgets (team-card, team-results, team-awards, next-match, team-season):
-// themes, the widget base class, formatting, and the custom element factory.
+// Shared by the team and event widgets (team-card, team-results, team-awards, next-match,
+// team-season, event-rankings, ...): themes, the widget base class, formatting, and the custom
+// element factory.
 
 import { parseTeamNumber } from "./team-api.mjs";
 import { TEAM_TEXT, fill } from "./team-text.mjs";
@@ -357,6 +358,7 @@ export function strip(tiles, w = null) {
 
 const DEFAULTS = {
     team: null,
+    event: null, // event widgets: the event code ("NLCMP"), in `season`
     season: null, // default: the current season
     theme: "auto",
     shape: null, // "default" | "square" | "compact" | … (TEAM_SHAPES) or { base, ...tokens }; null: the theme's own
@@ -390,10 +392,14 @@ const DEFAULTS = {
 };
 
 /**
- * Base of the team widgets: renders into its own shadow root inside `container`, loads its data
- * when `team` is set, and re-renders on update(). Subclasses implement fetch() and view().
+ * Base of the widgets: renders into its own shadow root inside `container`, loads its data when
+ * its subject is set (`team`, or `event` for the event widgets: static subjects), and re-renders
+ * on update(). Subclasses implement fetch() and view().
  */
 export class TeamWidget {
+    /** The options that say what a widget shows; it loads once one of them is set. */
+    static subjects = ["team"];
+
     constructor(container, options = {}) {
         if (!container) throw new Error("ftc-embeds: no container element");
         this.container = container;
@@ -407,7 +413,7 @@ export class TeamWidget {
         this._onScheme = () => this.render();
         DARK?.addEventListener?.("change", this._onScheme);
         if (this.data) this.render();
-        else if (this.options.team != null) this.load();
+        else if (this.hasSubject) this.load();
         else this.render();
     }
 
@@ -416,8 +422,8 @@ export class TeamWidget {
         let prev = this.options;
         this.options = { ...prev, ...options };
         if ("data" in options) return this.setData(options.data);
-        let reload = ["team", "season", "apiBase", "graphqlUrl"].some((k) => k in options && options[k] !== prev[k]);
-        reload && this.options.team != null ? this.load() : this.render();
+        let reload = [...this.constructor.subjects, "season", "apiBase", "graphqlUrl"].some((k) => k in options && options[k] !== prev[k]);
+        reload && this.hasSubject ? this.load() : this.render();
         return this;
     }
 
@@ -553,6 +559,11 @@ export class TeamWidget {
         return this.options.now ? new Date(this.options.now) : new Date();
     }
 
+    /** Whether a team or event (whichever this widget shows) is set. */
+    get hasSubject() {
+        return this.constructor.subjects.some((k) => this.options[k] != null && this.options[k] !== "");
+    }
+
     get number() {
         try {
             return parseTeamNumber(this.options.team);
@@ -607,9 +618,13 @@ export class TeamWidget {
         let vars = Object.entries(t).map(([k, v]) => `--_${kebab(k)}:var(--${PREFIX}-${kebab(k)},${v})`).join(";");
         let icons = Object.entries(ICONS).map(([k, v]) => `.icon[data-icon="${k}"]::before{content:var(--${PREFIX}-icon-${k},${JSON.stringify(v)})}`).join("");
         let body;
-        if (this.options.team == null && !this.data) body = h("div", { class: "status" }, this.t("noTeam"));
+        let byEvent = this.constructor.subjects[0] === "event";
+        if (!this.hasSubject && !this.data) body = h("div", { class: "status" }, this.t(byEvent ? "noEvent" : "noTeam"));
         else if (this.error) {
-            body = h("div", { class: "status" }, this.error.notFound ? this.t("notFound", { team: this.options.team }) : this.t("loadError"));
+            let notFound = this.options.event != null && this.constructor.subjects.includes("event")
+                ? this.t("eventNotFound", { event: String(this.options.event).toUpperCase(), season: this.options.season || "" })
+                : this.t("notFound", { team: this.options.team });
+            body = h("div", { class: "status" }, this.error.notFound ? notFound : this.t("loadError"));
         } else if (!this.data) body = h("div", { "aria-busy": "true" }, h("div", { class: "skeleton", style: { width: "45%" } }), h("div", { class: "skeleton" }), h("div", { class: "skeleton", style: { width: "75%" } }));
         else body = this.view(this.data);
         let skin = this.options.skin ?? (/^trophy(-|$)/.test(themeBase(this.options.theme) || "") ? "trophy" : null);
@@ -662,7 +677,7 @@ export function attrValue(v, flag = false) {
 }
 
 /**
- * Registers a custom element for a widget class. Attributes: team, season, theme (preset name or
+ * Registers a custom element for a widget class. Attributes: team, event, season, theme (preset name or
  * JSON tokens), api-base, graphql-url, site-url, title, plus the widget's own (extraAttrs:
  * { "attr-name": "optionName" }). Property: options (any widget option); the instance is .widget.
  * Events: "load", "error".
@@ -670,7 +685,7 @@ export function attrValue(v, flag = false) {
 export function defineTeamElement(tagName, Widget, extraAttrs = {}) {
     if (typeof customElements === "undefined" || customElements.get(tagName)) return;
     const ATTRS = {
-        team: "team", season: "season", theme: "theme", shape: "shape", "api-base": "apiBase", "graphql-url": "graphqlUrl", "site-url": "siteUrl", title: "title",
+        team: "team", event: "event", season: "season", theme: "theme", shape: "shape", "api-base": "apiBase", "graphql-url": "graphqlUrl", "site-url": "siteUrl", title: "title",
         layout: "layout", density: "density", hide: "hide", limit: "limit", "max-height": "maxHeight", "link-target": "linkTarget", bare: "bare", now: "now",
         icons: "icons", css: "css", skin: "skin", text: "text", locale: "locale", decimals: "decimals",
         "number-format": "numberFormat", "date-format": "dateFormat", "hour-cycle": "hourCycle", "time-zone": "timeZone",
