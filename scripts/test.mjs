@@ -290,3 +290,19 @@ test("team themes: colors and shape resolve separately", async () => {
     assert.equal(t.padding, "10px");
     assert.equal(resolveTeamTheme({ base: "dark", radius: "3px" }).radius, "3px");
 });
+
+test("team widgets: number, date and time formats", async () => {
+    const { TeamWidget, dateRange, shortDate } = await import(resolve(root, "src/core/team-ui.mjs"));
+    // The formatting methods only read options: try them on a bare object.
+    const w = (options) => Object.assign(Object.create(TeamWidget.prototype), { options });
+    assert.equal(w({ locale: "en-US" }).num(1234.56), "1,234.6");
+    assert.equal(w({ locale: "en-US", numberFormat: "comma", decimals: 2 }).num(1234.5), "1.234,50");
+    assert.equal(w({ numberFormat: "plain" }).int(12345), "12345");
+    assert.equal(w({ locale: "en-US", hourCycle: 24, timeZone: "UTC" }).time("2026-02-07T14:30:00Z"), "14:30");
+    assert.match(w({ locale: "en-US", hourCycle: "12", timeZone: "UTC" }).time("2026-02-07T14:30:00Z"), /^02:30\sPM$/);
+    assert.equal(w({ locale: "en-US", timeZone: "Nowhere/Invalid", hourCycle: 24 }).time("2026-02-07T14:30:00Z").length, 5);
+    assert.equal(dateRange("2026-02-07", "2026-02-08", "en-US", "iso"), "2026-02-07 – 2026-02-08");
+    assert.equal(dateRange("2026-02-07", null, "en-US", "long"), "February 7, 2026");
+    assert.equal(dateRange("2026-02-07", null, "en-GB", "numeric"), "07/02/2026");
+    assert.equal(shortDate("2026-02-07", "en-US", "short"), "Feb 7");
+});

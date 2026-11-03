@@ -281,14 +281,29 @@ export function seasonName(season) {
 
 // Event dates are plain dates ("2026-02-07"): format them without a time zone shift.
 const asDate = (d) => new Date(`${d}T12:00:00Z`);
-export function dateRange(start, end, locale = undefined) {
+/** The `dateFormat` option: "short" (Feb 7, 2026), "long" (February 7, 2026), "numeric" (2/7/2026), "iso" (2026-02-07). */
+const DATE_FORMATS = {
+    short: { month: "short", day: "numeric", year: "numeric" },
+    long: { month: "long", day: "numeric", year: "numeric" },
+    numeric: { month: "numeric", day: "numeric", year: "numeric" },
+};
+const isoDay = (d) => String(d).slice(0, 10);
+export function dateRange(start, end, locale = undefined, format = "short") {
+    if (format === "iso") return !end || start === end ? isoDay(start) : `${isoDay(start)} – ${isoDay(end)}`;
     let s = asDate(start);
     let e = asDate(end || start);
-    let f = new Intl.DateTimeFormat(locale, { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+    let f = new Intl.DateTimeFormat(locale, { ...(DATE_FORMATS[format] || DATE_FORMATS.short), timeZone: "UTC" });
     if (start === end || !end || !f.formatRange) return f.format(s);
     return f.formatRange(s, e);
 }
-export const shortDate = (d, locale = undefined) => asDate(d).toLocaleDateString(locale, { month: "short", day: "numeric", timeZone: "UTC" });
+/** A date without the year, in the same format. */
+export function shortDate(d, locale = undefined, format = "short") {
+    if (format === "iso") return isoDay(d).slice(5);
+    let { year, ...o } = DATE_FORMATS[format] || DATE_FORMATS.short;
+    return asDate(d).toLocaleDateString(locale, { ...o, timeZone: "UTC" });
+}
+/** The `numberFormat` option: separators regardless of the language; "locale" (default) follows `locale`. */
+const NUMBER_FORMATS = { point: "en-US", comma: "de-DE", space: "fr-FR", apostrophe: "de-CH", plain: "en-US" };
 
 export function place(loc) {
     if (!loc) return "";
@@ -359,6 +374,10 @@ const DEFAULTS = {
     text: null, // change any text: { nextMatch: "Up next", awards: "Trophies" }; see TEAM_TEXT
     locale: null, // dates, times and numbers, e.g. "en-GB"; default: the visitor's
     decimals: 1, // OPR and EPA
+    numberFormat: "locale", // "locale" | "point" (1,234.5) | "comma" (1.234,5) | "space" (1 234,5) | "apostrophe" (1'234.5) | "plain" (1234.5)
+    dateFormat: "short", // "short" (Feb 7, 2026) | "long" (February 7, 2026) | "numeric" (2/7/2026) | "iso" (2026-02-07)
+    hourCycle: null, // match times: 12 | 24; default: the locale's
+    timeZone: null, // match times, e.g. "Europe/Amsterdam"; default: the visitor's
     awardNames: null, // { Inspire: "Inspire Award", Winner: "Winning Alliance" }
     eventTypes: null, // { Qualifier: "Kwalificatie" }
     linkTo: "ftcscout", // "ftcscout" | "ftc-events": where team and event names link to
@@ -484,15 +503,37 @@ export class TeamWidget {
     }
 
     num(value, digits = Number(this.options.decimals ?? 1)) {
-        return value == null ? "–" : Number(value).toLocaleString(this.locale, { minimumFractionDigits: digits, maximumFractionDigits: digits });
+        if (value == null) return "–";
+        let f = this.options.numberFormat;
+        return Number(value).toLocaleString(NUMBER_FORMATS[f] || this.locale, { minimumFractionDigits: digits, maximumFractionDigits: digits, useGrouping: f !== "plain" });
+    }
+
+    /** A whole number (ranks, counts), in the number format. */
+    int(value) {
+        return this.num(value, 0);
     }
 
     dates(start, end) {
-        return dateRange(start, end, this.locale);
+        return dateRange(start, end, this.locale, this.options.dateFormat);
     }
 
     day(date) {
-        return shortDate(date, this.locale);
+        return shortDate(date, this.locale, this.options.dateFormat);
+    }
+
+    /** A moment's time of day ("14:30" / "2:30 PM"), with `hourCycle` and `timeZone`. */
+    time(iso) {
+        let o = { hour: "2-digit", minute: "2-digit" };
+        let cycle = String(this.options.hourCycle ?? "");
+        if (cycle === "12" || cycle === "24") o.hour12 = cycle === "12";
+        if (this.options.timeZone) o.timeZone = this.options.timeZone;
+        try {
+            return new Date(iso).toLocaleTimeString(this.locale, o);
+        } catch {
+            // An unknown time zone: the visitor's.
+            delete o.timeZone;
+            return new Date(iso).toLocaleTimeString(this.locale, o);
+        }
     }
 
     /** Whether a part is shown: not in the `hide` option. */
@@ -632,6 +673,7 @@ export function defineTeamElement(tagName, Widget, extraAttrs = {}) {
         team: "team", season: "season", theme: "theme", shape: "shape", "api-base": "apiBase", "graphql-url": "graphqlUrl", "site-url": "siteUrl", title: "title",
         layout: "layout", density: "density", hide: "hide", limit: "limit", "max-height": "maxHeight", "link-target": "linkTarget", bare: "bare", now: "now",
         icons: "icons", css: "css", skin: "skin", text: "text", locale: "locale", decimals: "decimals",
+        "number-format": "numberFormat", "date-format": "dateFormat", "hour-cycle": "hourCycle", "time-zone": "timeZone",
         "award-names": "awardNames", "event-types": "eventTypes", "link-to": "linkTo", "team-url": "teamUrl", "event-url": "eventUrl",
         ...extraAttrs,
     };

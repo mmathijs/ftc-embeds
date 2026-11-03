@@ -27,7 +27,7 @@ function statValue(w, key, c, s, season) {
     // Without the stats endpoint (GraphQL only), the season's record comes from the card's events.
     let played = c.events.filter((e) => e.stats && e.stats.wins != null);
     let seasonRec = st ?? played.reduce((t, e) => ({ wins: t.wins + e.stats.wins, losses: t.losses + e.stats.losses, ties: t.ties + e.stats.ties, events: t.events + 1 }), { wins: 0, losses: 0, ties: 0, events: 0 });
-    let n = (v) => Number(v).toLocaleString(w.locale);
+    let n = (v) => w.int(v);
     let t = (k, v) => w.t(k, v);
     switch (key) {
         case "opr": return [t("statOpr"), w.num(opr?.value), opr ? t("ofCount", { rank: n(opr.rank), count: n(opr.count) }) : t("noMatches")];

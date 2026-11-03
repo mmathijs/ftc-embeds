@@ -39,6 +39,10 @@ Every team widget takes these (as options, or kebab-case attributes on the eleme
 | `text` | object | change any text: `{ nextMatch: "Up next", awards: "Trophies" }` (see `TEAM_TEXT`; `{name}` is filled in) |
 | `locale` | `"en-GB"` | dates, times and numbers (default: the visitor's) |
 | `decimals` | number | OPR and EPA (default 1) |
+| `numberFormat` | `point`, `comma`, `space`, `apostrophe`, `plain` | separators no matter the language: 1,234.5 · 1.234,5 · 1 234,5 · 1'234.5 · 1234.5 (default `locale`: the language's) |
+| `dateFormat` | `short`, `long`, `numeric`, `iso` | event dates: Feb 7, 2026 (default) · February 7, 2026 · 2/7/2026 (in the language's order) · 2026-02-07 |
+| `hourCycle` | `12`, `24` | match times on a 12- or 24-hour clock (default: the language's) |
+| `timeZone` | `"Europe/Amsterdam"` | time zone of match times (default: the visitor's) |
 | `awardNames` | object | rename awards: `{ Inspire: "Inspire Award" }` |
 | `eventTypes` | object | rename event types: `{ Qualifier: "Kwalificatie" }` |
 | `linkTo` | `ftcscout` \| `ftc-events` | where team and event names link to |

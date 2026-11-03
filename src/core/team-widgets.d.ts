@@ -145,6 +145,14 @@ export interface TeamWidgetOptions {
     locale?: string | null;
     /** Decimals of OPR and EPA (default 1). */
     decimals?: number;
+    /** Number separators regardless of `locale`: "point" 1,234.5 · "comma" 1.234,5 · "space" 1 234,5 · "apostrophe" 1'234.5 · "plain" 1234.5. Default "locale". */
+    numberFormat?: "locale" | "point" | "comma" | "space" | "apostrophe" | "plain";
+    /** Event dates: "short" Feb 7, 2026 (default) · "long" February 7, 2026 · "numeric" 2/7/2026 (in the locale's order) · "iso" 2026-02-07. */
+    dateFormat?: "short" | "long" | "numeric" | "iso";
+    /** Match times on a 12- or 24-hour clock. Default: the locale's. */
+    hourCycle?: 12 | 24 | "12" | "24" | null;
+    /** Time zone for match times, e.g. "Europe/Amsterdam". Default: the visitor's. */
+    timeZone?: string | null;
     /** Rename awards: { Inspire: "Inspire Award", Winner: "Winners" }. */
     awardNames?: Record<string, string> | null;
     /** Rename event types: { Qualifier: "Kwalificatie" }. */

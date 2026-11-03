@@ -204,10 +204,11 @@
         highlight: "Teams",
         look: "Look",
         content: "What to show",
+        format: "Formats",
         site: "Your website",
         done: "Code",
     };
-    const flow = () => (state.kind == "event" ? ["kind", "event", "highlight", "look", "site", "done"] : ["kind", "team", "widget", "look", "content", "site", "done"]);
+    const flow = () => (state.kind == "event" ? ["kind", "event", "highlight", "look", "site", "done"] : ["kind", "team", "widget", "look", "content", "format", "site", "done"]);
 
     // ------------------------------------------------------------ answers
 
@@ -219,6 +220,8 @@
         stats: ["opr", "epa", "record"], upcoming: 1, skipScrimmages: false, oldest: false, onlyWon: false, seasons: "",
         // pit map (same names as the /pit-map dashboard)
         source: "example", example: "FPEEUR", code: "", eventSeason: THIS_SEASON, highlight: "", mapTheme: "auto", mapShape: "", height: 600,
+        // number, date and time formats (team widgets); "" / "locale" / "short": the widgets' defaults
+        locale: "", numberFormat: "locale", decimals: 1, dateFormat: "short", hourCycle: "", timeZone: "",
         site: "",
     };
     let state = { ...DEFAULTS };
@@ -287,6 +290,12 @@
             if (state.onlyWon) o.onlyWon = true;
             if (state.seasons) o.seasons = +state.seasons;
         }
+        if (state.locale) o.locale = state.locale;
+        if (state.numberFormat != "locale") o.numberFormat = state.numberFormat;
+        if (+state.decimals !== 1) o.decimals = +state.decimals;
+        if (state.dateFormat != "short") o.dateFormat = state.dateFormat;
+        if (state.hourCycle) o.hourCycle = +state.hourCycle;
+        if (state.timeZone) o.timeZone = state.timeZone;
         return o;
     }
     const teamHeight = () => (state.layout == "strip" ? 260 : state.layout == "compact" ? 140 : WIDGETS[state.widget].height);
@@ -361,7 +370,7 @@
             let diff = Object.fromEntries(Object.entries(s).filter(([k, v]) => JSON.stringify(v) !== JSON.stringify(d[k])));
             return "/pit-map" + (Object.keys(diff).length ? "#" + encodeURIComponent(JSON.stringify(diff)) : "");
         }
-        let keys = ["widget", "team", "season", "theme", "layout", "accent", "useAccent", "stats", "upcoming", "skipScrimmages", "oldest", "onlyWon", "seasons"];
+        let keys = ["widget", "team", "season", "theme", "layout", "accent", "useAccent", "stats", "upcoming", "skipScrimmages", "oldest", "onlyWon", "seasons", "locale", "numberFormat", "decimals", "dateFormat", "hourCycle", "timeZone"];
         let s = Object.fromEntries(keys.filter((k) => JSON.stringify(state[k]) !== JSON.stringify(DEFAULTS[k]) || k == "team").map((k) => [k, state[k]]));
         // The editor has no shapes or custom colors: those go along as CSS variables in its custom CSS.
         let vars = (tokens) => Object.entries(tokens).map(([k, v]) => `    --ftcw-${kebab(k)}: ${v};`).join("\n");
@@ -376,6 +385,55 @@
         } else if (shape) css.push(`:host {\n${vars(shape)}\n}`);
         if (css.length) s.css = css.join("\n\n");
         return "/team#" + encodeURIComponent(JSON.stringify(s));
+    }
+
+    // ------------------------------------------------------------ formats
+
+    const LOCALES = { "": "Visitor's own", "en-US": "English (US)", "en-GB": "English (UK)", "nl-NL": "Nederlands", "de-DE": "Deutsch", "fr-FR": "Français", "es-ES": "Español", "pt-BR": "Português (BR)" };
+    // Same names and separators as the widgets' numberFormat option.
+    const NUMBER_FORMATS = { locale: "Like the language", point: "Point", comma: "Comma", space: "Space", apostrophe: "Apostrophe", plain: "No grouping" };
+    const NUMBER_LOCALES = { point: "en-US", comma: "de-DE", space: "fr-FR", apostrophe: "de-CH", plain: "en-US" };
+    const DATE_FORMATS = { short: "Short", long: "Long", numeric: "Numbers", iso: "ISO" };
+    const DATE_OPTIONS = { short: { month: "short" }, long: { month: "long" }, numeric: { month: "numeric" } };
+    const HOUR_CYCLES = [["", "Like the language"], ["24", "24-hour"], ["12", "12-hour"]];
+    const HERE = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const timeZones = () => {
+        let all = Intl.supportedValuesOf ? Intl.supportedValuesOf("timeZone") : [];
+        return [...new Set([HERE, ...all].filter(Boolean))];
+    };
+    /** The language tag in use, or undefined (the visitor's); an invalid one counts as the visitor's. */
+    const localeOf = (tag) => {
+        try {
+            return tag ? Intl.getCanonicalLocales(tag)[0] : undefined;
+        } catch {
+            return undefined;
+        }
+    };
+    // Examples, written the way the widgets will (same Intl options).
+    function example(kind, value) {
+        let loc = localeOf(state.locale);
+        let numLoc = (f) => NUMBER_LOCALES[f] || loc;
+        let num = (n, digits, f = state.numberFormat) => n.toLocaleString(numLoc(f), { minimumFractionDigits: digits, maximumFractionDigits: digits, useGrouping: f !== "plain" });
+        let date = (f, l = loc) => (f == "iso" ? "2026-02-07" : new Date("2026-02-07T12:00:00Z").toLocaleDateString(l, { ...DATE_OPTIONS[f], day: "numeric", year: "numeric", timeZone: "UTC" }));
+        let time = (cycle, l = loc) => {
+            let o = { hour: "2-digit", minute: "2-digit", timeZone: "UTC" };
+            if (cycle) o.hour12 = cycle == "12";
+            return new Date("2026-02-07T14:30:00Z").toLocaleTimeString(l, o);
+        };
+        if (kind == "locale") {
+            let l = localeOf(value);
+            return `${date(state.dateFormat == "iso" ? "short" : state.dateFormat, l)} · ${(12345.6).toLocaleString(l)}`;
+        }
+        if (kind == "number") return num(12345.6, 1, value);
+        if (kind == "decimals") return `OPR ${num(87.654, +value)}`;
+        if (kind == "date") return date(value);
+        if (kind == "time") return time(value);
+        return "";
+    }
+    function formatSummary() {
+        let parts = [LOCALES[state.locale] ?? state.locale, example("number", state.numberFormat), example("date", state.dateFormat), example("time", state.hourCycle)];
+        if (state.timeZone) parts.push(state.timeZone.replace(/_/g, " "));
+        return parts.join(" · ");
     }
 
     // ------------------------------------------------------------ the questions
@@ -553,6 +611,38 @@
             <input class="big" type="text" data-input="highlight" placeholder="e.g. 19444, 16236" autocomplete="off" aria-label="Teams to highlight">
             <p class="hint">Team numbers, separated by commas.</p>`,
 
+        format: () => `
+            <span class="kicker">Formats</span>
+            <h1>How should numbers, dates and times look?</h1>
+            <p class="sub">The widgets' words stay English; this changes how numbers, dates and times are written. The examples follow your choices.</p>
+            <p class="q">Language and region <small>Sets all of the below, unless you pick otherwise</small></p>
+            <div class="choices small">
+                ${Object.entries(LOCALES).map(([v, label]) => choice("locale", v, label, `<span data-example="locale:${v}"></span>`)).join("")}
+            </div>
+            <label class="f" style="margin-top:10px;max-width:280px">Or another one, as a language tag <input type="text" data-input="locale" placeholder="e.g. pl-PL, ja-JP, sv-SE" autocomplete="off"></label>
+            <p class="hint" id="locale-status"></p>
+            <h2 class="sec"><span>A</span>Numbers</h2>
+            <div class="choices small">
+                ${Object.entries(NUMBER_FORMATS).map(([v, label]) => choice("numberFormat", v, label, `<span data-example="number:${v}"></span>`)).join("")}
+            </div>
+            <p class="q">Decimals for OPR and EPA</p>
+            <div class="choices small">${[0, 1, 2].map((d) => choice("decimals", d, String(d), `<span data-example="decimals:${d}"></span>`)).join("")}</div>
+            <h2 class="sec"><span>B</span>Dates</h2>
+            <div class="choices small">
+                ${Object.entries(DATE_FORMATS).map(([v, label]) => choice("dateFormat", v, label, `<span data-example="date:${v}"></span>`)).join("")}
+            </div>
+            <h2 class="sec"><span>C</span>Match times</h2>
+            <div class="choices small">
+                ${HOUR_CYCLES.map(([v, label]) => choice("hourCycle", v, label, `<span data-example="time:${v}"></span>`)).join("")}
+            </div>
+            <label class="f" style="margin-top:14px">Time zone
+                <select data-select="timeZone">
+                    <option value="">The visitor's own</option>
+                    ${timeZones().map((z) => `<option value="${esc(z)}">${esc(z.replace(/_/g, " "))}${z == HERE ? " (yours)" : ""}</option>`).join("")}
+                </select>
+            </label>
+            <p class="hint">Match times show in each visitor's own time zone. Pick one to show everyone the same clock, for example the event's.</p>`,
+
         site: () => `
             <span class="kicker">Your website</span>
             <h1>Where is your website made?</h1>
@@ -565,8 +655,8 @@
             let p = PLATFORMS[state.site] || PLATFORMS.other;
             let what = state.kind == "event" ? `Pit map · ${state.source == "example" ? EXAMPLE_NAMES[state.example] || state.example : eventRef()}` : `${WIDGETS[state.widget].label} · team ${state.team}`;
             let rows = state.kind == "event"
-                ? [["event", "Event", what.split(" · ")[1]], ["highlight", "Teams", teamList() || "none"], ["look", "Look", `${themeLabel(state.mapTheme)} colors, ${MAP_SHAPE_LABELS[state.mapShape][0].toLowerCase()} shape, ${state.height}px`], ["site", "Website", p.label]]
-                : [["team", "Team", `${state.team}${state.season ? `, ${state.season}` : ""}`], ["widget", "Widget", WIDGETS[state.widget].label], ["look", "Look", `${themeLabel(state.theme)} colors, ${TEAM_SHAPE_LABELS[state.shape][0].toLowerCase()} shape, ${(WIDGETS[state.widget].layouts[state.layout] || "list").toLowerCase()}`], ["site", "Website", p.label]];
+                ? [["event", "Event", what.split(" · ")[1]], ["highlight", "Teams", teamList() || "none"], ["look", "Look", `${themeLabel(state.mapTheme)} · ${MAP_SHAPE_LABELS[state.mapShape][0]} shape · ${state.height}px`], ["site", "Website", p.label]]
+                : [["team", "Team", `${state.team}${state.season ? `, ${state.season}` : ""}`], ["widget", "Widget", WIDGETS[state.widget].label], ["look", "Look", `${themeLabel(state.theme)} · ${TEAM_SHAPE_LABELS[state.shape][0]} shape · ${WIDGETS[state.widget].layouts[state.layout] || "List"}`], ["format", "Formats", formatSummary()], ["site", "Website", p.label]];
             return `
             <span class="kicker">Done</span>
             <h1>Here's your code.</h1>
@@ -746,6 +836,11 @@
             if (fromTemplate) ask.querySelector('.choice[data-value=\'"custom"\']')?.setAttribute("aria-pressed", "false");
         }
         for (let el of ask.querySelectorAll("[data-accent-row]")) el.hidden = family == "custom";
+        for (let el of ask.querySelectorAll("[data-example]")) {
+            let [kind, value] = el.dataset.example.split(":");
+            el.textContent = example(kind, value);
+        }
+        if ($("locale-status")) $("locale-status").textContent = state.locale && !localeOf(state.locale) ? `"${state.locale}" isn't a language tag the browser knows: the visitor's own is used.` : "";
         if ($("live-box")) $("live-box").hidden = state.source != "live";
         if ($("example-box")) $("example-box").hidden = state.source != "example";
         if ($("code")) {
