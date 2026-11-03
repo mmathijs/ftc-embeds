@@ -53,6 +53,9 @@ The site counts how often the embed is loaded per website, using the Referer hea
 ```
 src/core/api.mjs              shared API client (configure, preset queries, the pit map's)
 src/core/team-api.mjs         the team presets
+src/core/team-ui.mjs          team widgets: themes, tokens, options, icons, the base class, the element
+src/core/team-views.mjs       team widgets: the results and match views
+src/core/team-text.mjs        team widgets: every text
 src/<widget>/<widget>.mjs     source (ES module) + <widget>.d.ts types
 demo/<widget>/                demo pages and example data
 docs/<widget>.md              documentation

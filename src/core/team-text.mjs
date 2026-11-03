@@ -1,0 +1,97 @@
+// Every text the team widgets show. Change any of them with the `text` option
+// ({ nextMatch: "Up next" }). {name} is filled in; a [one, other] pair picks by {n}.
+
+export const TEAM_TEXT = {
+    // states
+    noTeam: "No team set.",
+    notFound: "There is no team {team}.",
+    loadError: "Couldn't load this right now.",
+    // shared
+    team: "Team {team}",
+    live: "Live",
+    remote: "Remote",
+    advanced: "Advanced",
+    today: "today",
+    tomorrow: "tomorrow",
+    inDays: "in {n} days",
+    inWeeks: "in {n} weeks",
+    inMonths: "in {n} months",
+    scrollBack: "Scroll back",
+    scrollOn: "Scroll on",
+    // team card
+    teamNumber: "TEAM {team}",
+    rookieYear: "Rookie year {year}",
+    nowAt: "Now at ",
+    next: "Next: ",
+    noMoreEvents: "No more events this season",
+    noEventsYet: "No events yet this season",
+    upcomingEvents: "Upcoming events",
+    noneScheduled: "None scheduled this season",
+    // team card stats: labels and details
+    statOpr: "OPR",
+    statEpa: "EPA",
+    statRegion: "Rank in {region}",
+    statRecord: "{season} record",
+    statRecordTotal: "All-time record",
+    statWinRate: "{season} win rate",
+    statAwards: "{season} awards",
+    statAwardsTotal: "Awards",
+    statMatches: "{season} matches",
+    statMatchesTotal: "Matches played",
+    statEvents: "{season} events",
+    statEventsTotal: "Events",
+    statSeasons: "Seasons",
+    statRookie: "Since",
+    ofCount: "#{rank} of {count}",
+    worldwide: "#{rank} worldwide",
+    regionDetail: "of {count} by OPR",
+    noMatches: "no matches yet",
+    needsRest: "needs the REST API",
+    eventCount: ["{n} event", "{n} events"],
+    wonCount: "{n} won",
+    winRateDetail: "{wins} of {games} matches",
+    thisSeason: "this season",
+    played: "played",
+    allTime: "all time",
+    onFtcscout: "on FTCScout",
+    nthSeason: "{nth} season",
+    captain: "Captain",
+    pick: "{nth} Pick",
+    winner: "Winner",
+    place: "{nth} Place",
+    // results
+    seasonTitle: "{season} season",
+    seasonResults: "Season results",
+    noEventsSeason: "No events this season yet.",
+    // awards
+    awards: "Awards",
+    awardCount: ["{n} award", "{n} awards"],
+    awardsWon: " · {n} won",
+    noAwards: "No awards yet.",
+    // matches
+    nextMatch: "Next match",
+    nextMatchAlliance: "Next match · {alliance} alliance",
+    red: "Red",
+    blue: "Blue",
+    nextEvent: "Next event",
+    notCompeting: "Not competing right now, and no upcoming events this season.",
+    noMoreMatches: "No more matches scheduled yet.",
+    scheduleNotOut: "The match schedule isn't out yet.",
+    lastMatch: "Last: {match} · ",
+    won: "Won",
+    lost: "Lost",
+    tied: "Tied",
+    noScore: "{match} · no score yet",
+    rankRecord: "Rank #{rank} · {record}",
+    vs: " vs ",
+    minLate: "{n} min late",
+    now: "now",
+    inMinutes: "in {n} min",
+    inHours: "in {h} h {m} min",
+};
+
+/** Fill a text: {name} from vars; a [one, other] pair picks by vars.n. */
+export function fill(text, vars = {}) {
+    if (Array.isArray(text)) text = vars.n == 1 ? text[0] : text[1];
+    return String(text ?? "").replace(/\{(\w+)\}/g, (m, k) => (vars[k] != null ? vars[k] : m));
+}

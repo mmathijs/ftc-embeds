@@ -148,3 +148,62 @@ test("team stats are REST only, and unknown teams are not found", async () => {
     await assert.rejects(api.getTeamCard(6, { apiBase: "https://s2.test", fetch: noTeam.fetch }), (e) => e.notFound);
     await assert.rejects(api.getTeamCard("abc", { apiBase: "https://s3.test" }), /not a team number/);
 });
+
+test("awards are named like FTCScout names them", async () => {
+    const { awardParts, isWinningAward } = await import(resolve(root, "src/core/team-ui.mjs"));
+    assert.deepEqual(awardParts("Winner", 2), ["Winning Alliance", "1st Pick"]);
+    assert.deepEqual(awardParts("Winner", 1), ["Winning Alliance", "Captain"]);
+    assert.deepEqual(awardParts("Inspire", 2), ["Inspire Award", "2nd Place"]);
+    assert.deepEqual(awardParts("Think", 1), ["Think Award", "Winner"]);
+    assert.deepEqual(awardParts("DeansListFinalist", 1, 2025), ["FIRST Leadership Award Finalist", ""]);
+    assert.ok(isWinningAward("Winner", 3) && isWinningAward("Reach", 1) && !isWinningAward("Connect", 2));
+});
+
+const ev = (code, start, extra = {}) => ({ season: 2025, code, name: code, start, end: start, type: "Qualifier", remote: false, started: true, ongoing: false, finished: true, ...extra });
+
+test("season results fold divisions into their championship and sort newest first", async () => {
+    const { seasonRows } = await import(resolve(root, "src/core/team-views.mjs"));
+    const t = {
+        number: 1,
+        events: [
+            { event: ev("Q1", "2025-12-06"), stats: { rank: 5, wins: 3, losses: 3, ties: 0 }, awards: [] },
+            { event: { ...ev("CMP", "2026-02-07"), name: "Championship" }, stats: null, awards: [{ type: "Connect", placement: 3 }] },
+            { event: { ...ev("CMPJAC1", "2026-02-07"), name: "Championship - Jacobs Division" }, stats: { rank: 5, wins: 7, losses: 1, ties: 0 }, awards: [] },
+            { event: ev("S1", "2025-11-15", { type: "Scrimmage" }), stats: { rank: 8, wins: 2, losses: 2, ties: 0 }, awards: [] },
+        ],
+    };
+    const rows = seasonRows(t);
+    assert.deepEqual(rows.map((r) => r.event.code), ["CMP", "Q1", "S1"]);
+    assert.equal(rows[0].division, "Jacobs Division");
+    assert.equal(rows[0].stats.wins, 7);
+    assert.equal(rows[0].awards.length, 1);
+    assert.deepEqual(seasonRows(t, { order: "oldest", skipTypes: "Scrimmage" }).map((r) => r.event.code), ["Q1", "CMP"]);
+});
+
+test("the next match is the first unplayed one at the event that's on", async () => {
+    const { matchStatus } = await import(resolve(root, "src/core/team-views.mjs"));
+    const m = (id, played, time) => ({ eventCode: "E", alliance: "Red", match: { id, description: `Q-${id}`, hasBeenPlayed: played, scheduledStartTime: time, teams: [] } });
+    const t = {
+        number: 1,
+        events: [{ event: ev("E", "2026-02-07", { ongoing: true, finished: false }), stats: { rank: 2, wins: 1, losses: 0, ties: 0 } }, { event: ev("F", "2026-03-01", { started: false, finished: false }), stats: null }],
+        matches: [m(3, false, "2026-02-07T11:00:00Z"), m(1, true, "2026-02-07T09:00:00Z"), m(2, true, "2026-02-07T10:00:00Z"), m(4, false, "2026-02-07T12:00:00Z")],
+    };
+    const st = matchStatus(t, new Date("2026-02-07T10:30:00Z"));
+    assert.equal(st.current.code, "E");
+    assert.equal(st.next.match.id, 3);
+    assert.equal(st.last.match.id, 2);
+    assert.equal(st.upcoming.code, "F");
+    const idle = matchStatus({ ...t, events: t.events.map((e) => ({ ...e, event: { ...e.event, ongoing: false } })) }, new Date("2026-02-20T10:00:00Z"));
+    assert.equal(idle.current, null);
+    assert.equal(idle.upcoming.code, "F");
+});
+
+test("texts can be filled and changed", async () => {
+    const { TEAM_TEXT, fill } = await import(resolve(root, "src/core/team-text.mjs"));
+    assert.equal(fill(TEAM_TEXT.awardCount, { n: 1 }), "1 award");
+    assert.equal(fill(TEAM_TEXT.awardCount, { n: 3 }), "3 awards");
+    const { awardParts } = await import(resolve(root, "src/core/team-ui.mjs"));
+    const w = { options: { awardNames: { Think: "Think Tank Award" } }, t: (k, v) => fill({ pick: "pick {nth}" }[k] ?? TEAM_TEXT[k], v) };
+    assert.deepEqual(awardParts("Think", 1, 2025, w), ["Think Tank Award", "Winner"]);
+    assert.deepEqual(awardParts("Winner", 3, 2025, w), ["Winning Alliance", "pick 2nd"]);
+});
