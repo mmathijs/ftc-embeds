@@ -52,7 +52,9 @@
     a { color: inherit; text-underline-offset: 3px; }
     a:hover { color: var(--accent); }
 
-    .top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 14px 28px; border-bottom: 2px solid var(--ink); }
+    .top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 14px 28px; border-bottom: 2px solid var(--ink); position: sticky; top: 0; z-index: 30; background: var(--paper); }
+    /* The header stays at the top: --header (its height, set below) keeps other sticky parts and scrolled-to places under it. */
+    html { scroll-padding-top: var(--header, 56px); }
     .wordmark { font: 500 17px var(--mono); text-decoration: none; letter-spacing: -0.02em; }
     .wordmark b { font-weight: 500; color: var(--accent); }
     .top nav { display: flex; gap: 20px; font: 13px var(--mono); }
@@ -150,6 +152,14 @@
         <a href="/stats">stats</a>
     </nav>
 </header>
+<script>
+    (() => {
+        let head = document.querySelector("header.top");
+        let sync = () => document.documentElement.style.setProperty("--header", head.offsetHeight + "px");
+        sync();
+        if (window.ResizeObserver) new ResizeObserver(sync).observe(head);
+    })();
+</script>
 
 <section class="lede">
     <div>
