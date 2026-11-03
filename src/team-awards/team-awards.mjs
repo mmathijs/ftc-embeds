@@ -78,6 +78,8 @@ export class TeamAwards extends TeamWidget {
         if (Number(this.options.seasons)) seasons = seasons.slice(0, Number(this.options.seasons));
         awards = awards.filter((a) => seasons.includes(a.season));
         if (Number(this.options.limit)) awards = awards.slice(0, Number(this.options.limit));
+        // Only the seasons that still have awards after the limit.
+        seasons = seasons.filter((s) => awards.some((a) => a.season === s));
         let wins = awards.filter((a) => isWinningAward(a.type, a.placement)).length;
         let count = this.shows("count") ? h("span", { class: "count", part: "count" }, this.t("awardCount", { n: awards.length }) + (wins ? this.t("awardsWon", { n: wins }) : "")) : null;
 
