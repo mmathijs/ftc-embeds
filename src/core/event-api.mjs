@@ -54,6 +54,19 @@ export const EVENT_MATCHES_QUERY = `query EmbedEventMatches($season: Int!, $code
 }
 ${EVENT_SCORE_FRAGMENT}`;
 
+/** The GraphQL query behind GET {apiBase}/events/{season}/{code}/advancement. */
+export const EVENT_ADVANCEMENT_QUERY = `query EmbedEventAdvancement($season: Int!, $code: String!) {
+    eventByCode(season: $season, code: $code) {
+        ${EVENT_FIELDS}
+        advancementInfo { advancementSlots advancesTo fcmpReserved advancesToEvent { season code name start } }
+        advancement {
+            teamNumber rank advancementRank advanced eligibility totalPoints
+            qualPoints isQualFinal allianceSelectionPoints isAllianceSelectionFinal playoffPoints isPlayoffPointsFinal awardPoints
+            team { name }
+        }
+    }
+}`;
+
 /** "nlcmp" -> "NLCMP"; throws for anything that isn't an event code. */
 export function parseEventCode(code) {
     let c = String(code ?? "").trim().toUpperCase();
@@ -82,4 +95,9 @@ export function getEventRankings(event, options = {}) {
 /** An event's match schedule and results: GET {apiBase}/events/{season}/{code}/matches. */
 export function getEventMatches(event, options = {}) {
     return eventPreset("matches", event, EVENT_MATCHES_QUERY, options);
+}
+
+/** An event's advancement: slots, and each team's advancement points: GET {apiBase}/events/{season}/{code}/advancement. */
+export function getEventAdvancement(event, options = {}) {
+    return eventPreset("advancement", event, EVENT_ADVANCEMENT_QUERY, options);
 }

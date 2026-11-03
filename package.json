@@ -1,7 +1,7 @@
 {
     "name": "ftc-embeds",
     "version": "0.13.0",
-    "description": "Embeddable FIRST Tech Challenge widgets (pit maps, team cards, season results, awards, next match, season + live, event rankings, match schedules). Zero dependencies; works with any framework.",
+    "description": "Embeddable FIRST Tech Challenge widgets (pit maps, team cards, season results, awards, next match, season + live, event rankings, match schedules, advancement). Zero dependencies; works with any framework.",
     "license": "MIT",
     "repository": {
         "type": "git",
@@ -60,6 +60,12 @@
             "require": "./dist/event-matches.umd.js"
         },
         "./event-matches/umd": "./dist/event-matches.umd.min.js",
+        "./event-advancement": {
+            "types": "./src/event-advancement/event-advancement.d.ts",
+            "import": "./src/event-advancement/event-advancement.mjs",
+            "require": "./dist/event-advancement.umd.js"
+        },
+        "./event-advancement/umd": "./dist/event-advancement.umd.min.js",
         "./package.json": "./package.json"
     },
     "typesVersions": {
@@ -87,6 +93,9 @@
             ],
             "event-matches": [
                 "./src/event-matches/event-matches.d.ts"
+            ],
+            "event-advancement": [
+                "./src/event-advancement/event-advancement.d.ts"
             ]
         }
     },
@@ -109,6 +118,7 @@
         "./src/team-season/team-season.mjs",
         "./src/event-rankings/event-rankings.mjs",
         "./src/event-matches/event-matches.mjs",
+        "./src/event-advancement/event-advancement.mjs",
         "./dist/*.js",
         "./dist/*.mjs"
     ],
@@ -120,7 +130,7 @@
         "build": "node scripts/build.mjs",
         "dev": "node scripts/dev.mjs",
         "test": "node --test scripts/test.mjs",
-        "typecheck": "npx -y -p typescript@5.4.5 tsc --noEmit --strict --lib es2020,dom src/pit-map/pit-map.d.ts src/team-card/team-card.d.ts src/team-results/team-results.d.ts src/team-awards/team-awards.d.ts src/next-match/next-match.d.ts src/team-season/team-season.d.ts src/event-rankings/event-rankings.d.ts src/event-matches/event-matches.d.ts",
+        "typecheck": "npx -y -p typescript@5.4.5 tsc --noEmit --strict --lib es2020,dom src/pit-map/pit-map.d.ts src/team-card/team-card.d.ts src/team-results/team-results.d.ts src/team-awards/team-awards.d.ts src/next-match/next-match.d.ts src/team-season/team-season.d.ts src/event-rankings/event-rankings.d.ts src/event-matches/event-matches.d.ts src/event-advancement/event-advancement.d.ts",
         "prepare": "node scripts/build.mjs"
     },
     "devDependencies": {

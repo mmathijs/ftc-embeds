@@ -137,6 +137,7 @@ const TEAM_WIDGETS = [
     { name: "team-season", cls: "TeamSeason", define: "defineTeamSeasonElement", api: ["getTeamResults", "getTeamMatches"] },
     { name: "event-rankings", cls: "EventRankings", define: "defineEventRankingsElement", api: ["getEventRankings", "parseEventCode", "EVENT_RANKINGS_QUERY"] },
     { name: "event-matches", cls: "EventMatches", define: "defineEventMatchesElement", api: ["getEventMatches", "matchRows", "EVENT_MATCHES_QUERY"] },
+    { name: "event-advancement", cls: "EventAdvancement", define: "defineEventAdvancementElement", api: ["getEventAdvancement", "advancementRows", "EVENT_ADVANCEMENT_QUERY"] },
 ];
 
 for (const w of TEAM_WIDGETS) {
@@ -372,4 +373,12 @@ test("match times are in the event's time zone unless timeZone says otherwise", 
     const w = (options) => Object.assign(Object.create(TeamWidget.prototype), { options });
     assert.equal(w({ locale: "en-US", hourCycle: 24 }).time("2026-02-07T09:30:00Z", "Europe/Amsterdam"), "10:30");
     assert.equal(w({ locale: "en-US", hourCycle: 24, timeZone: "UTC" }).time("2026-02-07T09:30:00Z", "Europe/Amsterdam"), "09:30");
+});
+
+test("advancement runs by points, with teams without points last", async () => {
+    const { advancementRows } = await import(resolve(root, "src/event-advancement/event-advancement.mjs"));
+    const a = (teamNumber, rank, advancementRank) => ({ teamNumber, rank, advancementRank });
+    const rows = advancementRows({ advancement: [a(5, null, null), a(3, 2, null), a(1, 1, 1), a(2, 3, 2)] });
+    assert.deepEqual(rows.map((r) => r.teamNumber), [1, 3, 2, 5]);
+    assert.deepEqual(advancementRows({ advancement: [] }), []);
 });
