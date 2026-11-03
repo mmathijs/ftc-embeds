@@ -23,6 +23,7 @@ All the [event widgets' options](event-widgets.md#options) (event, season, highl
 | Option | Attribute | |
 | --- | --- | --- |
 | `team` | `team` | only this team's matches (and marked) |
+| `names` | `names` | team names under the numbers (off by default) |
 | `level` | `level` | `all` (default), `quals`, `playoffs` |
 | `state` | `state` | `all` (default), `upcoming`, `played` |
 | `limit` | `limit` | the first N matches (with `state="upcoming"`: the next N) |
@@ -32,6 +33,6 @@ Surrogate matches have a `*`; no-shows and disqualified teams are struck through
 
 **Parts for `hide`:** event, date, location, type, time, days.
 
-**Style parts** (`ftc-event-matches::part(…)` from the page): card, head, title, event, table, day, row, row-next, row-me, match, time, alliance, alliance-red, alliance-blue, score, chip-upcoming, chip-live.
+**Style parts** (`ftc-event-matches::part(…)` from the page): card, head, title, event, date, location, type, table, day, row, row-next, row-me, match, time, alliance, alliance-red, alliance-blue, score, name, chip-upcoming, chip-live.
 
 Data comes from `GET {apiBase}/events/{season}/{code}/matches` ([docs/api.md](api.md)).

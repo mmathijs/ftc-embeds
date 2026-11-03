@@ -46,7 +46,7 @@ export class EventAdvancement extends TeamWidget {
 .tbl .nf{color:var(--_muted);font-style:italic}
 .tbl tr.out td:not(.st){color:var(--_muted)}
 .tbl .chip.good{background:color-mix(in srgb,var(--_good) 14%,transparent);color:var(--_good)}
-@container (max-width:520px){.tbl .c-qual,.tbl .c-alliance,.tbl .c-playoff,.tbl .c-award{display:none}}`;
+@container (max-width:520px){.tbl .c-qual,.tbl .c-alliance,.tbl .c-playoff,.tbl .c-award{display:none}.tbl td.st .chip{font-size:0;padding:2px 6px}.tbl td.st .chip .icon{font-size:12px}.tbl td.st .muted{display:inline-block;max-width:6em;white-space:normal;line-height:1.2}}`;
 
     fetch(api) {
         return getEventAdvancement(this.options.event, api);
@@ -106,12 +106,12 @@ export class EventAdvancement extends TeamWidget {
             let out = a.eligibility && a.eligibility !== "ELIGIBLE";
             let cls = [mine.has(a.teamNumber) ? "me" : null, cut ? "cut" : null, out ? "out" : null].filter(Boolean).join(" ");
             let status = a.advanced
-                ? chip("good", this.icon("advanced"), this.t("advanced"))
+                ? Object.assign(chip("good", this.icon("advanced"), this.t("advanced")), { title: this.t("advanced") })
                 : out
                   ? h("span", { class: "muted small" }, this.t(ELIGIBILITY[a.eligibility] || "elMultiple"))
                   : null;
             return h("tr", { class: cls || null, part: ["row", mine.has(a.teamNumber) ? "row-me" : null, a.advanced ? "row-advanced" : null].filter(Boolean).join(" ") },
-                h("td", { class: "rk", part: "rank" }, a.rank != null ? String(a.rank) : "–"),
+                h("td", { class: "rk", part: "rank" }, this.int(a.rank)),
                 teamCell(this, a.teamNumber, a.team?.name),
                 cols.map((c) => {
                     let p = POINTS[c];

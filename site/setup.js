@@ -982,7 +982,9 @@
         let prev = steps[i - 1];
         let next = steps[i + 1];
         let skip = step == "highlight" && !teamList();
-        nav.innerHTML = `${prev ? `<a class="btn quiet" href="${href(prev)}" data-step="${prev}">← Back</a>` : "<span></span>"}${next ? `<a class="btn go" href="${href(next)}" data-step="${next}" ${answered(step) ? "" : 'aria-disabled="true"'}>${skip ? "Skip" : next == "done" ? "Show me the code" : "Next"} →</a>` : ""}`;
+        // On narrow screens the preview sits below the question: a jump to it.
+        let jump = step != "kind" ? `<a class="btn quiet preview-jump" href="#side">Preview ↓</a>` : "";
+        nav.innerHTML = `${prev ? `<a class="btn quiet" href="${href(prev)}" data-step="${prev}">← Back</a>` : "<span></span>"}${jump}${next ? `<a class="btn go" href="${href(next)}" data-step="${next}" ${answered(step) ? "" : 'aria-disabled="true"'}>${skip ? "Skip" : next == "done" ? "Show me the code" : "Next"} →</a>` : ""}`;
     }
 
     /** Sync everything that shows an answer, without rebuilding the page (keeps focus in inputs). */

@@ -104,7 +104,7 @@ export class EventRankings extends TeamWidget {
         let body = shown.map((r) => r === null
             ? h("tr", { class: "gap" }, h("td", { colspan: String(cols.length + 2) }, "⋯"))
             : h("tr", { class: mine.has(r.teamNumber) ? "me" : null, part: mine.has(r.teamNumber) ? "row row-me" : "row" },
-                h("td", { class: "rk", part: "rank" }, String(r.stats.rank)),
+                h("td", { class: "rk", part: "rank" }, this.int(r.stats.rank)),
                 teamCell(this, r.teamNumber, r.team?.name),
                 cols.map((c) => h("td", { class: `n c-${c}`, part: `col col-${c}` }, COLUMNS[c].value(this, r.stats))),
             ));

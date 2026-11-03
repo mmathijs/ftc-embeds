@@ -47,13 +47,15 @@ export class Countdown extends TeamWidget {
 .cd-boxes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--_gap)}
 .cd-box{background:var(--_surface);border-radius:var(--_inner-radius);padding:10px 6px;text-align:center}
 .cd-num{display:block;font-size:calc(var(--_value-size) * 1.6);font-weight:var(--_value-weight);line-height:1.1;font-variant-numeric:tabular-nums}
-.cd-unit{display:block;font-size:calc(var(--_small-size) - .5px);color:var(--_muted);text-transform:var(--_label-transform);letter-spacing:var(--_label-letter-spacing);margin-top:2px}
-.cd-line{font-size:var(--_value-size);font-weight:var(--_value-weight);font-variant-numeric:tabular-nums}
-.cd-line .cd-unit{display:inline;margin:0 8px 0 2px;font-size:var(--_small-size)}
+.cd-unit{display:block;font-size:calc(var(--_small-size) - .5px);color:var(--_muted);text-transform:var(--_label-transform);letter-spacing:var(--_label-letter-spacing);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cd-line{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 12px;font-size:var(--_value-size);font-weight:var(--_value-weight);font-variant-numeric:tabular-nums}
+.cd-pair{white-space:nowrap}
+.cd-line .cd-unit{display:inline;margin-left:3px;font-size:var(--_small-size)}
 .cd-state{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;font-size:var(--_value-size);font-weight:var(--_value-weight)}
 .cd-state a.watch{font-size:var(--_small-size);font-weight:600;color:var(--_accent)}
 .cd-done{color:var(--_muted)}
-@container (max-width:300px){.cd-boxes{grid-template-columns:repeat(2,minmax(0,1fr))}}`;
+@container (max-width:380px){.cd-unit{letter-spacing:0;font-size:10px}.cd-box{padding:8px 2px}}
+@container (max-width:340px){.cd-boxes{grid-template-columns:repeat(2,minmax(0,1fr))}}`;
 
     fetch(api) {
         // An event (event + season), or else a team's next match or event.
@@ -65,7 +67,8 @@ export class Countdown extends TeamWidget {
     }
 
     isLive(d) {
-        return this.byEvent ? false : isLive(d);
+        // An event that's on (or about to start) reloads, so the page moves on to "over" by itself.
+        return this.byEvent ? !!d.ongoing : isLive(d);
     }
 
     /** What the countdown is to: { target (ms), label, event, live, done, match }. */
@@ -116,10 +119,10 @@ export class Countdown extends TeamWidget {
     clock(left) {
         let units = UNITS.filter(([u]) => u !== "days" || left.days > 0 || this.layout !== "compact");
         if (this.layout === "compact") {
-            return h("div", { class: "cd-line", part: "clock" }, units.map(([u, label]) => [
+            return h("div", { class: "cd-line", part: "clock" }, units.map(([u, label]) => h("span", { class: "cd-pair", part: `unit unit-${u}` },
                 h("span", { "data-unit": u }, String(left[u]).padStart(u === "days" ? 1 : 2, "0")),
                 h("span", { class: "cd-unit", "data-label": u }, this.t(label, { n: left[u] })),
-            ]));
+            )));
         }
         return h("div", { class: "cd-boxes", part: "clock" }, units.map(([u, label]) =>
             h("div", { class: "cd-box", part: `unit unit-${u}` },

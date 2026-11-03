@@ -33,7 +33,7 @@
     let root = document.getElementById("widget");
     let widget = new Widget(root, options);
     // Tell the embedding page the height, so it can size the iframe to fit.
-    let report = () => parent !== window && parent.postMessage({ type: "ftc-embeds:height", widget: page.widget, height: Math.ceil(root.getBoundingClientRect().height) }, "*");
+    let report = () => parent !== window && parent.postMessage({ type: "ftc-embeds:height", widget: page.widget, page: location.pathname.split("/").pop().replace(/\.html$/, ""), height: Math.ceil(root.getBoundingClientRect().height) }, "*");
     if (typeof ResizeObserver !== "undefined") new ResizeObserver(report).observe(root);
     widget.on("load", report);
 })();

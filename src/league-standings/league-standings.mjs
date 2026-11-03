@@ -18,7 +18,8 @@ export class LeagueStandings extends TeamWidget {
     // event: any league meet or the league tournament of the league; highlight: team numbers to mark
     static defaults = { highlight: null, refresh: 60 };
     static css = EVENT_CSS + `
-.lg-sub{margin:-6px 0 12px;font-size:var(--_small-size);color:var(--_muted)}`;
+.lg-sub{margin:-6px 0 12px;font-size:var(--_small-size);color:var(--_muted)}
+@container (max-width:340px){.tbl .c-record{display:none}}`;
 
     fetch(api) {
         return getEventLeague(this.options.event, api);
@@ -38,7 +39,7 @@ export class LeagueStandings extends TeamWidget {
     group(ev, g) {
         let rows = [...g.teams].filter((t) => t.stats?.rank).sort((a, b) => a.stats.rank - b.stats.rank);
         let sub = [
-            this.shows("region") && g.league.regionCode ? g.league.regionCode : null,
+            this.shows("region") && g.league.regionCode ? this.t("leagueRegion", { region: g.league.regionCode }) : null,
             this.shows("parent") && g.league.parentLeagueName ? this.t("leagueParent", { league: g.league.parentLeagueName }) : null,
         ].filter(Boolean);
         return h("div", { part: "league" },
@@ -56,15 +57,15 @@ export class LeagueStandings extends TeamWidget {
             h("th", { class: "rk" }, this.t("colRank")),
             h("th", null, this.t("colTeam")),
             h("th", { class: "n" }, this.t("colAvgRp")),
-            this.shows("record") ? h("th", { class: "n" }, this.t("colRecord")) : null,
+            this.shows("record") ? h("th", { class: "n c-record" }, this.t("colRecord")) : null,
         );
         let body = shown.map((r) => r === null
             ? h("tr", { class: "gap" }, h("td", { colspan: "4" }, "⋯"))
             : h("tr", { class: mine.has(r.teamNumber) ? "me" : null, part: mine.has(r.teamNumber) ? "row row-me" : "row" },
-                h("td", { class: "rk", part: "rank" }, String(r.stats.rank)),
+                h("td", { class: "rk", part: "rank" }, this.int(r.stats.rank)),
                 teamCell(this, r.teamNumber, r.team?.name),
                 h("td", { class: "n", part: "col col-avg-rp" }, stat(this, r.avgRp)),
-                this.shows("record") ? h("td", { class: "n", part: "col col-record" }, record(r.stats) ?? "–") : null,
+                this.shows("record") ? h("td", { class: "n c-record", part: "col col-record" }, record(r.stats) ?? "–") : null,
             ));
         return h("div", { class: "tbl-wrap" }, h("table", { class: "tbl", part: "table" }, h("thead", null, head), h("tbody", null, body)));
     }

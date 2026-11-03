@@ -38,7 +38,8 @@ export class EventMatches extends TeamWidget {
     static subjects = ["event"];
     // team: only that team's matches (and marked); level: "all" | "quals" | "playoffs";
     // state: "all" | "upcoming" | "played"; highlight: team numbers to mark
-    static defaults = { level: "all", state: "all", highlight: null, refresh: 30 };
+    // names: team names under the numbers
+    static defaults = { level: "all", state: "all", highlight: null, names: false, refresh: 30 };
     static css = EVENT_CSS + `
 .tbl .md{font-weight:650;white-space:nowrap}
 .tbl .tt{white-space:nowrap;color:var(--_muted);font-size:var(--_small-size)}
@@ -47,17 +48,22 @@ export class EventMatches extends TeamWidget {
 .tbl .al .tn{display:inline-block;margin:0 3px}
 .tbl .al .tn.me{font-weight:750;text-decoration:underline;text-underline-offset:2px}
 .tbl .al .tn.out{text-decoration:line-through;color:var(--_muted)}
-.tbl .sc{text-align:center;white-space:nowrap;font-variant-numeric:tabular-nums}
-.tbl .sc .s{display:inline-block;min-width:2.2em}
+.tbl .sc{white-space:nowrap;font-variant-numeric:tabular-nums}
+.tbl .sc .scg{display:inline-grid;grid-template-columns:2.4em auto 2.4em;gap:4px;align-items:baseline}
+.tbl .sc .r{text-align:right}
+.tbl .sc .b{text-align:left}
+.tbl th.sc{text-align:center}
 .tbl .sc .win{font-weight:750}
 .tbl .sc .r{color:var(--_red)}
 .tbl .sc .b{color:var(--_blue)}
 .tbl tr.played .md{color:var(--_muted)}
-.tbl tr.nextm td{background:color-mix(in srgb,var(--_accent) 10%,transparent)}
+.tbl tr.nextm td{background:color-mix(in srgb,var(--_accent) 10%,transparent);border-top:2px solid var(--_accent)}
+.tbl tr.nextm + tr td{border-top-color:var(--_accent)}
+.tbl .al .tn .tnm{display:block;font-size:calc(var(--_small-size) - 1px);color:var(--_muted);font-weight:400;text-decoration:none;max-width:12em;overflow:hidden;text-overflow:ellipsis}
 .tbl tr.day td{border-top:0;padding-top:12px;font-size:calc(var(--_small-size) - .5px);font-weight:600;color:var(--_muted);text-transform:var(--_label-transform);letter-spacing:var(--_label-letter-spacing)}
 .tbl .chip{margin-left:6px;vertical-align:1px}
 @container (max-width:440px){.tbl .tt{display:none}}
-@container (max-width:380px){.tbl .al .tn{display:block;margin:1px 0}.tbl .md .chip{display:none}}`;
+@container (max-width:380px){.tbl .al .tn{display:block;margin:1px 0}.tbl .md .chip{display:none}.tbl .al .tn .tnm{display:none}}`;
 
     fetch(api) {
         return getEventMatches(this.options.event, api);
@@ -87,7 +93,14 @@ export class EventMatches extends TeamWidget {
         if (team) mine.add(team);
         // Times and days in the timeZone option, or else the event's own time zone.
         let tz = this.options.timeZone || ev.timezone || undefined;
-        let dayOf = (iso) => (iso ? new Date(iso).toLocaleDateString(this.locale, { weekday: "short", month: "short", day: "numeric", timeZone: tz }) : "");
+        // Day headers in the dateFormat (iso: 2026-02-07, numeric: Sat 2/7, long: Saturday, February 7).
+        let fmt = this.options.dateFormat;
+        let dayOpts = fmt === "long" ? { weekday: "long", month: "long", day: "numeric" } : fmt === "numeric" ? { weekday: "short", month: "numeric", day: "numeric" } : { weekday: "short", month: "short", day: "numeric" };
+        let dayOf = (iso) => {
+            if (!iso) return "";
+            if (fmt === "iso") return new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(iso));
+            return new Date(iso).toLocaleDateString(this.locale, { ...dayOpts, timeZone: tz });
+        };
         let days = new Set(rows.map((m) => dayOf(m.scheduledStartTime || m.actualStartTime)).filter(Boolean));
         let showDays = days.size > 1 && this.shows("days");
         let out = [];
@@ -116,7 +129,7 @@ export class EventMatches extends TeamWidget {
         let s = m.scores;
         let red = s?.red?.totalPoints, blue = s?.blue?.totalPoints;
         let score = m.hasBeenPlayed && s
-            ? [h("span", { class: `s r${red > blue ? " win" : ""}` }, String(red)), h("span", { class: "muted" }, "–"), h("span", { class: `s b${blue > red ? " win" : ""}` }, String(blue))]
+            ? h("span", { class: "scg" }, h("span", { class: `s r${red > blue ? " win" : ""}` }, this.int(red)), h("span", { class: "muted" }, "–"), h("span", { class: `s b${blue > red ? " win" : ""}` }, this.int(blue)))
             : h("span", { class: "muted" }, "–");
         let cls = [m.hasBeenPlayed ? "played" : null, isNext ? "nextm" : null, has ? "me" : null].filter(Boolean).join(" ");
         return h("tr", { class: cls || null, part: ["row", isNext ? "row-next" : null, has ? "row-me" : null].filter(Boolean).join(" ") },
@@ -132,7 +145,8 @@ export class EventMatches extends TeamWidget {
         let teams = m.teams.filter((t) => t.alliance === color).sort((a, b) => a.station.localeCompare(b.station));
         return h("td", { class: `al ${color.toLowerCase()}`, part: `alliance alliance-${color.toLowerCase()}` }, teams.map((t) =>
             h("span", { class: ["tn", mine.has(t.teamNumber) ? "me" : null, t.noShow || t.dq ? "out" : null].filter(Boolean).join(" "), title: t.team?.name || null },
-                this.teamLink(t.teamNumber, String(t.teamNumber)), t.surrogate ? "*" : "")));
+                this.teamLink(t.teamNumber, String(t.teamNumber)), t.surrogate ? "*" : "",
+                this.options.names && t.team?.name ? h("span", { class: "tnm", part: "name" }, t.team.name) : null)));
     }
 
     render() {
@@ -143,7 +157,7 @@ export class EventMatches extends TeamWidget {
 
 /** Registers <ftc-event-matches event="NLCMP" season="2025">. Extra attributes: level, state, highlight, refresh (and team, to show one team's matches). */
 export function defineEventMatchesElement(tagName = "ftc-event-matches") {
-    defineTeamElement(tagName, EventMatches, { level: "level", state: "state", highlight: "highlight", refresh: "refresh" });
+    defineTeamElement(tagName, EventMatches, { level: "level", state: "state", highlight: "highlight", names: "names", refresh: "refresh" });
 }
 
 if (typeof window !== "undefined" && typeof customElements !== "undefined") defineEventMatchesElement();

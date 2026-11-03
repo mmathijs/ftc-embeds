@@ -31,6 +31,6 @@ Narrow widgets show only the total.
 
 **Parts for `hide`:** event, date, location, type, names, summary.
 
-**Style parts** (`ftc-event-advancement::part(…)` from the page): card, head, title, event, summary, slots, reserved, advanced-count, table, row, row-me, row-advanced, rank, team, name, col, col-qual, col-alliance, col-playoff, col-award, col-total, status, chip-good.
+**Style parts** (`ftc-event-advancement::part(…)` from the page): card, head, title, event, date, location, type, summary, slots, reserved, advanced-count, table, row, row-me, row-advanced, rank, team, name, col, col-qual, col-alliance, col-playoff, col-award, col-total, status, chip-good.
 
 Data comes from `GET {apiBase}/events/{season}/{code}/advancement` ([docs/api.md](api.md)).

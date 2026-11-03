@@ -204,7 +204,8 @@ const BASE_CSS = `
 .chip.live{background:color-mix(in srgb,var(--_bad) 14%,transparent);color:var(--_bad)}
 .chip.live::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;animation:${PREFIX}-blink 1.4s ease-in-out infinite}
 @keyframes ${PREFIX}-blink{50%{opacity:.25}}
-.status{padding:20px 4px;text-align:center;color:var(--_muted)}
+.status{padding:4px 0;text-align:left;color:var(--_muted)}
+.${PREFIX} a:focus-visible{outline:2px solid var(--_accent);outline-offset:2px;border-radius:2px}
 .skeleton{height:12px;border-radius:6px;background:var(--_surface);margin:10px 0;animation:${PREFIX}-pulse 1.4s ease-in-out infinite}
 @keyframes ${PREFIX}-pulse{50%{opacity:.5}}
 .foot{margin-top:12px;display:flex;justify-content:flex-end;font-size:12px;color:var(--_muted)}
@@ -662,7 +663,7 @@ export class TeamWidget {
 }
 
 /** Options that are on or off: present (`<ftc-team-card bare>`) means on. */
-const FLAGS = new Set(["bare", "onlyWon"]);
+const FLAGS = new Set(["bare", "onlyWon", "names"]);
 
 /** An attribute's option value: JSON for objects and arrays, "true"/"false" as booleans, and a
  * flag attribute without a value ("") as true. */

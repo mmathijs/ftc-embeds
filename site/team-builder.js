@@ -9,7 +9,7 @@
         "team-results": { global: "FtcTeamResults", cls: "TeamResults", tag: "ftc-team-results", label: "Season results", hint: "Every event this season: rank, record, awards, advancement.", layouts: { list: "List", strip: "Scrolling tiles" }, parts: "date, type, location, division, rank, record, awards, advanced, team" },
         "team-awards": { global: "FtcTeamAwards", cls: "TeamAwards", tag: "ftc-team-awards", label: "Awards", hint: "Every award, by season.", layouts: { list: "List", strip: "Award cards" }, parts: "count, icon, placement, event, season, date" },
         "next-match": { global: "FtcNextMatch", cls: "NextMatch", tag: "ftc-next-match", label: "Next match", hint: "During an event: the next match and the last result, updating itself. Otherwise the next event.", layouts: { list: "Full", compact: "Two lines" }, parts: "event, time, countdown, alliances, names, last, rank, upcoming" },
-        "team-season": { global: "FtcTeamSeason", cls: "TeamSeason", tag: "ftc-team-season", label: "Season + next match", hint: "Season results, with the next match on top while competing.", layouts: { list: "List", strip: "Scrolling tiles" }, parts: "live, team, date, type, location, rank, record, awards, advanced" },
+        "team-season": { global: "FtcTeamSeason", cls: "TeamSeason", tag: "ftc-team-season", label: "Season + next match", hint: "Season results, with the next match on top while competing.", layouts: { list: "List", strip: "Scrolling tiles" }, parts: "live, team, date, type, location, division, rank, record, awards, advanced, event, time, countdown, alliances, names, last, upcoming" },
     };
     // Starting points for the custom CSS: for every widget, and per widget.
     const CSS_EXAMPLES = {

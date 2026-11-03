@@ -32,6 +32,8 @@ export interface EventMatchesOptions extends EventWidgetOptions {
     level?: "all" | "quals" | "playoffs";
     /** "all" (default) | "upcoming" | "played" */
     state?: "all" | "upcoming" | "played";
+    /** Team names under the numbers (default false). */
+    names?: boolean;
 }
 
 /** An event's match schedule and results: times, alliances, scores; the next match marked while the event is on. `team` shows one team's matches. */

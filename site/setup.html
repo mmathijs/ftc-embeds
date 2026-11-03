@@ -189,7 +189,9 @@
 
     footer { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 18px 28px 28px; border-top: 2px solid var(--ink); font: 12px/1.6 var(--mono); color: var(--ink-2); }
 
+    .preview-jump { display: none; }
     @media (max-width: 920px) {
+        .preview-jump { display: inline-flex; }
         .top, .ask, .side, footer { padding-left: 16px; padding-right: 16px; }
         .stage { grid-template-columns: minmax(0, 1fr); min-height: 0; }
         .stage:not(.solo) .ask { border-right: 0; border-bottom: 1px solid var(--rule); }

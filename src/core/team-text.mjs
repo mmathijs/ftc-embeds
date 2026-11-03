@@ -103,6 +103,7 @@ export const TEAM_TEXT = {
     leagueStandings: "League standings",
     leagueTitle: "{league} League",
     leagueParent: "part of {league}",
+    leagueRegion: "Region {region}",
     colAvgRp: "Avg RP",
     notALeagueEvent: "This event isn't part of a league.",
     noLeagueStandings: "No league standings for this league yet.",

@@ -34,6 +34,10 @@ Themes, icons, texts and `::part()` styling work as described in [team-widgets.m
 
 While the event is on, the live event widgets refresh every 30 seconds (`refresh`) while the page is visible. The API keeps their answers for at most 30 seconds.
 
+## Iframes
+
+Every widget has an iframe page (`https://ftc-embeds.com/embed/<widget>?event=…`), with any option as a URL parameter. It posts `{ type: "ftc-embeds:height", page: "event-rankings", widget: "EventRankings", height }` to the parent whenever its height changes, so the parent can size the iframe.
+
 ## Divisions
 
 A championship with divisions ranks and schedules its teams per division. The widgets show the championship's divisions as buttons to switch between, or take a division's code directly (`event="NLCMPOCK1"`).

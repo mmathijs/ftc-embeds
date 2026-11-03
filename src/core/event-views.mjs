@@ -29,8 +29,13 @@ export const EVENT_CSS = `
 .tbl .tm .nm{color:var(--_muted);margin-left:6px}
 .tbl tr.me td{background:color-mix(in srgb,var(--_accent) 14%,transparent)}
 .tbl tr.me td:first-child{box-shadow:inset 3px 0 0 var(--_accent);padding-left:8px}
-.tbl tr.gap td{border-top:0;color:var(--_muted);text-align:center;padding:2px 0;line-height:1}
-.tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.tbl tr.me td:last-child{padding-right:8px}
+.tbl .tm{overflow-wrap:break-word}
+.tbl .chip{text-transform:none;letter-spacing:normal}
+.tbl tr.gap td{border-top:0;color:var(--_muted);text-align:center;padding:4px 0;line-height:1;letter-spacing:.2em}
+.tabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+.density-compact .evline{margin:-4px 0 8px}
+@container (max-width:420px){.evline [part=type],.evline [part=location]{display:none}}
 .tabs button{all:unset;cursor:pointer;font-size:var(--_chip-font-size);font-weight:var(--_chip-weight);padding:var(--_chip-padding);border-radius:var(--_chip-radius);background:var(--_surface);color:var(--_text)}
 .tabs button[aria-pressed="true"]{background:var(--_accent);color:var(--_accent-text)}
 .tabs button:focus-visible{outline:2px solid var(--_accent);outline-offset:1px}
