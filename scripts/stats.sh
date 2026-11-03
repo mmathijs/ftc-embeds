@@ -1,11 +1,19 @@
 #!/usr/bin/env bash
 # Embed statistics for ftc-embeds.com.
-#   scripts/stats.sh [--days N] [--json]   which sites embed the pit map, and how often
+#   scripts/stats.sh [--days N] [--json]   which sites use ftc-embeds, and how often
 #   scripts/stats.sh install               (re)install logging, the public /stats page and its cron job
+#   scripts/stats.sh install-api           (re)install the embeds API call counting on the API server
+#                                          (sites using the npm package only show up there)
 set -euo pipefail
 cd "$(dirname "$0")/.."
 HOST="${DEPLOY_HOST:-ftc-embeds-server}"
 DIR=/opt/ftc-embeds
+API_HOST="${API_HOST:-root@contabo}"
+API_DIR=/opt/ftc-embeds-api-stats
+# Served by the API's nginx as https://ftcscout-api.mmathijs.nl/embeds-usage.json (static files
+# go before the proxy), where embed-stats.py picks it up.
+API_OUT=/home/mmathijs-ftcscout-api/htdocs/ftcscout-api.mmathijs.nl/embeds-usage.json
+API_CRON="*/10 * * * * python3 $API_DIR/api-usage.py --days 90 --out $API_OUT"
 CRON="*/10 * * * * python3 $DIR/embed-stats.py --json --days 90 > $DIR/extra/www/stats.json.tmp && mv $DIR/extra/www/stats.json.tmp $DIR/extra/www/stats.json"
 
 case "${1:-}" in
@@ -24,6 +32,16 @@ sudo docker compose up -d --quiet-pull
 sudo docker exec ftc-embeds-web caddy reload --config /etc/caddy/Caddyfile
 REMOTE
     echo "Statistics installed on $HOST (page: https://ftc-embeds.com/stats)"
+    ;;
+install-api)
+    ssh "$API_HOST" "mkdir -p $API_DIR"
+    rsync -az --chmod=F644 deploy/stats/api-usage.py "$API_HOST:$API_DIR/"
+    ssh "$API_HOST" bash -s <<REMOTE
+set -euo pipefail
+(crontab -l 2>/dev/null | grep -v "api-usage.py" || true; echo "$API_CRON") | crontab -
+python3 $API_DIR/api-usage.py --days 90 --out $API_OUT
+REMOTE
+    echo "API call counting installed on $API_HOST (https://ftcscout-api.mmathijs.nl/embeds-usage.json)"
     ;;
 *)
     args=$(printf "%q " "$@")

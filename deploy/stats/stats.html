@@ -12,7 +12,7 @@
         --paper: #f4f1ea; --paper-2: #ebe6db; --ink: #1c1b19; --ink-2: #5d5a53; --rule: #cfc8b8;
         --grid: rgba(28, 27, 25, 0.016); --accent: #ff5a1f; --field: #fbf9f4;
         /* chart series, validated against --paper (light) and the dark paper (dark) */
-        --s-iframe: #2a78d6; --s-library: #eb6834; --gridline: #ddd6c7;
+        --s-iframe: #2a78d6; --s-library: #eb6834; --s-api: #1b9e6e; --gridline: #ddd6c7;
         --sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
         --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
         color-scheme: light;
@@ -21,7 +21,7 @@
         :root {
             --paper: #161512; --paper-2: #1f1e1a; --ink: #ece7dc; --ink-2: #a39d90; --rule: #3a3731;
             --grid: rgba(236, 231, 220, 0.018); --field: #1b1a17;
-            --s-iframe: #3987e5; --s-library: #d95926; --gridline: #2c2a25;
+            --s-iframe: #3987e5; --s-library: #d95926; --s-api: #279f72; --gridline: #2c2a25;
             color-scheme: dark;
         }
     }
@@ -41,7 +41,7 @@
     .top nav { display: flex; gap: 20px; font: 13px var(--mono); }
     .top nav a { text-decoration: none; color: var(--ink-2); }
     .top nav a[aria-current] { color: var(--ink); }
-    main { padding: 30px 28px 40px; max-width: 1180px; }
+    main { padding: 40px 28px 56px; max-width: 1180px; margin: 0 auto; box-sizing: border-box; }
     h1 { margin: 0; font-size: 30px; line-height: 1.15; font-weight: 600; letter-spacing: -0.02em; }
     .sub { margin: 8px 0 0; color: var(--ink-2); font-size: 14px; }
     .controls { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin: 26px 0 18px; padding-bottom: 14px; border-bottom: 1px solid var(--rule); }
@@ -50,7 +50,7 @@
     .seg button + button { border-left: 1px solid var(--ink); }
     .seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
     .updated { font: 12px var(--mono); color: var(--ink-2); }
-    .tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 2px solid var(--ink); margin-bottom: 26px; }
+    .tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 2px solid var(--ink); margin-bottom: 26px; }
     .tile { padding: 14px 18px; border-left: 1px solid var(--rule); }
     .tile:first-child { border-left: 0; }
     .tile .label { font-size: 13px; color: var(--ink-2); display: flex; align-items: center; gap: 7px; }
@@ -77,11 +77,15 @@
     .table-wrap { overflow-x: auto; }
     .empty { padding: 28px 0; color: var(--ink-2); }
     .note { margin-top: 22px; font-size: 13px; color: var(--ink-2); max-width: 70ch; }
+    @media (max-width: 900px) {
+        .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .tile:nth-child(3) { border-left: 0; }
+        .tile:nth-child(n+3) { border-top: 1px solid var(--rule); }
+    }
     @media (max-width: 700px) {
         .top, main { padding-left: 16px; padding-right: 16px; }
-        .tiles { grid-template-columns: 1fr; }
-        .tile { border-left: 0; border-top: 1px solid var(--rule); }
-        .tile:first-child { border-top: 0; }
+        .tile { padding: 12px 14px; }
+        .tile .value { font-size: 26px; }
         h1 { font-size: 25px; }
     }
 </style>
@@ -97,8 +101,8 @@
 </header>
 
 <main>
-    <h1>Who embeds the pit map</h1>
-    <p class="sub">Loads of the iframe and of the script, per website that embeds them. Counted from the Referer header the browser sends; no IP addresses or cookies are stored.</p>
+    <h1>Who uses ftc-embeds</h1>
+    <p class="sub">Per website: loads of the iframes and of the script from ftc-embeds.com, and calls to the embeds API, which is how sites that install the npm package show up. Counted from the Referer header the browser sends; no IP addresses or cookies are stored.</p>
 
     <div class="controls">
         <div class="seg" role="group" aria-label="Time range">
@@ -112,15 +116,17 @@
     <div class="tiles">
         <div class="tile"><div class="label"><span class="key" style="background:var(--s-iframe)"></span>iframe loads</div><div class="value" id="t-iframe">–</div></div>
         <div class="tile"><div class="label"><span class="key" style="background:var(--s-library)"></span>script loads</div><div class="value" id="t-library">–</div></div>
+        <div class="tile"><div class="label"><span class="key" style="background:var(--s-api)"></span>npm / API calls</div><div class="value" id="t-api">–</div></div>
         <div class="tile"><div class="label">websites</div><div class="value" id="t-sites">–</div></div>
     </div>
 
     <section>
         <div class="section-head">
-            <h2>Loads per day</h2>
+            <h2>Per day</h2>
             <div class="legend">
                 <span><span class="key" style="background:var(--s-iframe)"></span>iframe</span>
                 <span><span class="key" style="background:var(--s-library)"></span>script</span>
+                <span><span class="key" style="background:var(--s-api)"></span>npm / API</span>
                 <button type="button" class="link-btn" id="toggle-table">show as table</button>
             </div>
         </div>
@@ -133,7 +139,7 @@
         <div class="table-wrap" id="sites"></div>
     </section>
 
-    <p class="note">Iframe loads are counted on every visit. Script loads are a lower bound: Cloudflare serves cached copies of the script without asking the server. Visits within 5 minutes of each other may count once. "(no referrer)" means the browser didn't say which site it came from, or the embed was opened directly.</p>
+    <p class="note">Iframe loads are counted on every visit. Script loads are a lower bound: Cloudflare serves cached copies of the script without asking the server. Visits within 5 minutes of each other may count once. API calls are the requests the widgets make for their data (one or two per widget per visit, plus refreshes during a competition); the iframes' own calls aren't counted again, but sites using the script tag show up there too. "(no referrer)" means the browser didn't say which site it came from, the embed was opened directly, or the API was called from a server.</p>
 </main>
 
 <script>
@@ -145,6 +151,12 @@
     let showTable = false;
 
     const fmt = (n) => n.toLocaleString("en-US");
+    // Stacked bottom to top in this order.
+    const SERIES = [
+        { key: "iframe", label: "iframe" },
+        { key: "library", label: "script" },
+        { key: "api", label: "npm / API" },
+    ];
     const isoDay = (d) => d.toISOString().slice(0, 10);
     function daysBack(n) {
         let out = [];
@@ -166,20 +178,21 @@
     function summarize() {
         let days = daysBack(range);
         let inRange = new Set(days);
-        let perDay = Object.fromEntries(days.map((d) => [d, { iframe: 0, library: 0 }]));
+        let perDay = Object.fromEntries(days.map((d) => [d, { iframe: 0, library: 0, api: 0 }]));
         let sites = [];
         for (let s of data.sites) {
-            let iframe = 0, library = 0;
-            for (let [d, c] of Object.entries(s.perDay || {})) {
+            let c = { iframe: 0, library: 0, api: 0 };
+            for (let [d, n] of Object.entries(s.perDay || {})) {
                 if (!inRange.has(d)) continue;
-                iframe += c.iframe;
-                library += c.library;
-                perDay[d].iframe += c.iframe;
-                perDay[d].library += c.library;
+                for (let k of SERIES.map((x) => x.key)) {
+                    c[k] += n[k] || 0;
+                    perDay[d][k] += n[k] || 0;
+                }
             }
-            if (iframe + library > 0) sites.push({ ...s, iframe, library });
+            if (c.iframe + c.library + c.api > 0) sites.push({ ...s, ...c });
         }
-        sites.sort((a, b) => b.iframe + b.library - (a.iframe + a.library) || a.site.localeCompare(b.site));
+        const total = (x) => x.iframe + x.library + x.api;
+        sites.sort((a, b) => total(b) - total(a) || a.site.localeCompare(b.site));
         return { days, perDay, sites };
     }
 
@@ -201,7 +214,7 @@
         box.replaceChildren();
         let W = Math.max(320, box.clientWidth || 800);
         let H = 240, padL = 34, padB = 26, padT = 8;
-        let { step, max } = axis(Math.max(0, ...days.map((d) => perDay[d].iframe + perDay[d].library)));
+        let { step, max } = axis(Math.max(0, ...days.map((d) => perDay[d].iframe + perDay[d].library + perDay[d].api)));
         let svg = document.createElementNS(NS, "svg");
         svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
         svg.setAttribute("role", "img");
@@ -224,15 +237,19 @@
         let tip = el("div", { class: "tip", hidden: "" });
         days.forEach((d, i) => {
             let cx = padL + slot * i + slot / 2;
-            let { iframe, library } = perDay[d];
+            let day = perDay[d];
+            let sum = day.iframe + day.library + day.api;
             let x = cx - bw / 2;
             let r = Math.min(4, bw / 2);
-            // iframe at the baseline, script stacked on top, 2px paper gap between them
-            let hI = iframe ? Math.max(2, y(0) - y(iframe)) : 0;
-            let hL = library ? Math.max(2, y(0) - y(library)) : 0;
-            let topI = y(0) - hI;
-            if (hI) mk("path", { d: roundTop(x, topI, bw, hI, hL ? 0 : r), fill: "var(--s-iframe)" });
-            if (hL) mk("path", { d: roundTop(x, topI - (hI ? 2 : 0) - hL, bw, hL, r), fill: "var(--s-library)" });
+            // iframe at the baseline, script and API stacked on top, 2px paper gap between them;
+            // only the top segment gets rounded corners.
+            let parts = SERIES.filter((sr) => day[sr.key]).map((sr) => ({ ...sr, h: Math.max(2, y(0) - y(day[sr.key])) }));
+            let top = y(0);
+            parts.forEach((p, j) => {
+                top -= p.h;
+                mk("path", { d: roundTop(x, top, bw, p.h, j == parts.length - 1 ? r : 0), fill: `var(--s-${p.key})` });
+                top -= 2;
+            });
             // Count back from today, so the most recent day always has a label.
             if ((days.length - 1 - i) % labelEvery == 0) {
                 mk("text", { x: cx, y: H - 6, "text-anchor": "middle", class: "tick" }).textContent = shortDate(d);
@@ -242,14 +259,14 @@
                 tip.hidden = false;
                 tip.replaceChildren();
                 tip.append(el("div", {}, shortDate(d)));
-                for (let [k, label, n] of [["iframe", "iframe", iframe], ["library", "script", library]]) {
+                for (let sr of SERIES) {
                     let row = el("div");
-                    row.append(el("span", { class: "key", style: `background:var(--s-${k})` }), `${label} ${fmt(n)}`);
+                    row.append(el("span", { class: "key", style: `background:var(--s-${sr.key})` }), `${sr.label} ${fmt(day[sr.key])}`);
                     tip.append(row);
                 }
                 let bx = box.getBoundingClientRect(), sx = svg.getBoundingClientRect();
                 tip.style.left = `${(cx / W) * sx.width}px`;
-                tip.style.top = `${(Math.min(y(iframe + library), y(0) - 10) / H) * sx.height}px`;
+                tip.style.top = `${(Math.min(y(sum), y(0) - 10) / H) * sx.height}px`;
             };
             hit.addEventListener("mouseenter", show);
             hit.addEventListener("touchstart", show, { passive: true });
@@ -267,11 +284,11 @@
     function dayTable({ days, perDay }) {
         let t = el("table");
         let head = el("tr");
-        head.append(el("th", {}, "day"), el("th", { class: "n" }, "iframe"), el("th", { class: "n" }, "script"));
+        head.append(el("th", {}, "day"), ...SERIES.map((sr) => el("th", { class: "n" }, sr.label)));
         t.append(head);
         for (let d of [...days].reverse()) {
             let r = el("tr");
-            r.append(el("td", {}, shortDate(d)), el("td", { class: "n" }, fmt(perDay[d].iframe)), el("td", { class: "n" }, fmt(perDay[d].library)));
+            r.append(el("td", {}, shortDate(d)), ...SERIES.map((sr) => el("td", { class: "n" }, fmt(perDay[d][sr.key]))));
             t.append(r);
         }
         $("day-table").replaceChildren(t);
@@ -285,16 +302,17 @@
         }
         let t = el("table");
         let head = el("tr");
-        head.append(el("th", {}, "website"), el("th", { class: "n" }, "iframe"), el("th", { class: "n" }, "script"), el("th", {}, "events"), el("th", {}, "last seen"));
+        head.append(el("th", {}, "website"), ...SERIES.map((sr) => el("th", { class: "n" }, sr.label)), el("th", {}, "events / teams"), el("th", {}, "last seen"));
         t.append(head);
         for (let s of sites) {
             let r = el("tr");
             let name = el("td");
             if (s.site.startsWith("(")) name.textContent = s.site;
             else name.append(el("a", { href: `https://${s.site}`, target: "_blank", rel: "noopener noreferrer" }, s.site));
-            let events = Object.entries(s.events || {}).slice(0, 4).map(([e, n]) => `${e} (${fmt(n)})`).join(", ");
+            let used = [...Object.entries(s.events || {}).slice(0, 4), ...Object.entries(s.teams || {}).slice(0, 4).map(([t, n]) => [`team ${t}`, n])];
+            let events = used.map(([e, n]) => `${e} (${fmt(n)})`).join(", ");
             let last = s.lastSeen ? new Date(s.lastSeen).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "";
-            r.append(name, el("td", { class: "n" }, fmt(s.iframe)), el("td", { class: "n" }, fmt(s.library)), el("td", { class: "events" }, events || "–"), el("td", { class: "when" }, last));
+            r.append(name, ...SERIES.map((sr) => el("td", { class: "n" }, fmt(s[sr.key]))), el("td", { class: "events" }, events || "–"), el("td", { class: "when" }, last));
             t.append(r);
         }
         box.replaceChildren(t);
@@ -302,10 +320,7 @@
 
     function render() {
         let sum = summarize();
-        let iframe = sum.sites.reduce((n, s) => n + s.iframe, 0);
-        let library = sum.sites.reduce((n, s) => n + s.library, 0);
-        $("t-iframe").textContent = fmt(iframe);
-        $("t-library").textContent = fmt(library);
+        for (let sr of SERIES) $(`t-${sr.key}`).textContent = fmt(sum.sites.reduce((n, s) => n + s[sr.key], 0));
         $("t-sites").textContent = fmt(sum.sites.length);
         drawChart(sum);
         dayTable(sum);
