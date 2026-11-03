@@ -5,18 +5,20 @@
 import { h, place, eventType } from "./team-ui.mjs";
 import { chip } from "./team-views.mjs";
 
-// With maxHeight the widget scrolls: the column names stay in view. Narrow widgets drop the less
+// With maxHeight only the table scrolls (heading, event line and tabs stay), with the column names in view. Narrow widgets drop the less
 // important columns first. (No CSS comments here: the build splits modules at a line ending in a
 // comment's end.)
 export const EVENT_CSS = `
 .ftcw{position:relative}
 .evline{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;margin:-6px 0 12px;font-size:var(--_small-size);color:var(--_muted)}
 .evline .ev-name{font-weight:600;color:var(--_text)}
-.tbl-wrap{overflow-x:auto}
+.tbl-wrap{overflow-x:auto;scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--_muted) 45%,transparent) transparent}
 .ftcw:not(.bare) .tbl-wrap{margin:0 -8px}
 .tbl{width:100%;border-collapse:collapse;font-size:var(--_font-size)}
-.ftcw[style*="max-height"] .tbl-wrap{overflow:visible}
-.ftcw[style*="max-height"] .tbl thead th{position:sticky;top:calc(var(--_padding) * -1);z-index:1;background:var(--_bg);box-shadow:inset 0 -1px 0 var(--_border)}
+.ftcw[style*="max-height"]{display:flex;flex-direction:column;overflow:hidden!important}
+.ftcw[style*="max-height"] > div,.ftcw[style*="max-height"] [part~="league"]{display:flex;flex-direction:column;flex:1 1 auto;min-height:0}
+.ftcw[style*="max-height"] .tbl-wrap{flex:1 1 auto;min-height:0;overflow:auto}
+.ftcw[style*="max-height"] .tbl thead th{position:sticky;top:0;z-index:1;background:var(--_bg);box-shadow:inset 0 -1px 0 var(--_border)}
 @container (max-width:480px){.tbl .c-tb2,.tbl .c-matches,.tbl .c-dqs,.tbl .c-winrate{display:none}}
 @container (max-width:400px){.tbl .c-tb1,.tbl .c-opr,.tbl .c-epa{display:none}}
 .tbl th{font-size:calc(var(--_small-size) - .5px);font-weight:600;color:var(--_muted);text-transform:var(--_label-transform);letter-spacing:var(--_label-letter-spacing);text-align:left;padding:0 6px 6px;white-space:nowrap}
@@ -108,9 +110,11 @@ export function limitRows(rows, limit, isMine) {
 export function scrollToMine(w, auto = ["tr.me"]) {
     let mode = w.options.scrollTo || "auto";
     if (mode === "none") return;
-    let card = w.root.querySelector(".ftcw");
     let selectors = mode === "team" ? ["tr.me"] : mode === "next" ? ["tr.nextm"] : auto;
     let row = selectors.map((s) => w.root.querySelector(s)).find(Boolean);
+    // The table scrolls (the heading stays); without room for that, the whole card.
+    let wrap = row?.closest(".tbl-wrap");
+    let card = wrap && wrap.scrollHeight > wrap.clientHeight ? wrap : w.root.querySelector(".ftcw");
     if (!card || !row || card.scrollHeight <= card.clientHeight) return;
     let top = (el) => el.getBoundingClientRect().top - card.getBoundingClientRect().top + card.scrollTop;
     let n = w.options.scrollOffset;
