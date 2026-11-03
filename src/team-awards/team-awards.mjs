@@ -16,7 +16,7 @@ export { TEAM_TEXT } from "../core/team-text.mjs";
 
 export class TeamAwards extends TeamWidget {
     static kind = "team-awards";
-    // layout: "list" | "strip"; seasons: how many seasons; onlyWon: only won awards;
+    // layout: "list" | "strip" | "banners" (FTC-style banners per season); seasons: how many seasons; onlyWon: only won awards;
     // types: only these award types ("Inspire,Think,Winner")
     static defaults = { layout: "list", seasons: null, onlyWon: false, types: null };
     static css = `
@@ -31,6 +31,25 @@ export class TeamAwards extends TeamWidget {
 .ae{font-size:12px;color:var(--_muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ad{font-size:12px;color:var(--_muted);white-space:nowrap}
 .count{font-size:12px;color:var(--_muted)}
+.bn-strip{display:flex;gap:28px;overflow-x:auto;padding:var(--_glow-room);margin:calc(var(--_glow-room) * -1);scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--_muted) 45%,transparent) transparent}
+.bn-season{flex:none}
+.ftcw.bare .bn-strip{margin-inline:0;padding-inline:0}
+.bn-title{margin:0 0 8px;font-size:var(--_title-size);font-weight:var(--_title-weight);color:var(--_text)}
+.bn-row{display:flex;gap:16px}
+.banner{flex:none;box-sizing:border-box;width:var(--ftcw-banner-width,200px);aspect-ratio:5/8;border-radius:var(--_inner-radius);display:flex;flex-direction:column;align-items:center;text-align:center;text-transform:uppercase;color:#fff;padding:14px 8px 18px;background:var(--ftcw-banner-other,linear-gradient(#777,#777));transition:transform .2s ease}
+.banner:hover{transform:translateY(-3px)}
+.banner.p1{background:var(--ftcw-banner-first,linear-gradient(#e88a49,#df7a35))}
+.banner.p2{background:var(--ftcw-banner-second,linear-gradient(#b3b3b3,#a3a3a3))}
+.banner.p3{background:var(--ftcw-banner-third,linear-gradient(#ad7f32,#ad5f12))}
+.banner.type-Winner,.banner.type-Inspire{border:5px solid var(--ftcw-banner-gold,#facc15);box-shadow:var(--_glow) color-mix(in srgb,var(--ftcw-banner-gold,#facc15) 45%,transparent)}
+.banner .b-icon{flex:0 0 30%;display:flex;align-items:center;justify-content:center;font-size:48px;line-height:1}
+.banner .b-icon img{width:72%;height:auto}
+.banner .b-event{flex:1 1 0;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;line-height:.95;letter-spacing:-.5px;color:#000;overflow-wrap:anywhere}
+.banner .b-event a{color:inherit}
+.banner .b-name{font-size:16px;font-weight:700;line-height:1.2}
+.banner .b-season{font-size:16px;font-weight:700;line-height:1.3}
+.banner .b-place{font-size:12px;font-weight:700;text-transform:none;margin-top:2px}
+@media (prefers-reduced-motion:reduce){.banner{transition:none}.banner:hover{transform:none}}
 .hd-extra{display:flex;gap:10px;align-items:center}
 .strip>.card{min-height:var(--_card-height);gap:3px;border-top:4px solid var(--_border)}
 .card.won{border-top-color:var(--_gold)}
@@ -84,6 +103,26 @@ export class TeamAwards extends TeamWidget {
         let count = this.shows("count") ? h("span", { class: "count", part: "count" }, this.t("awardCount", { n: awards.length }) + (wins ? this.t("awardsWon", { n: wins }) : "")) : null;
 
         if (!awards.length) return h("div", null, this.heading(this.t("awards"), count), h("div", { class: "muted" }, this.t("noAwards")));
+
+        if (this.layout === "banners") {
+            // FTC-style banners: a heading per season, all seasons in one row that scrolls.
+            let years = (s) => `${s}–${s + 1}`;
+            let groups = seasons.map((season) => h("div", { class: "bn-season", part: "season-group" },
+                this.shows("season") ? h("h3", { class: "bn-title", part: "season" }, years(season)) : null,
+                h("div", { class: "bn-row" }, awards.filter((a) => a.season === season).map((a) => {
+                    let [name, placement] = awardParts(a.type, a.placement, a.season, this);
+                    let won = isWinningAward(a.type, a.placement);
+                    return h("div", { class: `banner ${kinds(a)}`, part: `banner ${kindParts(a).split(" ").map((k) => `banner-${k}`).join(" ")}` },
+                        this.shows("icon") ? h("div", { class: "b-icon" }, this.icon(won ? "trophy" : "medal")) : null,
+                        this.shows("event") ? h("div", { class: "b-event", part: "event" }, this.eventLink(a.season, a.eventCode, a.event?.name || a.eventCode)) : h("div", { class: "b-event" }),
+                        h("div", { class: "b-name", part: "award-name" }, name),
+                        h("div", { class: "b-season" }, years(a.season)),
+                        placement && this.shows("placement") ? h("div", { class: "b-place", part: "placement" }, placement) : null,
+                    );
+                })),
+            ));
+            return h("div", null, this.heading(this.t("awards"), count), h("div", { class: "bn-strip", part: "strip", tabindex: "0" }, groups));
+        }
 
         if (this.layout === "strip") {
             let cards = awards.map((a) => {

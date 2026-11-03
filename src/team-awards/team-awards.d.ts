@@ -15,7 +15,8 @@ export declare function getTeamAwards(team: number | string, options?: ApiOption
 
 export interface TeamAwardsOptions extends TeamWidgetOptions {
     /** "list" (default) | "strip" (award cards) */
-    layout?: "list" | "strip" | "compact" | null;
+    /** "list" (default) | "strip" (award cards) | "banners" (FTC-style banners, a heading per season) */
+    layout?: "list" | "strip" | "compact" | "banners" | null;
     /** Only the last N seasons with awards. */
     seasons?: number | null;
     /** Only awards won outright (first place, winning alliance). */
