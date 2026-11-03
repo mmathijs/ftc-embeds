@@ -60,6 +60,9 @@
     .top nav a:hover, .top nav a[aria-current] { color: var(--ink); }
 
     /* Progress: one cell per step; done steps are links back. */
+    /* Header and steps stay at the top; --masthead (their height) keeps the preview below them. */
+    .masthead { position: sticky; top: 0; z-index: 20; background: var(--paper); }
+    .progress { background: var(--paper); }
     .progress { display: flex; border-bottom: 1px solid var(--rule); overflow-x: auto; scrollbar-width: none; }
     .progress a, .progress span { flex: 1 0 auto; padding: 10px 16px 9px; font: 12px var(--mono); color: var(--ink-2); text-decoration: none; border-right: 1px solid var(--rule); white-space: nowrap; border-bottom: 3px solid transparent; }
     .progress a:hover { color: var(--ink); background: var(--paper-2); }
@@ -155,7 +158,7 @@
     .btn.sm { font-size: 13px; padding: 6px 11px; }
 
     .side { padding: 40px 28px; min-width: 0; }
-    .side-inner { position: sticky; top: 20px; }
+    .side-inner { position: sticky; top: calc(var(--masthead, 92px) + 20px); }
     .side .label { font: 11px var(--mono); text-transform: uppercase; letter-spacing: .08em; color: var(--ink-2); margin-bottom: 10px; display: flex; justify-content: space-between; }
     .preview { border: 2px solid var(--ink); background: var(--field); padding: 20px; min-height: 240px; max-height: 70vh; overflow: auto; }
     .preview.on-dark { background: #11151c; }
@@ -192,6 +195,7 @@
 </style>
 </head>
 <body>
+<div class="masthead" id="masthead">
 <header class="top">
     <a class="wordmark" href="/">ftc<b>-</b>embeds</a>
     <nav>
@@ -204,6 +208,7 @@
 </header>
 
 <nav class="progress" id="progress" aria-label="Steps"></nav>
+</div>
 
 <div class="stage" id="stage">
     <section class="ask" id="ask"></section>
@@ -220,6 +225,14 @@
     <span>Prefer every option at once? <a href="/team">Team widgets</a> · <a href="/pit-map">Pit map</a></span>
 </footer>
 
+<script>
+    (() => {
+        let head = document.getElementById("masthead");
+        let sync = () => document.documentElement.style.setProperty("--masthead", head.offsetHeight + "px");
+        sync();
+        if (window.ResizeObserver) new ResizeObserver(sync).observe(head);
+    })();
+</script>
 <script src="config.js"></script>
 <script src="examples/events.js"></script>
 <script src="lib/pit-map.umd.js"></script>
