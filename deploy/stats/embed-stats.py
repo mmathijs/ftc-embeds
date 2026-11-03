@@ -91,7 +91,9 @@ def load_api_usage(source):
     """api-usage.py's JSON, from a URL or a file; None (and a warning) if it can't be had."""
     try:
         if source.startswith(("http://", "https://")):
-            with urllib.request.urlopen(source, timeout=20) as r:
+            # The API's nginx turns away Python's default user agent.
+            req = urllib.request.Request(source, headers={"User-Agent": "ftc-embeds-stats (+https://ftc-embeds.com/stats)"})
+            with urllib.request.urlopen(req, timeout=20) as r:
                 return json.load(r)
         with open(source) as f:
             return json.load(f)
