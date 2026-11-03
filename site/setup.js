@@ -151,7 +151,8 @@
         FTCCMP1EDIS: "Worlds – Edison", FTCCMP1FRAN: "Worlds – Franklin", FTCCMP1GOOD: "Worlds – Goodall",
         FTCCMP1JACK: "Worlds – Jackson", FTCCMP1LOVE: "Worlds – Lovelace", FTCCMP1ROSS: "Worlds – Ross",
     };
-    const THIS_SEASON = SITE.demoSeason || 2025;
+    // The season that's on now (FTC seasons start in September), as the widgets work it out.
+    const THIS_SEASON = window.FtcTeamCard?.seasonOf?.() ?? (new Date().getMonth() >= 8 ? new Date().getFullYear() : new Date().getFullYear() - 1);
 
     // Website builders: which code fits, and how to paste it there. {h} is the suggested height.
     const PLATFORMS = {
