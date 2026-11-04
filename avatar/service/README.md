@@ -75,7 +75,13 @@ stay; in the campaign, those were fixed by hand. `subject.py` makes the same cal
   The option **All gaps cut out** removes the kept ones too, on a colour far from the old background.
 - **Rows of text** are found the same way; **Without the text** leaves out the rows outside the main
   part (a name line under a mascot), if enough of the logo is left.
+- **Thin slits:** a narrow channel of background between two letters counts as background, and a
+  hairline slit inside the logo (at most about 5 px wide at 768 px) is cut out, so neither stays
+  as a light line at 40 px.
 - Edge pixels are un-blended from the local background colour (colour to alpha), so no halo is left.
+- **Crisp edges:** the transparent PNGs have no half-transparent pixels (alpha at least 50% becomes
+  solid, the rest fully transparent): scaling the border down to 40 px would otherwise leave a muddy
+  half-transparent rim. The editor can switch to smooth edges (Transparent version).
 
 `tests/test_subject.py` checks these on made-up logos (counters of O, 8, 0 and 6 cut; eyes, white
 letters on a banner and a white face kept; gradient and two-tone backgrounds; a 3 px gap in an

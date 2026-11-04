@@ -92,6 +92,15 @@ def read_logo(raw):
     if max(im.size) > WORK_SIDE: im.thumbnail((WORK_SIDE, WORK_SIDE), Image.LANCZOS)
     return im
 
+def hard_edges(img):
+    """No half-transparent pixels: alpha at least 50% becomes solid, the rest fully transparent
+    (with no colour under it). Scaling down makes the border's outer edge half transparent, which
+    looks muddy on FTCScout and the event screens."""
+    a = np.asarray(img.convert('RGBA')).copy()
+    solid = a[..., 3] >= 128
+    a[solid, 3] = 255; a[~solid] = 0
+    return Image.fromarray(a, 'RGBA')
+
 def png(img, mode):
     b = io.BytesIO(); (c.clean(img) if mode == 'RGBA' else img.convert('RGB')).save(b, 'PNG', optimize=True); return b.getvalue()
 
@@ -168,13 +177,13 @@ def build_options(logo, name, number):
     def add(oid, label, lay, bg, edit, border=1.1, note=''):
         """lay: 320 x 320 RGBA layer; opaque = lay on bg; transparent = lay with a thin border."""
         op = c.on(bg, down(lay)).convert('RGB')
-        tr = c.add_border(lay, bg, border) if border else c.clean(down(lay))
+        tr = hard_edges(c.add_border(lay, bg, border) if border else down(lay))
         edit = dict(edit, bg=hexc(bg), border=border)
         opts.append(dict(id=oid, label=label, note=note, bg=hexc(bg), edit=edit, _op=op, _tr=tr, _content=down(lay)))
 
     if 'cut' not in src:      # no background found: keep the logo as it is, in a rounded square
         t = fit_t((0, 0, logo.width, logo.height), area=(0, 0, c.N, c.N))
-        lay = place(logo, t); op = c.on(bg0, down(lay)).convert('RGB'); tr = op.convert('RGBA'); tr.putalpha(c.mask('rounded'))
+        lay = place(logo, t); op = c.on(bg0, down(lay)).convert('RGB'); tr = op.convert('RGBA'); tr.putalpha(c.mask("rounded")); tr = hard_edges(tr)
         opts.append(dict(id='whole', label='Whole logo', note="The logo has no plain background, so it is kept as it is. Use Edit to erase the background.",
                          bg=hexc(bg0), edit=dict(src='logo', **t, bg=hexc(bg0), border=0, frame=dict(type='rounded')),
                          _op=op, _tr=tr, _content=c.on(bg0, down(lay))))

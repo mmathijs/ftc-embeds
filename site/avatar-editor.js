@@ -101,13 +101,13 @@
         for (let y = 0; y < W; y++) for (let x = 0; x < W; x++) { let m = 0; for (let k = Math.max(0, y - R); k <= Math.min(W - 1, y + R); k++) m = Math.max(m, T[k * W + x]); U[y * W + x] = m; }
         return U;
     }
-    function toImageData(O, floor) {   // premultiplied 40 x 40 -> ImageData; alpha under `floor` becomes 0 (no hidden colour)
-        let d = new ImageData(40, 40);
+    function toImageData(O, floor, crisp) {   // premultiplied 40 x 40 -> ImageData; alpha under `floor` becomes 0 (no hidden colour)
+        let d = new ImageData(40, 40);       // crisp: no half-transparent pixels (at least 50% -> solid, the rest -> nothing)
         for (let i = 0; i < 1600; i++) {
             let a = O[i * 4 + 3];
-            if (a * 255 < floor) continue;
+            if (a * 255 < (crisp ? 127.5 : floor)) continue;
             d.data[i * 4] = Math.round((O[i * 4] / a) * 255); d.data[i * 4 + 1] = Math.round((O[i * 4 + 1] / a) * 255);
-            d.data[i * 4 + 2] = Math.round((O[i * 4 + 2] / a) * 255); d.data[i * 4 + 3] = Math.round(a * 255);
+            d.data[i * 4 + 2] = Math.round((O[i * 4 + 2] / a) * 255); d.data[i * 4 + 3] = crisp ? 255 : Math.round(a * 255);
         }
         return d;
     }
@@ -516,7 +516,10 @@
             this.borderSame.addEventListener("change", () => { this.set({ borderColour: this.borderSame.checked ? "" : this.borderPick.value }); this.commit(); });
             this.borderPick.addEventListener("input", () => { this.borderSame.checked = false; this.set({ borderColour: this.borderPick.value }); });
             this.borderPick.addEventListener("change", () => this.commit());
+            this.crispOn = el("input", { type: "checkbox" });
+            this.crispOn.addEventListener("change", () => { this.set({ edges: this.crispOn.checked ? "crisp" : "smooth" }); this.commit(); });
             s.append(sec("Transparent version", el("label", {}, "Border", this.borderR, this.borderOut),
+                el("label", {}, this.crispOn, "Crisp edges: no half-transparent pixels"),
                 el("div", { className: "row" }, el("label", {}, this.borderSame, "in the background colour"), this.borderPick),
                 el("div", { className: "ae-ok" }, "A thin border keeps the cut-out readable on any page. 0 means no border.")));
             // logo
@@ -727,6 +730,7 @@
             this.bgPick.value = d.bg;
             this.borderR.value = d.border; this.borderOut.textContent = d.border ? d.border.toFixed(1) + " px" : "none";
             this.borderSame.checked = !d.borderColour; this.borderPick.value = d.borderColour || d.bg;
+            this.crispOn.checked = d.edges !== "smooth";
             if (this.srcSel.options.length !== Object.keys(this.src || {}).length) {
                 this.srcSel.textContent = "";
                 for (let k of Object.keys(SOURCES)) if (this.src && this.src[k]) this.srcSel.append(el("option", { value: k }, SOURCES[k]));
@@ -795,54 +799,83 @@
             t.globalCompositeOperation = "source-in"; t.drawImage(this.src.logo, 0, 0);
             c.save(); c.globalCompositeOperation = "source-over"; c.drawImage(this.tmp, 0, 0); c.restore();
         }
-        wandMask(op) {
+        wandMask(op) {   // the area the wand picks: 1 inside, 0 outside (cached on the operation)
             if (op._mask) return op._mask;
-            let { w, h } = this, D = this.orig.data, m = new Float32Array(w * h);
-            let i0 = (op.y * w + op.x) * 4, r0 = D[i0], g0 = D[i0 + 1], b0 = D[i0 + 2], t = op.tol, t2 = t * t;
-            let dist2 = (i) => { let dr = D[i * 4] - r0, dg = D[i * 4 + 1] - g0, db = D[i * 4 + 2] - b0; return dr * dr + dg * dg + db * db; };
-            if (!op.contig) { for (let i = 0; i < w * h; i++) if (dist2(i) <= t2) m[i] = 1; }
+            let { w, h } = this, D = this.orig.data, m = new Uint8Array(w * h);
+            let i0 = (op.y * w + op.x) * 4, r0 = D[i0], g0 = D[i0 + 1], b0 = D[i0 + 2], t2 = op.tol * op.tol;
+            let near = (i) => { let dr = D[i * 4] - r0, dg = D[i * 4 + 1] - g0, db = D[i * 4 + 2] - b0; return dr * dr + dg * dg + db * db <= t2; };
+            if (!op.contig) { for (let i = 0; i < w * h; i++) if (near(i)) m[i] = 1; }
             else {
                 let stack = new Int32Array(w * h), sp = 0; stack[sp++] = op.y * w + op.x; m[op.y * w + op.x] = 1;
                 while (sp) {
                     let i = stack[--sp], x = i % w, y = (i - x) / w;
-                    for (let j of [x > 0 ? i - 1 : -1, x < w - 1 ? i + 1 : -1, y > 0 ? i - w : -1, y < h - 1 ? i + w : -1]) {
-                        if (j >= 0 && !m[j] && dist2(j) <= t2) { m[j] = 1; stack[sp++] = j; }
-                    }
+                    if (x > 0 && !m[i - 1] && near(i - 1)) { m[i - 1] = 1; stack[sp++] = i - 1; }
+                    if (x < w - 1 && !m[i + 1] && near(i + 1)) { m[i + 1] = 1; stack[sp++] = i + 1; }
+                    if (y > 0 && !m[i - w] && near(i - w)) { m[i - w] = 1; stack[sp++] = i - w; }
+                    if (y < h - 1 && !m[i + w] && near(i + w)) { m[i + w] = 1; stack[sp++] = i + w; }
                 }
             }
-            // a soft edge: pixels next to the area that are a blend of its colour get a partial value
-            let edge = new Float32Array(m);
-            for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
-                let i = y * w + x; if (m[i]) continue;
-                if (!((x > 0 && m[i - 1]) || (x < w - 1 && m[i + 1]) || (y > 0 && m[i - w]) || (y < h - 1 && m[i + w]))) continue;
-                let d = Math.sqrt(dist2(i)); edge[i] = clamp(1 - (d - t) / Math.max(30, t * 1.5), 0, 0.95);
+            if (op.clip) {      // only inside the selected area
+                let t = ctx2d(this.tmp, { willReadFrequently: true }); t.globalCompositeOperation = "source-over"; t.clearRect(0, 0, w, h);
+                t.fillStyle = "#000"; t.fill(polyPath(op.clip));
+                let A = t.getImageData(0, 0, w, h).data, ok = new Uint8Array(w * h);
+                for (let i = 0; i < w * h; i++) { ok[i] = A[i * 4 + 3] >= 128 ? 1 : 0; if (!ok[i]) m[i] = 0; }
+                op._clipOk = ok;
             }
-            op._mask = edge; op._seed = [r0, g0, b0];
-            return edge;
+            op._mask = m; op._seed = [r0, g0, b0];
+            return m;
+        }
+        ringOf(m, n) {   // distance (1..n) of each pixel from area m, 0 = farther (or inside)
+            let { w, h } = this, d = new Uint8Array(w * h), q = [];
+            for (let i = 0; i < w * h; i++) if (m[i]) q.push(i);
+            for (let k = 1; k <= n && q.length; k++) {
+                let next = [];
+                for (let i of q) {
+                    let x = i % w;
+                    for (let j of [x > 0 ? i - 1 : -1, x < w - 1 ? i + 1 : -1, i - w, i + w, x > 0 ? i - w - 1 : -1, x < w - 1 ? i - w + 1 : -1, x > 0 ? i + w - 1 : -1, x < w - 1 ? i + w + 1 : -1]) {
+                        if (j < 0 || j >= w * h || m[j] || d[j]) continue;
+                        d[j] = k; next.push(j);
+                    }
+                }
+                q = next;
+            }
+            return d;
         }
         applyWand(op) {
             let m = this.wandMask(op), { w, h } = this;
-            if (op.clip) {      // only inside the selected area
-                if (!op._clipped) {
-                    let t = ctx2d(this.tmp, { willReadFrequently: true }); t.globalCompositeOperation = "source-over"; t.clearRect(0, 0, w, h);
-                    t.fillStyle = "#000"; t.fill(polyPath(op.clip));
-                    let A = t.getImageData(0, 0, w, h).data; op._clipped = m.map((v, i) => v * (A[i * 4 + 3] / 255));
-                }
-                m = op._clipped;
-            }
             if (op.mode === "erase") {
-                let img = this.lctx.getImageData(0, 0, w, h), D = img.data, [r0, g0, b0] = op._seed;
+                let img = this.lctx.getImageData(0, 0, w, h), D = img.data, [r0, g0, b0] = op._seed.map((v) => v / 255);
+                let ring = this.ringOf(m, 3);
+                let clipOk = (i) => !op._clipOk || op._clipOk[i];
                 for (let i = 0; i < w * h; i++) {
-                    let v = m[i]; if (!v) continue;
-                    if (v >= 1) { D[i * 4] = D[i * 4 + 1] = D[i * 4 + 2] = D[i * 4 + 3] = 0; continue; }
-                    let a = 1 - v;       // un-blend the seed colour from the edge pixel, so no halo is left
-                    D[i * 4] = clamp((D[i * 4] - v * r0) / a, 0, 255); D[i * 4 + 1] = clamp((D[i * 4 + 1] - v * g0) / a, 0, 255); D[i * 4 + 2] = clamp((D[i * 4 + 2] - v * b0) / a, 0, 255);
-                    D[i * 4 + 3] = D[i * 4 + 3] * a;
+                    if (m[i]) { D[i * 4] = D[i * 4 + 1] = D[i * 4 + 2] = D[i * 4 + 3] = 0; continue; }
+                    if (!ring[i] || ring[i] > 2 || !D[i * 4 + 3] || !clipOk(i)) continue;
+                    // next to the cut: take the picked colour out of the pixel (colour to alpha), so no fringe is left
+                    let c = [D[i * 4] / 255, D[i * 4 + 1] / 255, D[i * 4 + 2] / 255], b = [r0, g0, b0], ac = 0;
+                    for (let k = 0; k < 3; k++) ac = Math.max(ac, c[k] > b[k] ? (c[k] - b[k]) / Math.max(1 - b[k], 1e-6) : c[k] < b[k] ? (b[k] - c[k]) / Math.max(b[k], 1e-6) : 0);
+                    ac = clamp(ac, 0, 1);
+                    if (ac < 1e-3) { D[i * 4 + 3] = 0; continue; }
+                    for (let k = 0; k < 3; k++) D[i * 4 + k] = clamp(((c[k] - b[k]) / ac + b[k]) * 255, 0, 255);
+                    D[i * 4 + 3] = D[i * 4 + 3] * ac;
+                }
+                // slivers: strands at most 2 px wide along the cut go (an opening, only near the cut)
+                let solid = new Uint8Array(w * h);
+                for (let i = 0; i < w * h; i++) solid[i] = D[i * 4 + 3] > 127 ? 1 : 0;
+                let core = new Uint8Array(w * h);
+                for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) {
+                    let i = y * w + x;
+                    if (solid[i] && solid[i - 1] && solid[i + 1] && solid[i - w] && solid[i + w] && solid[i - w - 1] && solid[i - w + 1] && solid[i + w - 1] && solid[i + w + 1]) core[i] = 1;
+                }
+                for (let i = 0; i < w * h; i++) {
+                    if (!ring[i] || !D[i * 4 + 3]) continue;
+                    let x = i % w, kept = core[i] || (x > 0 && core[i - 1]) || (x < w - 1 && core[i + 1]) || (i >= w && core[i - w]) || (i + w < w * h && core[i + w])
+                        || (x > 0 && i >= w && core[i - w - 1]) || (x < w - 1 && i >= w && core[i - w + 1]) || (x > 0 && i + w < w * h && core[i + w - 1]) || (x < w - 1 && i + w < w * h && core[i + w + 1]);
+                    if (!kept && clipOk(i)) D[i * 4] = D[i * 4 + 1] = D[i * 4 + 2] = D[i * 4 + 3] = 0;
                 }
                 this.lctx.putImageData(img, 0, 0);
             } else {
-                let t = ctx2d(this.tmp, { willReadFrequently: true }), img = new ImageData(w, h), D = img.data, O = this.orig.data;
-                for (let i = 0; i < w * h; i++) if (m[i]) { D[i * 4] = O[i * 4]; D[i * 4 + 1] = O[i * 4 + 1]; D[i * 4 + 2] = O[i * 4 + 2]; D[i * 4 + 3] = O[i * 4 + 3] * Math.min(1, m[i] / 0.95); }
+                let ring = this.ringOf(m, 1), t = ctx2d(this.tmp, { willReadFrequently: true }), img = new ImageData(w, h), D = img.data, O = this.orig.data;
+                for (let i = 0; i < w * h; i++) if (m[i] || ring[i]) { D[i * 4] = O[i * 4]; D[i * 4 + 1] = O[i * 4 + 1]; D[i * 4 + 2] = O[i * 4 + 2]; D[i * 4 + 3] = O[i * 4 + 3]; }
                 t.putImageData(img, 0, 0);
                 this.lctx.save(); this.lctx.globalCompositeOperation = "source-over"; this.lctx.drawImage(this.tmp, 0, 0); this.lctx.restore();
             }
@@ -994,7 +1027,7 @@
                 bctx.putImageData(B, 0, 0);
                 T = reduce(Q);
             }
-            return { op: toImageData(O, 0), tr: toImageData(T, 20), content: toImageData(content, 20) };
+            return { op: toImageData(O, 0), tr: toImageData(T, 20, this.doc.edges !== "smooth"), content: toImageData(content, 20) };
         }
         uri(imgData) { let c = canvas(40, 40); ctx2d(c).putImageData(imgData, 0, 0); return c.toDataURL("image/png"); }
         warnings(r, opUri, trUri) {
@@ -1003,6 +1036,9 @@
             let D = r.op.data, keyed = 0;
             for (let i = 0; i < 1600; i++) { let R = D[i * 4], G = D[i * 4 + 1], B = D[i * 4 + 2]; if ((G > 200 && R < 120 && B < 120) || (R > 200 && B > 200 && G < 80)) keyed++; }
             if (keyed) w.push(`${keyed} pixels are close to lime or magenta, which video overlays can key out.`);
+            let T = r.tr.data, half = 0;
+            for (let i = 0; i < 1600; i++) if (T[i * 4 + 3] > 0 && T[i * 4 + 3] < 255) half++;
+            if (half) w.push(`The transparent version has ${half} half-transparent pixels, which can look muddy. Crisp edges (under Transparent version) avoids them.`);
             let C = r.content.data, x0 = 40, y0 = 40, x1 = -1, y1 = -1;
             for (let y = 0; y < 40; y++) for (let x = 0; x < 40; x++) if (C[(y * 40 + x) * 4 + 3] > 127) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
             if (x1 < 0) w.push("The avatar is empty.");
@@ -1047,7 +1083,12 @@
                 if (!this.doc) return;
                 this.draw();
                 clearTimeout(this.pvTimer);
-                this.pvTimer = setTimeout(() => this.updatePreview(), this.dragging ? 160 : 30);
+                this.pvTimer = setTimeout(() => {
+                    this.updatePreview();
+                    // the transparent view's border and the pixel view come from that result: redraw with it,
+                    // so no old border is left behind (it looked like a grey shadow after moving the logo)
+                    if (this.opt.preview === "transparent" || this.opt.mode === "pixels") this.draw();
+                }, this.dragging ? 160 : 30);
             });
         }
         draw() {

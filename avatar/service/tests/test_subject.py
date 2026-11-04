@@ -117,5 +117,18 @@ A = np.asarray(cut)[..., 3]
 check(A[:120, :120].max() < 20 and A[-120:, -120:].max() < 20, 'JPEG background removed without specks')
 check(A[384, 200] == 255, 'JPEG subject kept')
 
+# 8. thin slits: a 3 px channel of background between two blocks, open to the background, and a
+#    3 px slit enclosed between two letters that touch; neither may stay as a white line
+img = Image.new('RGBA', (768, 600), (255, 255, 255, 255)); d = ImageDraw.Draw(img)
+d.rectangle([150, 100, 380, 500], fill=(200, 30, 40)); d.rectangle([384, 100, 620, 500], fill=(200, 30, 40))   # 3 px apart
+d.rectangle([150, 520, 620, 560], fill=(20, 20, 20))                                     # a bar below, closing the bottom
+d.ellipse([220, 200, 300, 280], fill=(255, 255, 255)); d.ellipse([460, 200, 540, 280], fill=(255, 255, 255))   # eyes
+d.rectangle([150, 40, 620, 80], fill=(20, 20, 20)); d.rectangle([382, 80, 382, 96], fill=(255, 255, 255))      # enclosed slit
+r = subject.analyse(img); A = np.asarray(r['cut'])[..., 3]
+check(A[300, 382] == 0, f'a 3 px channel open to the background is removed (alpha {A[300, 382]})')
+check(A[90, 382] < 128, f'a thin slit enclosed in the logo is removed (alpha {A[90, 382]})')
+check(A[240, 260] == 255 and A[240, 500] == 255, 'the eyes stay')
+# the leak guard still holds: a white area behind a 3 px break in an outline stays (case 6 above)
+
 print(f'\n{len(failures)} failure(s)' if failures else '\nall passed')
 sys.exit(1 if failures else 0)

@@ -81,6 +81,13 @@ with sync_playwright() as p:
         for k in mods or []: page.keyboard.up(k)
 
     first = result()
+    # crisp edges, the default; smooth brings them back, with a note
+    half = lambda: state("(() => { let d = e.updatePreview().r.tr.data, n = 0; for (let i = 3; i < d.length; i += 4) if (d[i] > 0 && d[i] < 255) n++; return n; })()")
+    check(half() == 0, 'crisp edges by default: no half-transparent pixels')
+    page.locator('.ae-sec label', has_text='Crisp edges').click()
+    check(half() > 0 and 'half-transparent' in page.text_content('.ae-sec .ae-warn'), f'smooth edges: {half()} half-transparent pixels, and a note')
+    page.keyboard.press('Control+z'); check(half() == 0, 'undo: crisp again')
+
     tools = page.locator('.ae-tool').all_text_contents()
     check(len(tools) == 10 and all(any(c.isalpha() for c in t) for t in tools), f'ten tools, each labelled: {[t[:-1] for t in tools]}')
     check(page.text_content('.ae-hint p').startswith('Eraser:'), 'the hint explains the current tool')
@@ -100,6 +107,16 @@ with sync_playwright() as p:
     page.keyboard.press('w'); click(*eye)
     wand = result(); check(wand != first and state("e.doc.logoOps[0].k") == 'wand', 'the magic wand cuts out the eye')
     click(*eye, mods=['Alt']); check(state("e.doc.logoOps[1].mode") == 'restore', 'Alt-click with the wand brings it back')
+    page.keyboard.press('Control+z'); page.keyboard.press('Control+z')
+
+    # the wand on the original's white background: no slivers and no white fringe left along the cut
+    page.evaluate(f"{ed}.set({{ src: 'logo' }}); {ed}.commit(); {ed}.set({{ logoOps: [...{ed}.doc.logoOps, {{ k: 'wand', mode: 'erase', x: 2, y: 2, tol: 40, contig: true }}] }}); {ed}.commit()")
+    left = state('''(() => { e.buildLayer(); let w = e.w, h = e.h, D = e.lctx.getImageData(0, 0, w, h).data, thin = 0, fringe = 0;
+        for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) { let i = y * w + x; if (D[i * 4 + 3] < 128) continue;
+            let n = 0, edge = false; for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { let a = D[((y + dy) * w + x + dx) * 4 + 3]; if (a > 127) n++; if (!a) edge = true; }
+            if (n <= 3) thin++; if (edge && D[i * 4] > 225 && D[i * 4 + 1] > 225 && D[i * 4 + 2] > 225) fringe++; }
+        return [thin, fringe]; })()''')
+    check(left[0] == 0 and left[1] < 20, f'the wand leaves no slivers ({left[0]}) and no white fringe ({left[1]} px)')
     page.keyboard.press('Control+z'); page.keyboard.press('Control+z')
 
     # brush, then the eraser on the drawing layer
@@ -260,6 +277,7 @@ with sync_playwright() as p:
         page.locator('.opt[data-id^="edit-"] .dl a').nth(1).click()
     im = Image.open(dl.value.path()); check(im.size == (40, 40) and im.mode == 'RGBA' and dl.value.suggested_filename.endswith('-edited-avatar-40-transparent.png'), f'transparent download {dl.value.suggested_filename}')
     px = [im.getpixel((x, y)) for y in range(40) for x in range(40)]; check(all(p == (0, 0, 0, 0) for p in px if p[3] == 0), 'no hidden colour under transparent pixels')
+    check(all(p[3] in (0, 255) for p in px), 'crisp edges: no half-transparent pixels in the transparent PNG')
     # edit again resumes, with the history
     page.locator('.opt[data-id^="edit-"] .dl button').click()
     page.wait_for_function(f'{ed} && {ed}.last', timeout=30000)

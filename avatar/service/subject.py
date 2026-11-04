@@ -7,8 +7,9 @@ manual crops). This module makes those calls automatically:
 - the background model: one colour, two or three colours (a two-tone background), or a smooth
   gradient, fitted to the outer pixels, with a tolerance taken from their noise (JPEG);
 - the flood from the border does not leak through gaps of a few pixels in an outline;
-- every enclosed gap is judged: inside a letter (a row of glyph-sized parts) or walled off by a
-  thin line from the real background: removed; eyes (a pair of similar gaps), letters written in
+- every enclosed gap is judged: inside a letter (a row of glyph-sized parts), walled off by a
+  thin line from the real background, or a hairline slit: removed; narrow channels of background
+  between letters are background too; eyes (a pair of similar gaps), letters written in
   the background colour, large white areas (a face, the inside of a badge) and other gaps: kept;
 - rows of text are found, so a name line can be left out;
 - edge pixels are un-blended from the local background colour, so no halo is left.
@@ -189,6 +190,16 @@ def analyse(logo):
         edge = np.unique(np.concatenate([lab[0], lab[-1], lab[:, 0], lab[:, -1]])); edge = edge[edge > 0]
         bg = np.isin(lab, edge)
         bg = ndimage.binary_dilation(bg, structure=EIGHT, iterations=r + 1, mask=near) | bg
+        # ... but a narrow channel of background that touches it (a gap of a few px between two
+        # letters) is background too: it is thin all the way, where a region behind a break in an
+        # outline is wide. Without this, such channels stay as thin light slits.
+        rest = near & ~bg
+        if rest.any():
+            cl, cn = ndimage.label(rest)
+            touch = np.unique(cl[ndimage.binary_dilation(bg, structure=EIGHT) & rest]); touch = touch[touch > 0]
+            if len(touch):
+                widest = np.asarray(ndimage.maximum(ndimage.distance_transform_edt(rest), cl, touch))
+                bg |= np.isin(cl, touch[widest <= r + 1.5])
         bg = ndimage.binary_closing(bg, iterations=1) | bg
         fg = ~near
         # specks of noise in the background (JPEG, scanner dust) become background
@@ -233,9 +244,11 @@ def analyse(logo):
             for ch in range(3):
                 dev += (ndimage.mean(a[..., ch], hl, idx) - ndimage.mean(B[..., ch], hl, idx)) ** 2
             dev = np.sqrt(dev); tol_here = min(model['tols']) if 'tols' in model else model['tol']
+        hwide = np.asarray(ndimage.maximum(ndimage.distance_transform_edt(holes), hl, np.arange(1, hn + 1))) if hn else np.zeros(0)
         for i in range(hn):
             if dev[i] > max(12.0, 0.45 * tol_here): verdict[i] = 'colour'
             elif hsizes[i] < tiny: verdict[i] = 'noise'
+            elif hwide[i] <= max(2.5, r + 1.5): verdict[i] = 'slit'      # a hairline of background: a light line at 40 px
         # the rest: look at what surrounds each gap
         meas = {}
         for i in range(hn):
@@ -282,12 +295,13 @@ def analyse(logo):
             thin = T is not None and T <= max(1.0 * eqr, 0.025 * S)
             small = hsizes[i] < 0.015 * subj_area             # letter-sized; bigger ones are kept (a screen, a face)
             verdict[i] = 'gap' if thin and small and beyond >= 0.4 else 'enclosed'
-        removed = [i + 1 for i, v in verdict.items() if v in ('noise', 'counter', 'gap')]
-        kept = [i + 1 for i, v in verdict.items() if v not in ('noise', 'counter', 'gap')]
+        CUT = ('noise', 'counter', 'gap', 'slit')
+        removed = [i + 1 for i, v in verdict.items() if v in CUT]
+        kept = [i + 1 for i, v in verdict.items() if v not in CUT]
         judged = {i: v for i, v in verdict.items() if hsizes[i] >= tiny}
-        info.update(gaps_removed=sum(1 for v in judged.values() if v in ('counter', 'gap')),
-                    gaps_kept=sum(1 for v in judged.values() if v not in ('counter', 'gap')),
-                    kept=sorted(set(v for v in judged.values() if v not in ('counter', 'gap'))))
+        info.update(gaps_removed=sum(1 for v in judged.values() if v in CUT),
+                    gaps_kept=sum(1 for v in judged.values() if v not in CUT),
+                    kept=sorted(set(v for v in judged.values() if v not in CUT)))
         rm = bg | np.isin(hl, removed)
         cut = unblend(a, rm, B)
         big_kept = [k for k in kept if hsizes[k - 1] >= tiny]
