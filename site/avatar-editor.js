@@ -42,6 +42,7 @@
     const SHORTCUTS = [
         ["V M E R W B P U I H", "the tools, as labelled"],
         ["Ctrl+S", "save in this browser"],
+        ["Ctrl+Shift+S", "save a version"],
         ["Ctrl+E", "export"],
         ["Ctrl+A, Esc", "select everything, select nothing"],
         ["T", "view with background or transparent"],
@@ -380,6 +381,25 @@
 .ae-ex .pv{display:flex;gap:12px;align-items:center;margin:4px 0 12px}
 .ae-ex .pv canvas{border:1px solid var(--rule,#cfc8b8);image-rendering:pixelated}
 .ae-ex .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.ae-vers{display:grid;gap:6px}
+.ae-ver{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 8px;align-items:center;padding:6px;border:1px solid var(--rule,#cfc8b8);background:var(--field,#fbf9f4);border-radius:2px}
+.ae-ver .th{display:flex;gap:3px}
+.ae-ver .th img{width:40px;height:40px;image-rendering:pixelated;display:block}
+.ae-ver b{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ae-ver small{display:block;font:11px var(--mono,monospace);color:var(--ink-2,#5d5a53)}
+.ae-ver .acts{display:flex;gap:4px}
+.ae-ver .acts .b{padding:3px 7px;font-size:12px}
+.ae dialog.ae-cmp{max-width:none;width:calc(100% - 48px);height:calc(100% - 48px);padding:0;display:none}
+.ae dialog.ae-cmp[open]{display:grid;grid-template:"head head" auto "side view" minmax(0,1fr) / 240px minmax(0,1fr)}
+.ae-cmp header{grid-area:head;display:flex;gap:10px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--rule,#cfc8b8);flex-wrap:wrap}
+.ae-cmp header h3{margin:0 auto 0 0;font-size:16px}
+.ae-cmp aside{grid-area:side;padding:12px 14px;border-right:1px solid var(--rule,#cfc8b8);overflow:auto;display:grid;gap:8px;align-content:start}
+.ae-cmp aside label{display:flex;gap:8px;align-items:center;font-size:13px}
+.ae-cmp aside label img{width:20px;height:20px;image-rendering:pixelated;flex:none}
+.ae-cmp .view{grid-area:view;overflow:auto;padding:16px;background:var(--paper-2,#ebe6db)}
+.ae-cmp .view img{display:block;margin:0 auto;max-width:100%;height:auto;cursor:zoom-in;box-shadow:0 1px 0 var(--rule,#cfc8b8)}
+.ae-cmp .view.full img{max-width:none;width:auto;cursor:zoom-out}
+@media (max-width:900px){.ae dialog.ae-cmp[open]{grid-template:"head" auto "side" auto "view" minmax(0,1fr) / minmax(0,1fr)} .ae-cmp aside{border-right:0;border-bottom:1px solid var(--rule,#cfc8b8)}}
 .ae-busy{position:absolute;inset:0;display:grid;place-items:center;font-size:14px;color:var(--ink-2,#5d5a53)}
 @media (max-width:900px){
  .ae{display:flex;flex-direction:column;overflow:auto}
@@ -419,6 +439,7 @@
             this.undo = []; this.redo = [];
             this.sel = { ids: [], node: -1 };   // selected shapes; node: the selected point when one path is selected
             this.area = null;         // the selected area: a polygon in canvas units; edits stay inside it
+            this.versions = [];       // saved versions: {id, name, time, doc (JSON), op, tr (the 40 px results)}
             this.active = "logo";     // the layer the eraser (and drawing) works on
             this.building = null;     // id of the path the pen is drawing
             this.hover = null;
@@ -465,6 +486,7 @@
             };
             if (!p.s) fresh.t = this.fitT(fresh.src, "fit");
             this.preset = JSON.parse(JSON.stringify(fresh));
+            this.versions = (this.o.saved && this.o.saved.versions) || [];
             if (saved && saved.doc) {
                 this.doc = migrate(saved.doc); this.undo = (saved.undo || []).map(migrate); this.redo = (saved.redo || []).map(migrate);
                 if (!this.src[this.doc.src]) this.doc = Object.assign({}, this.doc, { src: fresh.src });
@@ -472,6 +494,7 @@
                 for (let d of [this.doc, ...this.undo, ...this.redo]) for (let o of d.draw) uid = Math.max(uid, (+o.id || 0) + 1);
             } else this.doc = fresh;
             this.saveState("");
+            this.renderVersions();
             this.base = this.doc;
             this.fitView();
             this.setTool(this.tool);
@@ -494,6 +517,8 @@
                 this.btnUndo, this.btnRedo,
                 el("button", { className: "b", type: "button", title: "Save in this browser (Ctrl+S)", onclick: () => this.saveNow(true) }, "Save"),
                 el("button", { className: "b", type: "button", title: "Open a project file (.ftcavatar)", onclick: () => this.openIn.click() }, "Open…"), this.openIn,
+                el("button", { className: "b", type: "button", title: "Keep this state as a version you can go back to or compare (Ctrl+Shift+S)", onclick: () => this.saveVersion() }, "Save version"),
+                el("button", { className: "b", type: "button", title: "The comparison sheet of this avatar and its versions, on screen", onclick: () => this.compareView() }, "Compare…"),
                 el("button", { className: "b", type: "button", title: "Export (Ctrl+E)", onclick: () => this.exportDialog() }, "Export…"),
                 el("button", { className: "b", type: "button", onclick: () => this.reset() }, "Start over"),
                 el("button", { className: "b", type: "button", onclick: () => this.help() }, "Shortcuts"),
@@ -648,6 +673,13 @@
                 el("label", { className: "col" }, "Canvas", this.modeSel),
                 el("label", {}, this.gridOn, "Pixel grid when zoomed in (G)"),
                 el("div", { className: "ae-ok" }, "With background or transparent: the switch at the top left of the canvas (T).")));
+            // versions
+            this.verList = el("div", { className: "ae-vers" });
+            s.append(sec(["Versions", el("span", { className: "row" },
+                    el("button", { className: "b", type: "button", onclick: () => this.saveVersion() }, "Save version"),
+                    el("button", { className: "b", type: "button", onclick: () => this.compareView() }, "Compare…"))],
+                this.verList,
+                el("div", { className: "ae-ok" }, "A version keeps the avatar as it is now. Go back to one, or compare them side by side. Saved with the project.")));
             // save and export
             this.dlOp = el("a", { className: "b", href: "#" }, "PNG"); this.dlTr = el("a", { className: "b", href: "#" }, "Transparent PNG");
             this.dlOp.addEventListener("click", (e) => this.download(e, "opaque")); this.dlTr.addEventListener("click", (e) => this.download(e, "transparent"));
@@ -1661,12 +1693,12 @@
             if (!this.doc) return;
             let tag = (e.target && e.target.tagName) || "", typing = (tag === "INPUT" && !["range", "checkbox", "color", "radio"].includes(e.target.type)) || tag === "SELECT" || tag === "TEXTAREA";
             if (!isDown) { this.keys.delete(e.key); if (e.key === " ") this.setTool(this.tool); return; }
-            if ((this.helpBox && this.helpBox.open) || (this.exBox && this.exBox.open)) return;
+            if ((this.helpBox && this.helpBox.open) || (this.exBox && this.exBox.open) || (this.cmpBox && this.cmpBox.open)) return;
             if (typing) return;
             let k = e.key.toLowerCase(), mod = e.ctrlKey || e.metaKey;
             if (mod && k === "z") { e.preventDefault(); return e.shiftKey ? this.doRedo() : this.doUndo(); }
             if (mod && k === "y") { e.preventDefault(); return this.doRedo(); }
-            if (mod && k === "s") { e.preventDefault(); return this.saveNow(true); }
+            if (mod && k === "s") { e.preventDefault(); return e.shiftKey ? this.saveVersion() : this.saveNow(true); }
             if (mod && k === "e") { e.preventDefault(); return this.exportDialog(); }
             if (mod && k === "a") {
                 e.preventDefault(); this.area = rectPoly({ x: 0, y: 0 }, { x: N, y: N });
@@ -1719,7 +1751,7 @@
             if (!pr) { if (manual) this.saveState("Not saved in this browser: use Download project file."); return; }
             let r = this.updatePreview();
             let rec = { id: pr.id, layersId: pr.layersId, team: pr.team || null, base: pr.base || "avatar", label: this.label, preset: this.o.preset || null,
-                doc: serialize(this.doc), active: this.active, thumb: r.tr, thumbOp: r.op, updated: Date.now() };
+                doc: serialize(this.doc), active: this.active, versions: serialize(this.versions), thumb: r.tr, thumbOp: r.op, updated: Date.now() };
             try {
                 await store.put(rec);
                 this.saveState("Saved in this browser " + new Date(rec.updated).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
@@ -1731,7 +1763,7 @@
         projectData() {
             let pr = this.o.project || {};
             return { format: "ftc-embeds-avatar", version: 1, saved: new Date().toISOString(), label: this.label, team: pr.team || null, base: pr.base || this.o.fileBase || "avatar",
-                preset: this.o.preset || null, layers: this.L, doc: this.doc, active: this.active };
+                preset: this.o.preset || null, layers: this.L, doc: this.doc, active: this.active, versions: this.versions };
         }
         downloadProject() {
             saveBlob(new Blob([serialize(this.projectData())], { type: "application/json" }), (this.o.fileBase || "avatar") + ".ftcavatar");
@@ -1845,6 +1877,94 @@
                     el("form", { method: "dialog", style: "margin-left:auto" }, el("button", { className: "b" }, "Close"))));
             box.showModal(); draw();
         }
+        // ---------- versions, and comparing them on screen ----------
+        async saveVersion(name) {
+            if (!this.doc) return;
+            if (this.building) this.finishPath();
+            this.commit();
+            let r = this.updatePreview(), n = this.versions.length + 1;
+            let v = { id: "v" + Date.now().toString(36) + uid++, name: name || `Version ${n}`, time: Date.now(), doc: serialize(this.doc), active: this.active, op: r.op, tr: r.tr };
+            this.versions = [...this.versions, v];
+            this.renderVersions(); this.saveSoon();
+            this.flash(`Saved “${v.name}”. Compare… shows it next to the others.`);
+            return v;
+        }
+        restoreVersion(v) {
+            this.commit();
+            this.doc = migrate(JSON.parse(v.doc)); this.commit();      // one undo step back to before
+            if (v.active && this.doc.layers.some((l) => l.id === v.active)) this.active = v.active;
+            this.sel = { ids: [], node: -1 }; this.area = null; this.building = null;
+            this.sync(); this.paint(); this.saveSoon();
+            this.flash(`Back to “${v.name}”. Undo goes back to what you had.`);
+        }
+        renderVersions() {
+            if (!this.verList) return;
+            let L = this.verList; L.textContent = "";
+            if (!this.versions.length) { L.append(el("p", { className: "ae-ok" }, "No versions yet.")); return; }
+            for (let v of [...this.versions].reverse()) {
+                let when = new Date(v.time).toLocaleString([], { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+                L.append(el("div", { className: "ae-ver" },
+                    el("div", { className: "th" }, el("img", { src: v.op, alt: "" }), el("img", { src: v.tr, alt: "", className: "ae-chk" })),
+                    el("div", {}, el("b", { title: v.name }, v.name), el("small", {}, when)),
+                    el("div", { className: "acts" },
+                        el("button", { className: "b", type: "button", title: "Go back to this version", onclick: () => this.restoreVersion(v) }, "Restore"),
+                        el("button", { className: "b", type: "button", title: "Rename", ariaLabel: `Rename ${v.name}`, onclick: () => {
+                            let n = prompt("Name of this version", v.name); if (n == null || !n.trim()) return;
+                            this.versions = this.versions.map((x) => (x.id === v.id ? Object.assign({}, x, { name: n.trim() }) : x)); this.renderVersions(); this.saveSoon();
+                        } }, "✎"),
+                        el("button", { className: "b", type: "button", title: "Delete this version", ariaLabel: `Delete ${v.name}`, onclick: () => {
+                            if (!confirm(`Delete “${v.name}”?`)) return;
+                            this.versions = this.versions.filter((x) => x.id !== v.id); this.renderVersions(); this.saveSoon();
+                        } }, "✕"))));
+            }
+        }
+        startResult() {   // the option as the server made it, once
+            if (!this.startR) {
+                let keep = this.doc; this.doc = migrate(JSON.parse(JSON.stringify(this.preset)));
+                try { let r = this.result(); this.startR = { op: this.uri(r.op), tr: this.uri(r.tr) }; } finally { this.doc = keep; this.layerOps = null; this.buildLayer(); }
+            }
+            return this.startR;
+        }
+        compareRows() {
+            let r = this.updatePreview(), b = this.o.fileBase || "avatar";
+            return [
+                { id: "now", label: "Now", files: [`${b}-avatar-40.png`, `${b}-avatar-40-transparent.png`], opaque: r.op, transparent: r.tr },
+                ...[...this.versions].reverse().map((v) => ({ id: v.id, label: v.name, files: [new Date(v.time).toLocaleString([], { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })], opaque: v.op, transparent: v.tr })),
+                Object.assign({ id: "start", label: `${this.label} (as made for you)`, files: ["before any edits"] }, (() => { let s = this.startResult(); return { opaque: s.op, transparent: s.tr }; })()),
+            ];
+        }
+        compareView() {
+            if (!this.doc) return;
+            if (!this.cmpBox) { this.cmpBox = el("dialog", { className: "ae-cmp", ariaLabel: "Compare" }); this.root.append(this.cmpBox); }
+            let box = this.cmpBox, rows = this.compareRows();
+            if (!this.cmpPick) this.cmpPick = new Set(["now", ...rows.filter((r) => r.id !== "now" && r.id !== "start").slice(0, 2).map((r) => r.id), ...(this.versions.length ? [] : ["start"])]);
+            let pick = this.cmpPick, title = el("input", { type: "text", value: this.cmpTitle || `${this.label}: versions compared`, ariaLabel: "Title", style: "flex:1 1 260px;max-width:560px;font:14px var(--sans,sans-serif);padding:5px 8px;border:1px solid var(--rule,#cfc8b8);background:var(--field,#fbf9f4);color:inherit" });
+            let view = el("div", { className: "view" }), img = el("img", { alt: "The comparison sheet" }), msg = el("p", { className: "ae-ok" }), seq = 0, last = null;
+            img.addEventListener("click", () => view.classList.toggle("full"));
+            view.append(img, msg);
+            let draw = async () => {
+                let mine = ++seq, chosen = rows.filter((r) => pick.has(r.id));
+                if (!chosen.length) { img.hidden = true; msg.textContent = "Tick at least one to compare."; return; }
+                img.hidden = false; msg.textContent = "Click the sheet to see it at full size.";
+                let c = await compareSheet({ title: title.value, logo: this.src.logo, rows: chosen });
+                if (mine !== seq) return;
+                last = c; img.src = c.toDataURL("image/png");
+            };
+            let side = el("aside", { ariaLabel: "What to compare" }, el("b", { style: "font-size:13px" }, "Show"));
+            for (let r of rows) {
+                let cb = el("input", { type: "checkbox", checked: pick.has(r.id) });
+                cb.addEventListener("change", () => { cb.checked ? pick.add(r.id) : pick.delete(r.id); draw(); });
+                side.append(el("label", {}, cb, el("img", { src: r.opaque, alt: "" }), el("span", {}, r.label)));
+            }
+            side.append(el("button", { className: "b", type: "button", onclick: async () => { await this.saveVersion(); this.cmpBox.close(); this.compareView(); } }, "+ Save the current state as a version"));
+            title.addEventListener("input", () => { this.cmpTitle = title.value; clearTimeout(title.t); title.t = setTimeout(draw, 250); });
+            box.textContent = "";
+            box.append(el("header", {}, el("h3", {}, "Compare"), title,
+                el("button", { className: "b go", type: "button", onclick: async () => { await draw(); if (last) saveBlob(await blobOf(last, "image/png"), `${this.o.fileBase || "avatar"}-comparison.png`); } }, "Download PNG"),
+                el("form", { method: "dialog" }, el("button", { className: "b" }, "Close"))), side, view);
+            box.showModal(); draw();
+        }
+
         async sheetCanvas() {
             let r = this.updatePreview(), b = this.o.fileBase || "avatar";
             return compareSheet({ title: `${this.label}: 40×40 avatar, opaque and transparent`, logo: this.src.logo,
@@ -1893,7 +2013,7 @@ ${b}.ftcavatar       the project: open it in the editor at ftc-embeds.com/avatar
             this.ro.disconnect(); this.root.remove();
             document.documentElement.style.overflow = this.prevOverflow || "";
             if (this.doc && this.o.project) this.saveNow(false);
-            let saved = this.doc ? { doc: this.doc, undo: this.undo, redo: this.redo, active: this.active } : null;
+            let saved = this.doc ? { doc: this.doc, undo: this.undo, redo: this.redo, active: this.active, versions: this.versions } : null;
             if (window.AvatarEditor.current === this) window.AvatarEditor.current = null;
             if (this.o.onClose) this.o.onClose(saved);
             if (use && this.o.onDone) this.o.onDone({ opaque: r.op, transparent: r.tr, warnings: r.warnings, saved });
@@ -1956,7 +2076,7 @@ ${b}.ftcavatar       the project: open it in the editor at ftc-embeds.com/avatar
         return p;
     }
     function openProject(p, extra) {   // open a project without the page's help (not saved in the browser)
-        return window.AvatarEditor.open(Object.assign({ label: p.label, preset: p.preset, layers: () => Promise.resolve(p.layers), saved: { doc: p.doc, active: p.active }, fileBase: p.base }, extra || {}));
+        return window.AvatarEditor.open(Object.assign({ label: p.label, preset: p.preset, layers: () => Promise.resolve(p.layers), saved: { doc: p.doc, active: p.active, versions: p.versions || [] }, fileBase: p.base }, extra || {}));
     }
 
     window.AvatarEditor = {

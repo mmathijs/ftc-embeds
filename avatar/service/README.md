@@ -121,6 +121,10 @@ backgrounds, and the canvas with the background or transparent (border included)
   listed on the page under *Saved in this browser*; nothing leaves the browser. **Project files**
   (`.ftcavatar`, JSON with the layers as PNG data URIs) open with *Open a saved avatar* on the page
   (also `/avatars#open`, the logo chooser, or a drop anywhere on the page) or *Open…* in the editor.
+- **Versions:** *Save version* (Ctrl+Shift+S) keeps the avatar as it is; the Versions panel restores
+  (one undo step), renames or deletes them. They are saved with the project, in the browser and in
+  the `.ftcavatar` file. *Compare…* shows the comparison sheet of now, the versions and the option
+  as it was made, on screen; download it if you want.
 - **Comparison sheets:** every avatar zoomed in with and without background and at actual size on
   white, dark, blue and red, as one PNG: *Comparison sheet* on the page (pick the options) or in
   the editor's Export.

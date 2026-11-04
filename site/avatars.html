@@ -140,7 +140,9 @@
     .sheet-body { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 16px; align-items: start; margin-bottom: 14px; }
     .sheet-list { display: grid; gap: 6px; }
     .sheet-list img { image-rendering: pixelated; flex: none; }
-    .sheet-pv img { width: 100%; height: auto; border: 1px solid var(--rule); display: block; }
+    .sheet-pv { max-height: 62vh; overflow: auto; }
+    .sheet-pv img { width: 100%; height: auto; border: 1px solid var(--rule); display: block; cursor: zoom-in; }
+    .sheet-pv.full img { width: auto; max-width: none; cursor: zoom-out; }
     @media (max-width: 700px) { .sheet-body { grid-template-columns: minmax(0, 1fr); } }
     .steps { border-top: 1px solid var(--rule); padding-top: 16px; max-width: 70ch; }
     .steps h3 { margin: 0 0 8px; font-size: 15px; }
@@ -516,7 +518,7 @@
         window.AvatarEditor.open({
             label: rec.label, preset: rec.preset,
             layers: async () => { let L = inline ? inline.layers : await store.getLayers(rec.layersId); if (!L) throw new Error("The logo of this saved edit is missing."); return L; },
-            saved: memory[rec.id] || { doc: JSON.parse(rec.doc), active: rec.active }, fileBase: rec.base,
+            saved: memory[rec.id] || { doc: JSON.parse(rec.doc), active: rec.active, versions: rec.versions ? JSON.parse(rec.versions) : [] }, fileBase: rec.base,
             project: inline && inline.noStore ? null : { id: rec.id, layersId: rec.layersId, team: rec.team, base: rec.base },
             onSaved: renderSaved,
             onClose: (saved) => { if (saved) memory[rec.id] = saved; renderSaved(); },
@@ -524,7 +526,7 @@
         });
     }
     async function openProjectFile(p) {   // a .ftcavatar file: keep it in this browser, then open it
-        let id = "f" + Date.now().toString(36), rec = { id: `${id}:p`, layersId: id, team: p.team, base: p.base || "avatar", label: p.label || "Imported project", preset: p.preset, doc: JSON.stringify(p.doc), active: p.active, updated: Date.now() };
+        let id = "f" + Date.now().toString(36), rec = { id: `${id}:p`, layersId: id, team: p.team, base: p.base || "avatar", label: p.label || "Imported project", preset: p.preset, doc: JSON.stringify(p.doc), active: p.active, versions: JSON.stringify(p.versions || []), updated: Date.now() };
         try { await store.putLayers(id, p.layers); await store.put(rec); delete memory[rec.id]; openSaved(rec.id); renderSaved(); }
         catch { openSaved(rec.id, { rec, layers: p.layers, noStore: true }); }
     }
@@ -568,7 +570,8 @@
         }
         let d = sheetDialog || (sheetDialog = document.body.appendChild(el("dialog", { className: "sheet-dialog", ariaLabel: "Comparison sheet" })));
         let title = el("input", { type: "text", value: sheet.title, ariaLabel: "Title" });
-        let list = el("div", { className: "sheet-list" }), pv = el("img", { alt: "Preview of the comparison sheet" }), msg = el("p", { className: "hint" });
+        let list = el("div", { className: "sheet-list" }), pv = el("img", { alt: "Preview of the comparison sheet", title: "Click to see it at full size" }), msg = el("p", { className: "hint" });
+        pv.addEventListener("click", () => pv.parentNode.classList.toggle("full"));
         let canvasNow = null, seq = 0;
         let draw = async () => {
             let mine = ++seq, rows = [...sheet.items.values()].filter((o) => sheet.picked.has(o.id))

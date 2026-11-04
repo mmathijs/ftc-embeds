@@ -276,6 +276,29 @@ with sync_playwright() as p:
     strip = page.locator('.ae-strip img').count(); check(strip == 10, 'previews at 40 and 20 px on FIRST\'s 5 backgrounds')
     page.locator('.ae-head button', has_text='Shortcuts').click(); check(page.locator('.ae dialog[open]').count() == 1, 'shortcuts dialog'); page.keyboard.press('Escape')
 
+    # versions: save two, go back to the first, undo; compare them on screen
+    page.locator('.ae-head button', has_text='Save version').click()
+    v1 = result(); check(state('e.versions.length') == 1 and state('e.versions[0].op') == v1, 'Save version keeps the current state')
+    page.keyboard.press('b'); drag([(40, 40), (280, 60)])
+    v2 = result(); page.keyboard.press('Control+Shift+S')
+    check(state('e.versions.length') == 2 and v2 != v1 and page.locator('.ae-ver').count() == 2, 'a second version (Ctrl+Shift+S), listed with its thumbnails')
+    page.locator('.ae-ver', has_text='Version 1').locator('button', has_text='Restore').click()
+    check(result() == v1, 'Restore goes back to version 1 exactly')
+    page.keyboard.press('Control+z'); check(result() == v2, 'undo: back to what there was before the restore')
+    page.locator('.ae-head button', has_text='Compare').click()
+    page.wait_for_selector('dialog.ae-cmp[open] .view img[src^="data:image/png"]')
+    ticked = page.locator('dialog.ae-cmp aside input:checked').count()
+    h1 = page.evaluate("document.querySelector('dialog.ae-cmp .view img').naturalHeight")
+    check(ticked == 3 and h1 == 2 * (104 + 3 * 284 + 6), f'Compare shows the sheet on screen, no download needed: now and both versions ({ticked} rows)')
+    page.locator('dialog.ae-cmp aside label', has_text='Version 1').locator('input').uncheck()
+    page.wait_for_function(f"document.querySelector('dialog.ae-cmp .view img').naturalHeight === {2 * (104 + 2 * 284 + 6)}")
+    check(True, 'unticking a version redraws it with one row less')
+    if shots: page.screenshot(path=os.path.join(shots, 'editor-compare.png'))
+    with page.expect_download() as dl: page.locator('dialog.ae-cmp button', has_text='Download PNG').click()
+    check(Image.open(dl.value.path()).size == (2040, 2 * (104 + 2 * 284 + 6)), 'and it can be downloaded')
+    page.locator('dialog.ae-cmp button', has_text='Close').click()
+    final_versions = 2; final = result(); n = state('e.undo.length')   # the brush stroke above is part of it now
+
     # export: every format and size
     page.keyboard.press('Control+e'); page.wait_for_selector('dialog.ae-ex[open]')
     if shots: page.screenshot(path=os.path.join(shots, 'editor-export.png'))
@@ -342,6 +365,7 @@ with sync_playwright() as p:
     page.locator('.saved-item .btn', has_text='Open').first.click()
     page.wait_for_function(f'{ed} && {ed}.last', timeout=30000)
     check(result() == final, 'the saved edit opens exactly as it was, without uploading again')
+    check(state('e.versions.length') == final_versions, 'with its versions')
     page.locator('.ae-head button', has_text='Use this avatar').click(); page.wait_for_selector('.opt[data-id^="edit-"]')
     check(page.get_attribute('.opt[data-id^="edit-"] .px', 'src') == final, 'and can be used from there')
     # a project file, opened on the page and inside the editor
@@ -349,7 +373,7 @@ with sync_playwright() as p:
     page.set_input_files('#open-project', project_path)
     page.wait_for_function(f'{ed} && {ed}.last', timeout=30000)
     check(result() == final, 'a project file opens on the page exactly as it was')
-    check(state('e.doc.layers.length') == 3 and state('e.doc.draw.length') > 0, 'with its layers and shapes')
+    check(state('e.doc.layers.length') == 3 and state('e.doc.draw.length') > 0 and state('e.versions.length') == final_versions, 'with its layers, shapes and versions')
     page.set_input_files('.ae-head input[type=file]', project_path)
     page.wait_for_function(f'{ed} && {ed}.last && document.querySelectorAll(".ae").length == 1', timeout=30000)
     check(result() == final, 'and inside the editor (Open…)')
