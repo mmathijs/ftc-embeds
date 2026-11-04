@@ -112,7 +112,8 @@ and checks the lime and empty-band notes on two made-up logos.
 Every option card has **Edit**. The editor runs in the browser on the layers above: the server is
 asked once, and nothing is sent back. It has a layer list (Behind the logo, Logo, Drawing, and as
 many drawing layers as wanted: reorder, hide, opacity, rename), an eraser and a restore brush, a
-magic wand, a brush, a Bézier pen, shapes, an area selection (rectangle or lasso: the eraser, brush
+magic wand, a brush, a Bézier pen, shapes (rectangle, ellipse, triangle, polygon, star, heart, arrow,
+line; with rounded corners, also later on any selected shape), an area selection (rectangle or lasso: the eraser, brush
 and wand stay inside it; erase inside, keep only inside, fill), the 40 px result live on FIRST's
 backgrounds, and the canvas with the background or transparent (border included) over a backdrop.
 

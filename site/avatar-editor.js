@@ -35,7 +35,7 @@
         ["wand", "w", "Magic wand", "Click an area (like the gap inside a letter, or a leftover background) to cut it out. Alt-click brings it back."],
         ["brush", "b", "Brush", "Drag to paint with the line colour. [ and ] change the size. Alt-click picks a colour."],
         ["pen", "p", "Pen", "Click to place corner points; click and drag to make a curve. Click the first point to close the shape. Enter or double-click finishes. Backspace removes the last point."],
-        ["shape", "u", "Shapes", "Drag to draw a rectangle, ellipse or line (choose above). Shift keeps it square or straight. Shapes stay editable with Select."],
+        ["shape", "u", "Shapes", "Pick a shape above and drag to draw it. Shift keeps it square, Alt draws from the middle. Corners rounds the corners, now or later on the selected shape. Shapes stay editable with Select."],
         ["picker", "i", "Eyedropper", "Click the canvas to pick a colour. Choose above where it goes: line, fill or background."],
         ["hand", "h", "Hand", "Drag to look around. Scroll to zoom. Hold Space with any tool for the hand."],
     ];
@@ -49,7 +49,7 @@
         ["[ and ]", "smaller or bigger eraser and brush"],
         ["Space + drag, scroll", "look around, zoom"],
         ["+ − 0", "zoom in, out, fit"],
-        ["Alt", "eraser restores, wand brings back, brush picks a colour, pen breaks a curve handle"],
+        ["Alt", "eraser restores, wand brings back, brush picks a colour, pen breaks a curve handle, shapes draw from the middle"],
         ["Shift", "square shapes, straight lines, move in one direction"],
         ["Enter, Esc", "finish the path you are drawing"],
         ["Delete", "remove the selected point or shapes, or erase inside the selected area"],
@@ -204,6 +204,25 @@
 
     // --- paths ----------------------------------------------------------------------------------------
     const node = (x, y) => ({ x, y, ix: x, iy: y, ox: x, oy: y, smooth: false });
+    const isCorner = (n) => n.ix === n.x && n.iy === n.y && n.ox === n.x && n.oy === n.y;
+    function roundNodes(nodes, closed, radius) {
+        // Rounded corners, applied when drawing (the shape keeps its own points): every corner point
+        // becomes two points joined by a quarter-circle-like curve, at most half-way along each edge.
+        let N_ = nodes.length, out = [], k = 0.5523;
+        for (let i = 0; i < N_; i++) {
+            let n = nodes[i];
+            if (!isCorner(n) || (!closed && (i === 0 || i === N_ - 1))) { out.push(Object.assign({}, n)); continue; }
+            let p = nodes[(i - 1 + N_) % N_], q = nodes[(i + 1) % N_];
+            let P = p.ox !== p.x || p.oy !== p.y ? [p.ox, p.oy] : [p.x, p.y], Q = q.ix !== q.x || q.iy !== q.y ? [q.ix, q.iy] : [q.x, q.y];
+            let dp = Math.hypot(P[0] - n.x, P[1] - n.y), dq = Math.hypot(Q[0] - n.x, Q[1] - n.y);
+            if (dp < 1e-6 || dq < 1e-6) { out.push(Object.assign({}, n)); continue; }
+            let r = Math.min(radius, Math.hypot(p.x - n.x, p.y - n.y) / 2, Math.hypot(q.x - n.x, q.y - n.y) / 2);
+            let A = [n.x + ((P[0] - n.x) / dp) * r, n.y + ((P[1] - n.y) / dp) * r], B = [n.x + ((Q[0] - n.x) / dq) * r, n.y + ((Q[1] - n.y) / dq) * r];
+            out.push({ x: A[0], y: A[1], ix: A[0], iy: A[1], ox: A[0] + (n.x - A[0]) * k, oy: A[1] + (n.y - A[1]) * k, smooth: false });
+            out.push({ x: B[0], y: B[1], ix: B[0] + (n.x - B[0]) * k, iy: B[1] + (n.y - B[1]) * k, ox: B[0], oy: B[1], smooth: false });
+        }
+        return out;
+    }
     function pathOf(o) {
         let p = new Path2D(), n = o.nodes || o.pts;
         if (o.k === "stroke") {
@@ -215,6 +234,7 @@
             return p;
         }
         if (!n.length) return p;
+        if (o.radius > 0 && n.length > 2) n = roundNodes(n, o.closed, o.radius);
         p.moveTo(n[0].x, n[0].y);
         let seg = (a, b) => p.bezierCurveTo(a.ox, a.oy, b.ix, b.iy, b.x, b.y);
         for (let i = 1; i < n.length; i++) seg(n[i - 1], n[i]);
@@ -222,16 +242,50 @@
         return p;
     }
     const bez = (a, b, c, d, t) => { let u = 1 - t; return u * u * u * a + 3 * u * u * t * b + 3 * u * t * t * c + t * t * t * d; };
-    function shapeNodes(kind, a, b, shift) {
+    const free = (o) => { if (!o.box) return o; let c = Object.assign({}, o); delete c.box; delete c.params; return c; };   // points edited by hand
+    const SHAPES = [["rect", "Rectangle"], ["ellipse", "Ellipse"], ["triangle", "Triangle"], ["polygon", "Polygon"], ["star", "Star"], ["heart", "Heart"], ["arrow", "Arrow"], ["line", "Line"]];
+    const ROUNDABLE = ["rect", "triangle", "polygon", "star", "arrow"];
+    function shapeNodes(kind, a, b, shift, opt = {}, centre = false) {
+        // a shape in the box dragged from a to b. shift: keep it square (lines: 45 degree steps);
+        // centre: a is the middle. opt: {sides, points, inner} for polygons and stars.
         let x0 = a.x, y0 = a.y, x1 = b.x, y1 = b.y;
         if (kind === "line") {
             if (shift) { let dx = x1 - x0, dy = y1 - y0, ang = Math.round(Math.atan2(dy, dx) / (Math.PI / 4)) * (Math.PI / 4), len = Math.hypot(dx, dy); x1 = x0 + Math.cos(ang) * len; y1 = y0 + Math.sin(ang) * len; }
+            if (centre) { x0 = 2 * a.x - x1; y0 = 2 * a.y - y1; }
             return { nodes: [node(x0, y0), node(x1, y1)], closed: false };
         }
         if (shift) { let s = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)); x1 = x0 + Math.sign(x1 - x0 || 1) * s; y1 = y0 + Math.sign(y1 - y0 || 1) * s; }
+        if (centre) { x0 = 2 * a.x - x1; y0 = 2 * a.y - y1; }
         let l = Math.min(x0, x1), r = Math.max(x0, x1), t = Math.min(y0, y1), bt = Math.max(y0, y1);
-        if (kind === "rect") return { nodes: [node(l, t), node(r, t), node(r, bt), node(l, bt)], closed: true };
-        let cx = (l + r) / 2, cy = (t + bt) / 2, rx = (r - l) / 2, ry = (bt - t) / 2, k = 0.5523;
+        let cx = (l + r) / 2, cy = (t + bt) / 2, rx = (r - l) / 2, ry = (bt - t) / 2, w = r - l, h = bt - t, k = 0.5523;
+        let corners = (pts) => ({ nodes: pts.map(([x, y]) => node(x, y)), closed: true });
+        if (kind === "rect") return corners([[l, t], [r, t], [r, bt], [l, bt]]);
+        if (kind === "triangle") return corners([[cx, t], [r, bt], [l, bt]]);
+        if (kind === "polygon" || kind === "star") {
+            let n = kind === "star" ? Math.max(3, opt.points || 5) : Math.max(3, opt.sides || 6), pts = [];
+            for (let i = 0; i < (kind === "star" ? 2 * n : n); i++) {
+                let ang = -Math.PI / 2 + (i * Math.PI * 2) / (kind === "star" ? 2 * n : n), f = kind === "star" && i % 2 ? (opt.inner || 0.5) : 1;
+                pts.push([cx + rx * f * Math.cos(ang), cy + ry * f * Math.sin(ang)]);
+            }
+            return corners(pts);
+        }
+        if (kind === "arrow") {    // pointing the way it was dragged: right, left, up or down
+            let vertical = Math.abs(y1 - y0) > Math.abs(x1 - x0) * 1.5, back = vertical ? y1 < y0 : x1 < x0;
+            let pts = [[0, 0.3], [0.58, 0.3], [0.58, 0], [1, 0.5], [0.58, 1], [0.58, 0.7], [0, 0.7]];
+            return corners(pts.map(([u, v]) => { if (back) u = 1 - u; return vertical ? [l + v * w, t + u * h] : [l + u * w, t + v * h]; }));
+        }
+        if (kind === "heart") {
+            let P = (u, v) => [l + u * w, t + v * h];
+            let nd = (u, v, iu, iv, ou, ov, smooth) => { let [x, y] = P(u, v), [ix, iy] = P(iu, iv), [ox, oy] = P(ou, ov); return { x, y, ix, iy, ox, oy, smooth }; };
+            return { nodes: [
+                nd(0.5, 0.24, 0.5, 0.24, 0.62, 0.02, false),     // the dip at the top
+                nd(0.78, 0.0, 0.66, 0.0, 0.92, 0.0, true),
+                nd(1.0, 0.3, 1.0, 0.13, 1.0, 0.5, true),
+                nd(0.5, 1.0, 0.82, 0.68, 0.18, 0.68, false),     // the point at the bottom
+                nd(0.0, 0.3, 0.0, 0.5, 0.0, 0.13, true),
+                nd(0.22, 0.0, 0.08, 0.0, 0.34, 0.0, true),
+            ].map((n, i, all) => (i === 0 ? Object.assign(n, { ix: P(0.38, 0.02)[0], iy: P(0.38, 0.02)[1] }) : n)), closed: true };
+        }
         let n = [[cx, t, -1, 0], [r, cy, 0, -1], [cx, bt, 1, 0], [l, cy, 0, 1]].map(([x, y, dx, dy]) => ({ x, y, ix: x + dx * rx * k, iy: y + dy * ry * k, ox: x - dx * rx * k, oy: y - dy * ry * k, smooth: true }));
         return { nodes: n, closed: true };
     }
@@ -360,7 +414,7 @@
             this.o = o;
             this.label = o.label || "Avatar";
             this.tool = "erase";
-            this.opt = { eraseSize: 2, restoreSize: 2, wandTol: 40, wandContig: true, brushSize: 1.2, stroke: "#121216", fill: "#ffffff", strokeOn: true, fillOn: false, lineW: 1.2, shape: "rect", pickInto: "stroke", grid: true, preview: "bg", backdrop: "checker", mode: "detail", selShape: "rect" };
+            this.opt = { eraseSize: 2, restoreSize: 2, wandTol: 40, wandContig: true, brushSize: 1.2, stroke: "#121216", fill: "#ffffff", strokeOn: true, fillOn: false, lineW: 1.2, shape: "rect", corners: 0, sides: 6, points: 5, inner: 0.5, pickInto: "stroke", grid: true, preview: "bg", backdrop: "checker", mode: "detail", selShape: "rect" };
             this.view = { k: 1, px: 0, py: 0 };
             this.undo = []; this.redo = [];
             this.sel = { ids: [], node: -1 };   // selected shapes; node: the selected point when one path is selected
@@ -1204,7 +1258,39 @@
             if (this.tool === "restore") b.append(slider("Size", "restoreSize", 0.5, 12, 0.5, px));
             if (this.tool === "brush") b.append(slider("Size", "brushSize", 0.3, 8, 0.1, px), el("span", {}, "Colour: the line colour (right panel)"));
             if (this.tool === "wand") b.append(slider("Tolerance", "wandTol", 2, 120, 1, (v) => String(v)), el("label", {}, Object.assign(el("input", { type: "checkbox", checked: o.wandContig, onchange: (e) => { o.wandContig = e.target.checked; } })), "Only the connected area"));
-            if (this.tool === "shape") b.append(seg("shape", [["rect", "Rectangle"], ["ellipse", "Ellipse"], ["line", "Line"]]));
+            if (this.tool === "shape") {
+                b.append(seg("shape", SHAPES));
+                if (o.shape === "polygon") b.append(this.shapeParam("Sides", "sides", 3, 12, 1, (v) => String(v), ["polygon"]));
+                if (o.shape === "star") b.append(this.shapeParam("Points", "points", 3, 12, 1, (v) => String(v), ["star"]), this.shapeParam("Depth", "inner", 0.2, 0.9, 0.05, (v) => Math.round((1 - v) * 100) + "%", ["star"]));
+                if (ROUNDABLE.includes(o.shape)) {
+                    let c = slider("Corners", "corners", 0, 10, 0.5, (v) => (v ? v.toFixed(1) + " px" : "sharp")), r = c.querySelector("input");
+                    // also the shape just drawn (it is selected), so the corners can be tried on it
+                    r.addEventListener("input", () => {
+                        let ids = this.selObjs().filter((x) => x.k === "path" && x.nodes.some(isCorner)).map((x) => x.id);
+                        if (ids.length) this.set({ draw: this.doc.draw.map((x) => (ids.includes(x.id) ? Object.assign({}, x, { radius: o.corners * S }) : x)) }, true);
+                    });
+                    r.addEventListener("change", () => this.commit());
+                    b.append(c);
+                }
+            }
+            if (["select", "pen"].includes(this.tool) && !this.building) {   // the selected stars and polygons
+                let kinds = new Set(this.selObjs().filter((x) => x.box).map((x) => x.shape));
+                if (kinds.has("polygon")) b.append(this.shapeParam("Sides", "sides", 3, 12, 1, (v) => String(v), ["polygon"]));
+                if (kinds.has("star")) b.append(this.shapeParam("Points", "points", 3, 12, 1, (v) => String(v), ["star"]), this.shapeParam("Depth", "inner", 0.2, 0.9, 0.05, (v) => Math.round((1 - v) * 100) + "%", ["star"]));
+            }
+            if (["select", "pen"].includes(this.tool)) {   // round the corners of the selected shapes, any time
+                let paths = this.selObjs().filter((x) => x.k === "path" && x.closed !== undefined && x.nodes.length > 2 && x.nodes.some(isCorner));
+                if (paths.length && !this.building) {
+                    let cur = (paths[0].radius || 0) / S, out = el("output", {}, cur ? cur.toFixed(1) + " px" : "sharp");
+                    let r = el("input", { type: "range", min: 0, max: 10, step: 0.5, value: cur, ariaLabel: "Corners of the selected shape" });
+                    r.addEventListener("input", () => {
+                        let v = +r.value * S, ids = paths.map((x) => x.id); out.textContent = +r.value ? (+r.value).toFixed(1) + " px" : "sharp";
+                        this.set({ draw: this.doc.draw.map((x) => (ids.includes(x.id) ? Object.assign({}, x, { radius: v }) : x)) }, true); this.paint();
+                    });
+                    r.addEventListener("change", () => { this.commit(); this.opt.corners = +r.value; });
+                    b.append(el("label", { title: "Rounds the corner points of the selected shape" }, paths.length > 1 ? `Corners (${paths.length} shapes)` : "Corners of the selected shape", r, out));
+                }
+            }
             if (this.tool === "select") b.append(el("label", {}, "Drag to select", seg("selShape", [["rect", "Rectangle"], ["lasso", "Lasso"]])));
             if (this.area && ["select", "erase", "brush", "wand", "restore"].includes(this.tool)) {
                 b.append(el("span", {}, "Area on ", el("b", {}, lay ? lay.name : "Logo"), ":"),
@@ -1225,6 +1311,25 @@
                     el("button", { className: "b", type: "button", onclick: () => this.place("center") }, "Centre"), el("button", { className: "b", type: "button", onclick: () => this.place("bottom") }, "Cut at bottom"),
                     el("span", {}, "Size: slider under Logo, right"));
             }
+        }
+        shapeParam(label, key, min, max, step, fmt, kinds) {
+            // Sides, Points, Depth: in the Shapes tool for the next shape and the one just drawn; with
+            // Select or the pen for the selected shapes. The shapes are rebuilt in the box they were drawn in.
+            let ids = () => this.selObjs().filter((x) => x.box && kinds.includes(x.shape)).map((x) => x.id);
+            let first = this.objById(ids()[0]), val = this.tool === "shape" || !first ? this.opt[key] : first.params[key];
+            let out = el("output", {}, fmt(val)), r = el("input", { type: "range", min, max, step, value: val, ariaLabel: label });
+            r.addEventListener("input", () => {
+                let v = +r.value, sel = ids(); out.textContent = fmt(v);
+                if (this.tool === "shape") this.opt[key] = v;
+                this.set({ draw: this.doc.draw.map((x) => {
+                    if (!sel.includes(x.id)) return x;
+                    let params = Object.assign({}, x.params, { [key]: v });
+                    return Object.assign({}, x, shapeNodes(x.shape, x.box.a, x.box.b, x.box.shift, params, x.box.centre), { params });
+                }) }, true);
+                this.paint();
+            });
+            r.addEventListener("change", () => this.commit());
+            return el("label", {}, label, r, out);
         }
         pt(e) { return { x: (e.offsetX - this.view.px) / this.view.k, y: (e.offsetY - this.view.py) / this.view.k }; }
         toSrc(p) { let t = this.doc.t; return [(p.x - t.x) / t.s, (p.y - t.y) / t.s]; }
@@ -1278,7 +1383,8 @@
                 return;
             }
             if (tool === "shape") {
-                let o = Object.assign({ id: uid++, k: "path", layer: this.drawLayer() }, this.style(), shapeNodes(this.opt.shape, p, p, false));
+                let o = Object.assign({ id: uid++, k: "path", layer: this.drawLayer(), shape: this.opt.shape }, this.style(), shapeNodes(this.opt.shape, p, p, false, this.opt));
+                if (ROUNDABLE.includes(this.opt.shape) && this.opt.corners) o.radius = this.opt.corners * S;
                 if (!o.stroke && (!o.fill || this.opt.shape === "line")) { o.stroke = this.opt.stroke; this.opt.strokeOn = true; }
                 this.set({ draw: [...this.doc.draw, o] }); this.g = { k: "shape", p, id: o.id }; this.select([o.id]);
                 return;
@@ -1314,7 +1420,9 @@
                 g.o.pts.push([p.x, p.y]); this.paint(); return;
             }
             if (g.k === "shape") {
-                let o = Object.assign({}, this.objById(g.id), shapeNodes(this.opt.shape, g.p, p, e.shiftKey));
+                let params = { sides: this.opt.sides, points: this.opt.points, inner: this.opt.inner };
+                let box = { a: { x: g.p.x, y: g.p.y }, b: { x: p.x, y: p.y }, shift: e.shiftKey, centre: e.altKey };   // to rebuild it with other settings
+                let o = Object.assign({}, this.objById(g.id), shapeNodes(this.opt.shape, g.p, p, e.shiftKey, params, e.altKey), { box, params });
                 this.replaceObj(o); this.paint(); return;
             }
             if (g.k === "marquee") {
@@ -1420,7 +1528,7 @@
             a.ox = A[0]; a.oy = A[1]; b.ix = C[0]; b.iy = C[1];
             let m = { x: F[0], y: F[1], ix: D[0], iy: D[1], ox: E[0], oy: E[1], smooth: true };
             n.splice(s + 1, 0, m);
-            return Object.assign({}, o, { nodes: n });
+            return free(Object.assign({}, o, { nodes: n }));
         }
         penDown(p, e) {
             let b = this.building && this.objById(this.building);
@@ -1502,7 +1610,7 @@
                     let prev = n[(h.i - 1 + n.length) % n.length], next = n[(h.i + 1) % n.length], dx = next.x - prev.x, dy = next.y - prev.y, l = Math.hypot(dx, dy) || 1, len = l / 6;
                     Object.assign(m, { ix: m.x - (dx / l) * len, iy: m.y - (dy / l) * len, ox: m.x + (dx / l) * len, oy: m.y + (dy / l) * len, smooth: true });
                 } else Object.assign(m, { ix: m.x, iy: m.y, ox: m.x, oy: m.y, smooth: false });
-                this.replaceObj(Object.assign({}, o, { nodes: n })); this.commit(); this.paint(); this.dragging = false; return;
+                this.replaceObj(free(Object.assign({}, o, { nodes: n }))); this.commit(); this.paint(); this.dragging = false; return;
             }
             this.g = Object.assign({ id: o.id, p, o }, h); this.paint();
         }
@@ -1513,7 +1621,8 @@
                 let dx = p.x - g.p.x, dy = p.y - g.p.y;
                 if (e.shiftKey) { if (Math.abs(dx) > Math.abs(dy)) dy = 0; else dx = 0; }
                 let mv = (src) => src.k === "stroke" ? Object.assign({}, src, { pts: src.pts.map(([x, y]) => [x + dx, y + dy]) })
-                    : Object.assign({}, src, { nodes: src.nodes.map((n) => ({ x: n.x + dx, y: n.y + dy, ix: n.ix + dx, iy: n.iy + dy, ox: n.ox + dx, oy: n.oy + dy, smooth: n.smooth })) });
+                    : Object.assign({}, src, { nodes: src.nodes.map((n) => ({ x: n.x + dx, y: n.y + dy, ix: n.ix + dx, iy: n.iy + dy, ox: n.ox + dx, oy: n.oy + dy, smooth: n.smooth })) },
+                        src.box ? { box: Object.assign({}, src.box, { a: { x: src.box.a.x + dx, y: src.box.a.y + dy }, b: { x: src.box.b.x + dx, y: src.box.b.y + dy } }) } : {});
                 let moved = new Map(g.orig.map((o) => [o.id, mv(o)]));
                 this.set({ draw: this.doc.draw.map((x) => moved.get(x.id) || x) }, true); this.paint(); return;
             }
@@ -1533,13 +1642,13 @@
                     m[other + "x"] = m.x - (dx / l) * len; m[other + "y"] = m.y - (dy / l) * len;
                 }
             }
-            this.replaceObj(Object.assign({}, o, { nodes: n })); this.paint();
+            this.replaceObj(free(Object.assign({}, o, { nodes: n }))); this.paint();
         }
         deleteSel() {
             let o = this.selObj(), all = this.sel.ids;
             if (o && o.k === "path" && this.sel.node >= 0 && o.nodes.length > 2) {
                 let n = o.nodes.filter((_, i) => i !== this.sel.node);
-                this.replaceObj(Object.assign({}, o, { nodes: n })); this.select([o.id]);
+                this.replaceObj(free(Object.assign({}, o, { nodes: n }))); this.select([o.id]);
             } else if (all.length) {
                 this.set({ draw: this.doc.draw.filter((x) => !all.includes(x.id)) }, true); this.select([]);
                 if (all.includes(this.building)) this.building = null;
