@@ -101,6 +101,21 @@ magenta `#FF00FF` (video overlays key them out), and empty bands of 5 px or more
 `warnings`; they never hide an option. `tests/test_service.py` asserts the file rules on every option
 and checks the lime and empty-band notes on two made-up logos.
 
+## The editor (`site/avatar-editor.js`)
+
+Every option card has **Edit**. The editor runs in the browser on the layers above: the server is
+asked once, and nothing is sent back. It has a layer list (Behind the logo, Logo, Drawing, and as
+many drawing layers as wanted: reorder, hide, opacity, rename), an eraser and a restore brush, a
+magic wand, a brush, a Bézier pen, shapes, an area selection (rectangle or lasso: the eraser, brush
+and wand stay inside it; erase inside, keep only inside, fill), the 40 px result live on FIRST's
+backgrounds, and the canvas with the background or transparent (border included) over a backdrop.
+
+- **Saving:** in this browser as you go (IndexedDB: the projects, and the layers they start from),
+  listed on the page under *Saved in this browser*; nothing leaves the browser. **Project files**
+  (`.ftcavatar`, JSON with the layers as PNG data URIs) open on the page or with *Open…* in the editor.
+- **Export:** 40 × 40 (FIRST), 80, 160, 320, 512 or 1024 px, smooth (drawn at that size) or pixel art;
+  PNG, WebP, JPEG, SVG (pixel art) or ICO (16 to 128 px); copy to the clipboard; or everything as a zip.
+
 ## Settings
 
 | Variable | Default | |
@@ -122,7 +137,7 @@ DEV_PAGE=../../site/avatar-upload.html RATE=5 python3 service.py &
 python3 tests/test_service.py http://127.0.0.1:8080 tests/logos --rate 5
 # restart the service with RATE=1000 for the page tests, which upload many times
 python3 tests/test_page.py http://127.0.0.1:8080 tests/logos/*.png --shots /tmp/shots
-python3 tests/test_editor.py http://127.0.0.1:8080 --shots /tmp/shots   # every editor tool, undo, export
+python3 tests/test_editor.py http://127.0.0.1:8080 --shots /tmp/shots   # every editor tool, layers, saving, export
 ```
 
 `tests/logos/` holds the test logos (not committed: they are other teams' artwork). Collect at least

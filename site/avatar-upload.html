@@ -120,6 +120,15 @@
     .warn { margin: 0; padding-left: 18px; font-size: 12.5px; color: var(--warn); }
     .dl { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
     .size { font: 11px var(--mono); color: var(--ink-2); }
+    .linkish { text-decoration: underline; text-underline-offset: 3px; cursor: pointer; color: var(--ink); }
+    .linkish:hover { color: var(--accent); }
+    .saved-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; margin-top: 12px; }
+    .saved-item { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 12px; align-items: center; padding: 10px; border: 1px solid var(--rule); background: var(--field); }
+    .saved-item .thumbs { grid-row: span 2; display: flex; gap: 4px; }
+    .saved-item .thumbs img { width: 40px; height: 40px; image-rendering: pixelated; display: block; }
+    .saved-item b { font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .saved-item small { display: block; font: 11px var(--mono); color: var(--ink-2); }
+    .saved-item .dl { grid-column: 1 / -1; }
     .steps { border-top: 1px solid var(--rule); padding-top: 16px; max-width: 70ch; }
     .steps h3 { margin: 0 0 8px; font-size: 15px; }
     .steps ol { margin: 0; padding-left: 20px; display: grid; gap: 4px; font-size: 14px; }
@@ -188,6 +197,7 @@
                 <span id="drop-text"><b>Choose your logo</b> or drop it here<small>PNG, JPEG, WebP, GIF or SVG. A large logo on a plain or transparent background works best.</small></span>
             </label>
             <label class="check"><input type="checkbox" id="own"> <span>This is our team's own logo, and we may use it.</span></label>
+            <p class="hint">Saved a project from the editor? <label class="linkish">Open the project file<input type="file" id="open-project" accept=".ftcavatar,.json,application/json" hidden></label></p>
         </fieldset>
         <fieldset>
             <button class="btn go" id="make" type="submit">Make avatars</button>
@@ -197,6 +207,15 @@
     </form>
 
     <main class="work">
+        <section id="saved" hidden>
+            <div class="out-head">
+                <div>
+                    <h2>Saved in this browser</h2>
+                    <p>The editor saves your work here as you go, on this device only. Download a project file to keep it elsewhere.</p>
+                </div>
+            </div>
+            <div class="saved-list" id="saved-list"></div>
+        </section>
         <div class="intro" id="intro">
             <h2>What you get</h2>
             <p>Up to eight options, each as a PNG with a background and a transparent PNG:</p>
@@ -250,7 +269,9 @@
     let reading = Promise.resolve();             // the file being read; Make waits for it
     let readError = "";                          // why the last file couldn't be used
     let urls = [];                               // object URLs of the current results
-    let session = null;                          // {team, blob, base, layers, saved}: the results shown, for the editor
+    let session = null;                          // {id, team, blob, base, layers, saved}: the results shown, for the editor
+    const store = window.AvatarEditor ? window.AvatarEditor.store : null;
+    const memory = {};                           // project id -> {doc, undo, redo}: undo history while the page is open
 
     const status = (text, bad) => { $("status").textContent = text; $("status").classList.toggle("bad", !!bad); };
     const fail = (text, field) => { status(text, true); if (field) field.focus(); };
@@ -359,7 +380,7 @@
                     : [404, 405, 502, 503, 504].includes(r.status) ? "The avatar maker is offline right now. Try again later."
                     : "Something went wrong making the options.");
             }
-            session = { team: n, blob: sent, base: data.base, layers: null, saved: {} };
+            session = { id: "u" + Date.now().toString(36), team: n, blob: sent, base: data.base, layers: null };
             render(data);
             status("");
             if (matchMedia("(max-width: 920px)").matches) $("results").scrollIntoView({ behavior: "smooth" });
@@ -400,13 +421,14 @@
             box.append(el("div", { className: "dl" },
                 el("a", { className: "btn", href: blobUrl(o.opaque), download: o.files[0] }, "PNG"),
                 el("a", { className: "btn", href: blobUrl(o.transparent), download: o.files[1] }, "Transparent PNG"),
-                o.edit && window.AvatarEditor ? el("button", { className: "btn go", type: "button", title: "Erase, cut out gaps, draw with a pen and brush, change the colours", onclick: () => openEditor(o.source || o) }, o.source ? "Edit again" : "Edit") : "",
+                (o.onEdit || o.edit) && window.AvatarEditor ? el("button", { className: "btn go", type: "button", title: "Erase, cut out gaps, draw with a pen and brush, change the colours", onclick: () => (o.onEdit ? o.onEdit() : openEditor(o)) }, o.onEdit ? "Edit again" : "Edit") : "",
                 el("span", { className: "size" }, `${kb(o.bytes[0])} · ${kb(o.bytes[1])}`)));
         }
         return box;
     }
 
-    // --- the editor: the layers come from the server once per upload, the first time it opens ---
+    // --- the editor: the layers come from the server once per upload, the first time it opens, and
+    // are kept in this browser with the projects made from them -----------------------------------
     function layers() {
         let s = session;
         if (!s.layers) {
@@ -415,30 +437,80 @@
                 let d = null;
                 try { d = await r.json(); } catch { /* a proxy error page */ }
                 if (!r.ok || !d || !d.layers) throw new Error((d && d.error) || "The avatar maker couldn't open the editor right now.");
-                return d;
+                let L = { w: d.w, h: d.h, kind: d.kind, bg: d.bg, layers: d.layers };
+                if (store) await store.putLayers(s.id, L).catch(() => {});   // no storage (private window): still edits
+                return L;
             })();
             s.layers.catch(() => { if (session === s) s.layers = null; });   // try again next time
         }
         return s.layers;
     }
     const bytesOf = (uri) => Math.floor(((uri.length - uri.indexOf(",") - 1) * 3) / 4);
+    function edited(id, label, base, r, onEdit) {   // the card of an edit, added at the top of the options
+        let mine = { id: `edit-${id}`, label: `Your edit of “${label}”`, note: "Made in the editor, and saved in this browser.", opaque: r.opaque, transparent: r.transparent, warnings: r.warnings,
+            bytes: [bytesOf(r.opaque), bytesOf(r.transparent)], files: [`${base}-edited-avatar-40.png`, `${base}-edited-avatar-40-transparent.png`], onEdit };
+        if ($("results").hidden) {     // opened from Saved in this browser, without new options
+            urls.forEach((u) => URL.revokeObjectURL(u)); urls = [];
+            $("res-title").textContent = "Your edit"; $("res-sub").textContent = "Download it, or keep editing.";
+            $("grid").textContent = ""; $("zip").hidden = true; $("intro").hidden = true; $("results").hidden = false;
+        }
+        let grid = $("grid"), old = grid.querySelector(`[data-id="${mine.id}"]`), box = card(mine);
+        box.dataset.id = mine.id;
+        if (old) old.replaceWith(box);
+        else grid.insertBefore(box, grid.querySelector(".opt:not(.current)"));
+        box.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
     function openEditor(o) {
-        let s = session;
+        let s = session, pid = `${s.id}:${o.id}`;
         window.AvatarEditor.open({
-            label: o.label, preset: o.edit, layers, saved: s.saved[o.id], fileBase: `${s.base}-${o.id}-edited`,
-            onClose: (saved) => { if (saved) s.saved[o.id] = saved; },
-            onDone: ({ opaque, transparent, warnings }) => {
-                if (session !== s) return;
-                let mine = { id: `edit-${o.id}`, label: `Your edit of “${o.label}”`, note: "Made in the editor. Edit again to keep working on it.", opaque, transparent, warnings,
-                    bytes: [bytesOf(opaque), bytesOf(transparent)], files: [`${s.base}-${o.id}-edited-avatar-40.png`, `${s.base}-${o.id}-edited-avatar-40-transparent.png`], edit: o.edit, source: o };
-                let grid = $("grid"), old = grid.querySelector(`[data-id="${mine.id}"]`), box = card(mine);
-                box.dataset.id = mine.id;
-                if (old) old.replaceWith(box);
-                else grid.insertBefore(box, grid.querySelector(".opt:not(.current)"));
-                box.scrollIntoView({ behavior: "smooth", block: "center" });
-            },
+            label: o.label, preset: o.edit, layers, saved: memory[pid], fileBase: `${s.base}-${o.id}`,
+            project: { id: pid, layersId: s.id, team: s.team, base: `${s.base}-${o.id}` },
+            onSaved: renderSaved,
+            onClose: (saved) => { if (saved) memory[pid] = saved; renderSaved(); },
+            onDone: (r) => edited(pid, o.label, `${s.base}-${o.id}`, r, () => openEditor(o)),
         });
     }
+    async function openSaved(id, inline) {   // a project saved in this browser (inline: its layers, when storage failed)
+        let rec = inline ? inline.rec : await store.get(id).catch(() => null);
+        if (!rec) return status("That saved edit is gone. It may have been deleted in another tab.", true);
+        window.AvatarEditor.open({
+            label: rec.label, preset: rec.preset,
+            layers: async () => { let L = inline ? inline.layers : await store.getLayers(rec.layersId); if (!L) throw new Error("The logo of this saved edit is missing."); return L; },
+            saved: memory[rec.id] || { doc: JSON.parse(rec.doc), active: rec.active }, fileBase: rec.base,
+            project: inline && inline.noStore ? null : { id: rec.id, layersId: rec.layersId, team: rec.team, base: rec.base },
+            onSaved: renderSaved,
+            onClose: (saved) => { if (saved) memory[rec.id] = saved; renderSaved(); },
+            onDone: (r) => edited(rec.id, rec.label, rec.base, r, () => openSaved(rec.id, inline)),
+        });
+    }
+    async function openProjectFile(p) {   // a .ftcavatar file: keep it in this browser, then open it
+        let id = "f" + Date.now().toString(36), rec = { id: `${id}:p`, layersId: id, team: p.team, base: p.base || "avatar", label: p.label || "Imported project", preset: p.preset, doc: JSON.stringify(p.doc), active: p.active, updated: Date.now() };
+        try { await store.putLayers(id, p.layers); await store.put(rec); delete memory[rec.id]; openSaved(rec.id); renderSaved(); }
+        catch { openSaved(rec.id, { rec, layers: p.layers, noStore: true }); }
+    }
+    if (window.AvatarEditor) window.AvatarEditor.onImport = openProjectFile;
+    $("open-project").addEventListener("change", async () => {
+        let f = $("open-project").files[0]; $("open-project").value = "";
+        if (!f) return;
+        try { openProjectFile(await window.AvatarEditor.readProject(f)); status(""); } catch (e) { fail(e.message); }
+    });
+    async function renderSaved() {
+        if (!store) return;
+        let list = await store.list().catch(() => []), box = $("saved-list");
+        $("saved").hidden = !list.length;
+        box.textContent = "";
+        for (let rec of list) {
+            let when = new Date(rec.updated).toLocaleString([], { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+            box.append(el("div", { className: "saved-item" },
+                el("div", { className: "thumbs" }, rec.thumbOp ? el("img", { src: rec.thumbOp, alt: "" }) : "", rec.thumb ? el("img", { src: rec.thumb, alt: "", className: "checker" }) : ""),
+                el("b", { title: rec.label }, rec.label),
+                el("small", {}, (rec.team ? `team ${rec.team} · ` : "") + when),
+                el("div", { className: "dl" },
+                    el("button", { className: "btn go", type: "button", onclick: () => openSaved(rec.id) }, "Open"),
+                    el("button", { className: "btn", type: "button", onclick: async () => { if (confirm(`Delete “${rec.label}” from this browser?`)) { await store.del(rec.id).catch(() => {}); delete memory[rec.id]; renderSaved(); } } }, "Delete"))));
+        }
+    }
+    renderSaved();
 
     function render(d) {
         urls.forEach((u) => URL.revokeObjectURL(u));
@@ -453,6 +525,7 @@
         let zip = $("zip");
         zip.href = blobUrl(d.zip);
         zip.download = `${d.base}-avatars.zip`;
+        zip.hidden = false;
         $("intro").hidden = true;
         $("results").hidden = false;
     }

@@ -28,9 +28,9 @@
         hand: "M8 13V5a1.5 1.5 0 0 1 3 0v6M11 11V4a1.5 1.5 0 0 1 3 0v7M14 11V5a1.5 1.5 0 0 1 3 0v8c0 5-3 8-7 8-3 0-5-2-6-5l-2-4a1.5 1.5 0 0 1 2.6-1.5L8 13",
     };
     const TOOLS = [
-        ["select", "v", "Select", "Click a shape or line you drew to select it; drag it to move it. Drag its square points and round handles to reshape it. Delete removes it."],
+        ["select", "v", "Select", "Drag over an area to select it: the shapes inside it on the selected layer are selected, and the eraser, brush and wand then only work inside it. Click a shape to select it (Shift adds more); drag a selected shape to move it. Delete removes what is selected."],
         ["move", "m", "Move logo", "Drag to move the logo. Use the size slider above to make it bigger or smaller. Arrow keys nudge it by one avatar pixel."],
-        ["erase", "e", "Eraser", "Drag to erase. Choose above whether it erases the logo or your drawing. Hold Alt to restore instead."],
+        ["erase", "e", "Eraser", "Drag to erase on the layer that is selected in Layers (right). Hold Alt to restore the logo instead."],
         ["restore", "r", "Restore", "Paint to bring back the original logo, including its background, where the cut-out removed too much."],
         ["wand", "w", "Magic wand", "Click an area (like the gap inside a letter, or a leftover background) to cut it out. Alt-click brings it back."],
         ["brush", "b", "Brush", "Drag to paint with the line colour. [ and ] change the size. Alt-click picks a colour."],
@@ -41,6 +41,10 @@
     ];
     const SHORTCUTS = [
         ["V M E R W B P U I H", "the tools, as labelled"],
+        ["Ctrl+S", "save in this browser"],
+        ["Ctrl+E", "export"],
+        ["Ctrl+A, Esc", "select everything, select nothing"],
+        ["T", "view with background or transparent"],
         ["Ctrl+Z, Ctrl+Shift+Z or Ctrl+Y", "undo, redo"],
         ["[ and ]", "smaller or bigger eraser and brush"],
         ["Space + drag, scroll", "look around, zoom"],
@@ -48,7 +52,7 @@
         ["Alt", "eraser restores, wand brings back, brush picks a colour, pen breaks a curve handle"],
         ["Shift", "square shapes, straight lines, move in one direction"],
         ["Enter, Esc", "finish the path you are drawing"],
-        ["Delete", "remove the selected point or shape"],
+        ["Delete", "remove the selected point or shapes, or erase inside the selected area"],
         ["G", "pixel grid on or off"],
         ["X", "swap the line and fill colours"],
     ];
@@ -91,10 +95,10 @@
         }
         return O;
     }
-    function maxFilter(A, R) {   // square max filter of a 320 x 320 alpha map, as Pillow's MaxFilter
-        let T = new Float32Array(N * N), U = new Float32Array(N * N);
-        for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { let m = 0; for (let k = Math.max(0, x - R); k <= Math.min(N - 1, x + R); k++) m = Math.max(m, A[y * N + k]); T[y * N + x] = m; }
-        for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) { let m = 0; for (let k = Math.max(0, y - R); k <= Math.min(N - 1, y + R); k++) m = Math.max(m, T[k * N + x]); U[y * N + x] = m; }
+    function maxFilter(A, R, W = N) {   // square max filter of a W x W alpha map, as Pillow's MaxFilter
+        let T = new Float32Array(W * W), U = new Float32Array(W * W);
+        for (let y = 0; y < W; y++) for (let x = 0; x < W; x++) { let m = 0; for (let k = Math.max(0, x - R); k <= Math.min(W - 1, x + R); k++) m = Math.max(m, A[y * W + k]); T[y * W + x] = m; }
+        for (let y = 0; y < W; y++) for (let x = 0; x < W; x++) { let m = 0; for (let k = Math.max(0, y - R); k <= Math.min(W - 1, y + R); k++) m = Math.max(m, T[k * W + x]); U[y * W + x] = m; }
         return U;
     }
     function toImageData(O, floor) {   // premultiplied 40 x 40 -> ImageData; alpha under `floor` becomes 0 (no hidden colour)
@@ -121,6 +125,82 @@
         }
         return boxes.map((b) => { let s = [0, 0, 0]; for (let p of b) { s[0] += p[0]; s[1] += p[1]; s[2] += p[2]; } return s.map((v) => v / b.length); });
     }
+
+    // --- polygons (selections) -----------------------------------------------------------------------
+    function polyPath(poly, invertBox) {
+        let p = new Path2D();
+        if (invertBox) p.rect(...invertBox);
+        poly.forEach(([x, y], i) => (i ? p.lineTo(x, y) : p.moveTo(x, y)));
+        p.closePath();
+        return p;
+    }
+    function inPoly(poly, x, y) {
+        let inside = false;
+        for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+            let [xi, yi] = poly[i], [xj, yj] = poly[j];
+            if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+        }
+        return inside;
+    }
+    const rectPoly = (a, b) => [[a.x, a.y], [b.x, a.y], [b.x, b.y], [a.x, b.y]];
+
+    // --- files: a project file, zip (stored), ICO ------------------------------------------------------
+    const serialize = (v) => JSON.stringify(v, (k, x) => (k[0] === "_" ? undefined : x));   // no wand caches
+    const CRC = (() => { let t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+    const crc32 = (b) => { let c = 0xffffffff; for (let i = 0; i < b.length; i++) c = CRC[(c ^ b[i]) & 255] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; };
+    function zip(files) {   // files: [{name, data: Uint8Array}] -> Blob (no compression: PNGs are compressed already)
+        let enc = new TextEncoder(), parts = [], central = [], off = 0;
+        let le = (n, b) => { let a = new Uint8Array(b); for (let i = 0; i < b; i++) a[i] = (n >>> (8 * i)) & 255; return a; };
+        for (let f of files) {
+            let name = enc.encode(f.name), crc = crc32(f.data), n = f.data.length;
+            let head = [le(0x04034b50, 4), le(20, 2), le(0x0800, 2), le(0, 2), le(0, 2), le(0x21, 2), le(crc, 4), le(n, 4), le(n, 4), le(name.length, 2), le(0, 2), name];
+            central.push([le(0x02014b50, 4), le(20, 2), le(20, 2), le(0x0800, 2), le(0, 2), le(0, 2), le(0x21, 2), le(crc, 4), le(n, 4), le(n, 4), le(name.length, 2), le(0, 2), le(0, 2), le(0, 2), le(0, 2), le(0, 4), le(off, 4), name]);
+            parts.push(...head, f.data);
+            off += head.reduce((s, a) => s + a.length, 0) + n;
+        }
+        let cd = central.flat(), size = cd.reduce((s, a) => s + a.length, 0);
+        return new Blob([...parts, ...cd, le(0x06054b50, 4), le(0, 2), le(0, 2), le(files.length, 2), le(files.length, 2), le(size, 4), le(off, 4), le(0, 2)], { type: "application/zip" });
+    }
+    function ico(pngs) {   // pngs: [{size, data: Uint8Array}] -> Blob (an ICO with PNG images, as browsers and Windows read)
+        let head = new DataView(new ArrayBuffer(6 + 16 * pngs.length)), off = 6 + 16 * pngs.length;
+        head.setUint16(2, 1, true); head.setUint16(4, pngs.length, true);
+        pngs.forEach((p, i) => {
+            let o = 6 + 16 * i;
+            head.setUint8(o, p.size >= 256 ? 0 : p.size); head.setUint8(o + 1, p.size >= 256 ? 0 : p.size);
+            head.setUint16(o + 4, 1, true); head.setUint16(o + 6, 32, true); head.setUint32(o + 8, p.data.length, true); head.setUint32(o + 12, off, true);
+            off += p.data.length;
+        });
+        return new Blob([head.buffer, ...pngs.map((p) => p.data)], { type: "image/x-icon" });
+    }
+    const blobOf = (c, type, q) => new Promise((ok) => c.toBlob(ok, type, q));
+    const bytesOfBlob = async (b) => new Uint8Array(await b.arrayBuffer());
+    const saveBlob = (blob, name) => { let u = URL.createObjectURL(blob), a = el("a", { href: u, download: name }); document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(u), 4000); };
+
+    // --- saved in this browser: IndexedDB (projects, and the server layers they start from) -------------
+    const store = (() => {
+        let dbp = null;
+        let db = () => dbp || (dbp = new Promise((ok, bad) => {
+            let r = indexedDB.open("ftc-avatar-editor", 1);
+            r.onupgradeneeded = () => { r.result.createObjectStore("projects", { keyPath: "id" }); r.result.createObjectStore("layers", { keyPath: "id" }); };
+            r.onsuccess = () => ok(r.result); r.onerror = () => { dbp = null; bad(r.error); };
+        }));
+        let run = async (name, mode, fn) => {
+            let d = await db();
+            return new Promise((ok, bad) => { let t = d.transaction(name, mode), s = t.objectStore(name), r = fn(s); t.oncomplete = () => ok(r && r.result); t.onerror = () => bad(t.error); t.onabort = () => bad(t.error); });
+        };
+        return {
+            list: () => run("projects", "readonly", (s) => s.getAll()).then((a) => (a || []).sort((p, q) => q.updated - p.updated)),
+            get: (id) => run("projects", "readonly", (s) => s.get(id)),
+            put: (rec) => run("projects", "readwrite", (s) => s.put(rec)),
+            putLayers: (id, L) => run("layers", "readwrite", (s) => s.put(Object.assign({ id }, L))),
+            getLayers: (id) => run("layers", "readonly", (s) => s.get(id)),
+            async del(id) {
+                let rec = await this.get(id);
+                await run("projects", "readwrite", (s) => s.delete(id));
+                if (rec && !(await this.list()).some((p) => p.layersId === rec.layersId)) await run("layers", "readwrite", (s) => s.delete(rec.layersId));
+            },
+        };
+    })();
 
     // --- paths ----------------------------------------------------------------------------------------
     const node = (x, y) => ({ x, y, ix: x, iy: y, ox: x, oy: y, smooth: false });
@@ -224,6 +304,28 @@
 .ae dialog table{border-collapse:collapse;font-size:13px}
 .ae dialog td{padding:4px 12px 4px 0;vertical-align:top}
 .ae dialog td:first-child{font:12px var(--mono,monospace);white-space:nowrap}
+.ae-saved{font:12px var(--mono,monospace);color:var(--ink-2,#5d5a53)}
+.ae-view{position:absolute;left:10px;top:10px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;background:var(--paper,#f4f1ea);border:1px solid var(--rule,#cfc8b8);padding:4px;border-radius:2px;font-size:12.5px;max-width:calc(100% - 20px)}
+.ae-view .seg{display:inline-flex}
+.ae-view .seg .b{border-radius:0;margin-left:-1px;padding:3px 8px;font-size:12.5px}
+.ae-view .seg .b:first-child{border-radius:2px 0 0 2px;margin-left:0}
+.ae-view .seg .b:last-child{border-radius:0 2px 2px 0}
+.ae-view .bd{display:inline-flex;gap:3px}
+.ae-view .bd button{width:20px;height:20px;padding:0;border:1px solid var(--rule,#cfc8b8);border-radius:2px;cursor:pointer}
+.ae-view .bd button[aria-pressed=true]{outline:2px solid var(--accent,#ff5a1f);outline-offset:1px}
+.ae-lay{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto auto;gap:2px 4px;align-items:center}
+.ae-lay .nm{text-align:left;border:1px solid transparent;background:none;padding:4px 6px;border-radius:2px;cursor:pointer;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ae-lay .nm[aria-pressed=true]{background:var(--ink,#1c1b19);color:var(--paper,#f4f1ea)}
+.ae-lay .ic{border:0;background:none;cursor:pointer;padding:2px 5px;font-size:13px;color:var(--ink-2,#5d5a53)}
+.ae-lay .ic:disabled{opacity:.25;cursor:default}
+.ae-lay small{font:10.5px var(--mono,monospace);color:var(--ink-2,#5d5a53)}
+.ae dialog.ae-ex{max-width:620px;width:calc(100% - 32px)}
+.ae-ex fieldset{border:0;padding:0;margin:0 0 12px;display:flex;gap:6px 14px;flex-wrap:wrap;align-items:center}
+.ae-ex legend{font-weight:600;font-size:13px;margin-bottom:6px;padding:0}
+.ae-ex label{display:inline-flex;gap:5px;align-items:center;font-size:13px}
+.ae-ex .pv{display:flex;gap:12px;align-items:center;margin:4px 0 12px}
+.ae-ex .pv canvas{border:1px solid var(--rule,#cfc8b8);image-rendering:pixelated}
+.ae-ex .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .ae-busy{position:absolute;inset:0;display:grid;place-items:center;font-size:14px;color:var(--ink-2,#5d5a53)}
 @media (max-width:900px){
  .ae{display:flex;flex-direction:column;overflow:auto}
@@ -239,16 +341,31 @@
  .ae-hint p{font-size:12px;padding:5px 8px;max-width:64%}
 }`;
     let styled = false;
+    const defaultLayers = () => [
+        { id: "under", name: "Behind the logo", kind: "draw", vis: true, opacity: 1 },
+        { id: "logo", name: "Logo", kind: "logo", vis: true, opacity: 1 },
+        { id: "over", name: "Drawing", kind: "draw", vis: true, opacity: 1 },
+    ];
+    function migrate(d) {   // documents from before layers: {vis: {logo, draw}} and objects without a layer
+        if (!d || d.layers) return d;
+        let L = defaultLayers(), vis = d.vis || {};
+        L[1].vis = vis.logo !== false; L[2].vis = vis.draw !== false;
+        let out = Object.assign({}, d, { layers: L, draw: (d.draw || []).map((o) => (o.layer ? o : Object.assign({}, o, { layer: "over" }))) });
+        delete out.vis;
+        return out;
+    }
 
     class Editor {
         constructor(o) {
             this.o = o;
             this.label = o.label || "Avatar";
             this.tool = "erase";
-            this.opt = { eraseSize: 2, eraseOn: "logo", restoreSize: 2, wandTol: 40, wandContig: true, brushSize: 1.2, stroke: "#121216", fill: "#ffffff", strokeOn: true, fillOn: false, lineW: 1.2, shape: "rect", pickInto: "stroke", grid: true, showBg: true, mode: "detail" };
+            this.opt = { eraseSize: 2, restoreSize: 2, wandTol: 40, wandContig: true, brushSize: 1.2, stroke: "#121216", fill: "#ffffff", strokeOn: true, fillOn: false, lineW: 1.2, shape: "rect", pickInto: "stroke", grid: true, preview: "bg", backdrop: "checker", mode: "detail", selShape: "rect" };
             this.view = { k: 1, px: 0, py: 0 };
             this.undo = []; this.redo = [];
-            this.sel = null;          // {id, node}
+            this.sel = { ids: [], node: -1 };   // selected shapes; node: the selected point when one path is selected
+            this.area = null;         // the selected area: a polygon in canvas units; edits stay inside it
+            this.active = "logo";     // the layer the eraser (and drawing) works on
             this.building = null;     // id of the path the pen is drawing
             this.hover = null;
             this.keys = new Set();
@@ -265,6 +382,7 @@
             this.resize();
             try {
                 let L = await this.o.layers();
+                this.L = { w: L.w, h: L.h, kind: L.kind, bg: L.bg, layers: L.layers };
                 this.w = L.w; this.h = L.h;
                 this.src = {};
                 await Promise.all(Object.entries(L.layers).map(async ([k, uri]) => {
@@ -283,17 +401,23 @@
             this.palette = this.logoPalette();
             let p = this.o.preset || {};
             let saved = this.o.saved;
-            if (saved) { this.doc = saved.doc; this.undo = saved.undo.slice(); this.redo = saved.redo.slice(); }
-            else this.doc = {
+            let fresh = {      // the option as the server made it: what Start over goes back to
                 src: this.src[p.src] ? p.src : (this.src.cut ? "cut" : "logo"),
                 t: { s: p.s || 1, x: p.x || 0, y: p.y || 0 },
                 bg: p.bg || "#00626e", border: p.border == null ? 1.1 : p.border, borderColour: "",
                 frame: p.frame ? Object.assign({}, p.frame) : { type: "none" },
                 adjust: Object.assign({ brightness: 1, contrast: 1, saturate: 1, colours: 0 }, p.adjust || {}),
-                logoOps: [], draw: [], vis: { logo: true, draw: true },
+                logoOps: [], draw: [], layers: defaultLayers(),
             };
-            if (!saved && !p.s) this.doc.t = this.fitT(this.doc.src, "fit");
-            this.preset = JSON.parse(JSON.stringify(this.doc));
+            if (!p.s) fresh.t = this.fitT(fresh.src, "fit");
+            this.preset = JSON.parse(JSON.stringify(fresh));
+            if (saved && saved.doc) {
+                this.doc = migrate(saved.doc); this.undo = (saved.undo || []).map(migrate); this.redo = (saved.redo || []).map(migrate);
+                if (!this.src[this.doc.src]) this.doc = Object.assign({}, this.doc, { src: fresh.src });
+                if (saved.active && this.doc.layers.some((l) => l.id === saved.active)) this.active = saved.active;
+                for (let d of [this.doc, ...this.undo, ...this.redo]) for (let o of d.draw) uid = Math.max(uid, (+o.id || 0) + 1);
+            } else this.doc = fresh;
+            this.saveState("");
             this.base = this.doc;
             this.fitView();
             this.setTool(this.tool);
@@ -307,9 +431,16 @@
             // header
             this.btnUndo = el("button", { className: "b", type: "button", title: "Undo (Ctrl+Z)", onclick: () => this.doUndo() }, "↶ Undo");
             this.btnRedo = el("button", { className: "b", type: "button", title: "Redo (Ctrl+Shift+Z)", onclick: () => this.doRedo() }, "↷ Redo");
+            this.saveOut = el("span", { className: "ae-saved", role: "status" });
+            this.openIn = el("input", { type: "file", accept: ".ftcavatar,.json,application/json", hidden: true });
+            this.openIn.addEventListener("change", () => { let f = this.openIn.files[0]; this.openIn.value = ""; if (f) this.importFile(f); });
             this.root.append(el("header", { className: "ae-head" },
                 el("h2", {}, "Edit avatar", el("small", {}, this.label)),
+                this.saveOut,
                 this.btnUndo, this.btnRedo,
+                el("button", { className: "b", type: "button", title: "Save in this browser (Ctrl+S)", onclick: () => this.saveNow(true) }, "Save"),
+                el("button", { className: "b", type: "button", title: "Open a project file (.ftcavatar)", onclick: () => this.openIn.click() }, "Open…"), this.openIn,
+                el("button", { className: "b", type: "button", title: "Export (Ctrl+E)", onclick: () => this.exportDialog() }, "Export…"),
                 el("button", { className: "b", type: "button", onclick: () => this.reset() }, "Start over"),
                 el("button", { className: "b", type: "button", onclick: () => this.help() }, "Shortcuts"),
                 el("button", { className: "b", type: "button", onclick: () => this.close(false) }, "Close"),
@@ -329,7 +460,8 @@
             this.hintText = el("p", { ariaLive: "polite" });
             this.zoomOut = el("output");
             this.busy = el("div", { className: "ae-busy" }, "Loading your logo…");
-            this.stage = el("div", { className: "ae-stage" }, this.cv, this.busy,
+            this.viewBox = el("div", { className: "ae-view", role: "group", ariaLabel: "Preview in the canvas" });
+            this.stage = el("div", { className: "ae-stage" }, this.cv, this.busy, this.viewBox,
                 el("div", { className: "ae-hint" }, this.hintText,
                     el("div", { className: "ae-zoom" },
                         el("button", { className: "b", type: "button", title: "Zoom out (−)", onclick: () => this.zoomBy(1 / 1.25) }, "−"), this.zoomOut,
@@ -439,25 +571,35 @@
                 el("div", { className: "ae-ok" }, "Click a swatch for the line colour, Shift-click for the fill. From your logo and FIRST's safe colours:"),
                 this.paletteSw,
                 el("div", { className: "ae-ok" }, "These apply to the brush, the pen, shapes, and the shape you have selected.")));
-            // layers and view
-            this.visLogo = el("input", { type: "checkbox" }); this.visDraw = el("input", { type: "checkbox" });
-            this.visLogo.addEventListener("change", () => { this.set({ vis: Object.assign({}, this.doc.vis, { logo: this.visLogo.checked }) }); this.commit(); });
-            this.visDraw.addEventListener("change", () => { this.set({ vis: Object.assign({}, this.doc.vis, { draw: this.visDraw.checked }) }); this.commit(); });
+            // layers
+            this.layList = el("div", { className: "ae-lay", role: "list", ariaLabel: "Layers, top first" });
+            this.layName = el("input", { type: "text", ariaLabel: "Layer name", style: "flex:1;min-width:0;font:13px var(--sans,sans-serif);padding:4px 6px;border:1px solid var(--rule,#cfc8b8);background:var(--field,#fbf9f4);color:inherit;border-radius:2px" });
+            this.layName.addEventListener("change", () => this.layerEdit(this.active, { name: this.layName.value.trim() || "Layer" }, true));
+            this.layOp = range(0, 1, 0.01, () => this.layerEdit(this.active, { opacity: +this.layOp.value }));
+            this.layOpOut = el("output");
+            this.clearDraw = el("button", { className: "b", type: "button", onclick: () => this.clearLayer() }, "Clear layer");
+            s.append(sec(["Layers", el("button", { className: "b", type: "button", title: "A new drawing layer above the selected one", onclick: () => this.addLayer() }, "+ New layer")],
+                this.layList,
+                el("div", { className: "row" }, this.layName, this.clearDraw),
+                el("label", {}, "Opacity", this.layOp, this.layOpOut),
+                el("div", { className: "ae-ok" }, "Click a layer to work on it: the eraser, brush, pen and shapes use it. Draw on Behind the logo to add a background shape without touching the logo.")));
+            // view
             this.gridOn = el("input", { type: "checkbox", checked: true }); this.gridOn.addEventListener("change", () => { this.opt.grid = this.gridOn.checked; this.paint(); });
-            this.showBg = el("input", { type: "checkbox", checked: true }); this.showBg.addEventListener("change", () => { this.opt.showBg = this.showBg.checked; this.paint(); });
             this.modeSel = el("select", { ariaLabel: "View" }, el("option", { value: "detail" }, "Detail (draw at 8 × 8 per pixel)"), el("option", { value: "pixels" }, "Pixels (the 40 px result)"));
             this.modeSel.addEventListener("change", () => { this.opt.mode = this.modeSel.value; this.paint(); });
-            this.clearDraw = el("button", { className: "b", type: "button", onclick: () => { this.set({ draw: [] }); this.sel = null; this.commit(); } }, "Clear drawing");
-            s.append(sec("Layers and view",
-                el("div", { className: "ae-layers" }, el("label", {}, this.visDraw, "Drawing (brush, pen, shapes)"), el("label", {}, this.visLogo, "Logo")),
-                this.clearDraw,
-                el("label", { className: "col" }, "View", this.modeSel),
-                el("label", {}, this.gridOn, "Pixel grid when zoomed in (G)"), el("label", {}, this.showBg, "Show the background colour")));
-            // export
-            this.dlOp = el("a", { className: "b", href: "#" }, "Download PNG"); this.dlTr = el("a", { className: "b", href: "#" }, "Download transparent PNG");
+            s.append(sec("View",
+                el("label", { className: "col" }, "Canvas", this.modeSel),
+                el("label", {}, this.gridOn, "Pixel grid when zoomed in (G)"),
+                el("div", { className: "ae-ok" }, "With background or transparent: the switch at the top left of the canvas (T).")));
+            // save and export
+            this.dlOp = el("a", { className: "b", href: "#" }, "PNG"); this.dlTr = el("a", { className: "b", href: "#" }, "Transparent PNG");
             this.dlOp.addEventListener("click", (e) => this.download(e, "opaque")); this.dlTr.addEventListener("click", (e) => this.download(e, "transparent"));
-            s.append(sec("Save", el("div", { className: "row" }, this.dlOp, this.dlTr),
-                el("div", { className: "ae-ok" }, "Use this avatar adds it to your options, with these downloads.")));
+            s.append(sec("Save and export",
+                el("div", { className: "row" }, el("button", { className: "b", type: "button", onclick: () => this.saveNow(true) }, "Save in this browser"),
+                    el("button", { className: "b", type: "button", onclick: () => this.downloadProject() }, "Download project file")),
+                el("div", { className: "ae-ok" }, "Your work is saved in this browser as you go, and listed on the page under Saved in this browser. A project file (.ftcavatar) keeps everything, layers included: open it here or on the page, on any computer."),
+                el("div", { className: "row" }, el("span", {}, "FIRST, 40 × 40:"), this.dlOp, this.dlTr),
+                el("button", { className: "b go", type: "button", onclick: () => this.exportDialog() }, "Export other sizes and formats…")));
         }
 
         // ---------- document ----------
@@ -469,24 +611,107 @@
             if (this.doc === this.base) return;
             this.undo.push(this.base); if (this.undo.length > 300) this.undo.shift();
             this.redo = []; this.base = this.doc; this.syncButtons();
+            this.saveSoon();
         }
         doUndo() {
             if (this.building) this.finishPath();
             this.commit();
             if (!this.undo.length) return;
             this.redo.push(this.doc); this.doc = this.base = this.undo.pop();
-            this.sel = null; this.sync(); this.paint();
+            this.afterJump();
         }
         doRedo() {
             if (!this.redo.length) return;
             this.undo.push(this.doc); this.doc = this.base = this.redo.pop();
-            this.sel = null; this.sync(); this.paint();
+            this.afterJump();
+        }
+        afterJump() {   // after undo or redo: keep the selection only for shapes that still exist
+            this.sel = { ids: this.sel.ids.filter((id) => this.objById(id)), node: -1 };
+            if (!this.doc.layers.some((l) => l.id === this.active)) this.active = "logo";
+            this.sync(); this.paint(); this.saveSoon();
         }
         reset() {
             this.commit();
             this.doc = JSON.parse(JSON.stringify(this.preset)); this.commit();
-            this.sel = null; this.building = null; this.sync(); this.paint();
+            this.sel = { ids: [], node: -1 }; this.area = null; this.building = null; this.active = "logo"; this.sync(); this.paint();
         }
+        // ---------- layers ----------
+        layerOf(id) { return this.doc.layers.find((l) => l.id === id); }
+        renderLayers() {
+            let L = this.doc.layers, list = this.layList; list.textContent = "";
+            if (!this.layerOf(this.active)) this.active = "logo";
+            for (let i = L.length - 1; i >= 0; i--) {
+                let l = L[i], n = this.doc.draw.filter((o) => o.layer === l.id && o.k !== "area").length;
+                let vis = el("input", { type: "checkbox", checked: l.vis, title: "Show this layer", ariaLabel: `Show ${l.name}` });
+                vis.addEventListener("change", () => this.layerEdit(l.id, { vis: vis.checked }, true));
+                let nm = el("button", { type: "button", className: "nm", title: "Work on this layer", onclick: () => { this.active = l.id; this.sync(); this.paint(); } },
+                    l.name + " ", el("small", {}, l.kind === "logo" ? "your logo" : n ? `${n} shape${n === 1 ? "" : "s"}` : "empty"));
+                nm.setAttribute("aria-pressed", String(l.id === this.active));
+                list.append(vis, nm,
+                    el("button", { type: "button", className: "ic", title: "Move up", ariaLabel: `Move ${l.name} up`, disabled: i === L.length - 1, onclick: () => this.moveLayer(l.id, 1) }, "▲"),
+                    el("button", { type: "button", className: "ic", title: "Move down", ariaLabel: `Move ${l.name} down`, disabled: i === 0, onclick: () => this.moveLayer(l.id, -1) }, "▼"),
+                    el("button", { type: "button", className: "ic", title: l.kind === "logo" ? "The logo layer stays" : "Delete layer", ariaLabel: `Delete ${l.name}`, disabled: l.kind === "logo", onclick: () => this.deleteLayer(l.id) }, "✕"));
+            }
+            let a = this.layerOf(this.active);
+            if (document.activeElement !== this.layName) this.layName.value = a.name;
+            this.layOp.value = a.opacity; this.layOpOut.textContent = Math.round(a.opacity * 100) + "%";
+            this.clearDraw.textContent = a.kind === "logo" ? "Undo all erasing" : "Clear layer";
+            this.clearDraw.disabled = a.kind === "logo" ? !this.doc.logoOps.length : !this.doc.draw.some((o) => o.layer === a.id);
+        }
+        layerEdit(id, patch, commit) {
+            this.set({ layers: this.doc.layers.map((l) => (l.id === id ? Object.assign({}, l, patch) : l)) });
+            if (commit) this.commit();
+        }
+        addLayer() {
+            let L = this.doc.layers.slice(), i = L.findIndex((l) => l.id === this.active), id = "l" + uid++;
+            let n = L.filter((l) => l.kind === "draw").length + 1;
+            L.splice(i + 1, 0, { id, name: `Layer ${n}`, kind: "draw", vis: true, opacity: 1 });
+            this.active = id; this.set({ layers: L }); this.commit();
+        }
+        moveLayer(id, dir) {
+            let L = this.doc.layers.slice(), i = L.findIndex((l) => l.id === id), j = i + dir;
+            if (j < 0 || j >= L.length) return;
+            [L[i], L[j]] = [L[j], L[i]]; this.set({ layers: L }); this.commit();
+        }
+        deleteLayer(id) {
+            let l = this.layerOf(id); if (!l || l.kind === "logo") return;
+            this.set({ layers: this.doc.layers.filter((x) => x.id !== id), draw: this.doc.draw.filter((o) => o.layer !== id) }, true);
+            if (this.active === id) this.active = "logo";
+            this.sel = { ids: [], node: -1 }; this.commit(); this.sync(); this.paint();
+        }
+        clearLayer() {
+            let a = this.layerOf(this.active);
+            if (a.kind === "logo") this.set({ logoOps: [] }, true);
+            else this.set({ draw: this.doc.draw.filter((o) => o.layer !== a.id) }, true);
+            this.sel = { ids: [], node: -1 }; this.commit(); this.sync(); this.paint();
+        }
+        drawLayer() {   // where the brush, pen and shapes draw: the selected layer, or the drawing layer above the logo
+            let a = this.layerOf(this.active);
+            if (a && a.kind === "draw") return a.id;
+            let L = this.doc.layers, i = L.findIndex((l) => l.kind === "logo"), up = L.slice(i + 1).find((l) => l.kind === "draw") || L.find((l) => l.kind === "draw");
+            if (!up) { this.addLayer(); return this.active; }
+            this.active = up.id; this.renderLayers();
+            this.flash(`Drawing on the layer “${up.name}”. Choose another one under Layers, right.`);
+            return up.id;
+        }
+        renderView() {
+            let v = this.viewBox; v.textContent = "";
+            let seg = el("span", { className: "seg" });
+            for (let [k, label] of [["bg", "With background"], ["transparent", "Transparent"]]) {
+                let b = el("button", { type: "button", className: "b" + (this.opt.preview === k ? " on" : ""), title: "T switches", onclick: () => { this.opt.preview = k; this.renderView(); this.paint(); } }, label);
+                b.setAttribute("aria-pressed", String(this.opt.preview === k)); seg.append(b);
+            }
+            v.append(seg);
+            if (this.opt.preview === "transparent") {
+                let bd = el("span", { className: "bd", role: "group", ariaLabel: "Behind the transparent avatar" });
+                for (let [name, colour] of [["checkerboard", null], ...FIRST_BG]) {
+                    let b = el("button", { type: "button", title: name, ariaLabel: name, className: colour ? "" : "ae-chk", style: colour ? `background:${colour}` : "", onclick: () => { this.opt.backdrop = colour || "checker"; this.renderView(); this.paint(); } });
+                    b.setAttribute("aria-pressed", String((colour || "checker") === this.opt.backdrop)); bd.append(b);
+                }
+                v.append(bd, el("span", {}, "border included"));
+            }
+        }
+
         syncButtons() { this.btnUndo.disabled = !this.undo.length && this.doc === this.base; this.btnRedo.disabled = !this.redo.length; }
 
         sync() {   // the controls follow the document (after undo, presets, eyedropper)
@@ -516,8 +741,8 @@
             let f = d.frame || { type: "none" };
             this.frameSel.value = f.type; this.circleOpts.hidden = f.type !== "circle";
             if (f.type === "circle") { this.ringPick.value = f.ring; this.fillPick.value = f.fill; this.ringR.value = f.ringWidth; this.radR.value = f.r; }
-            this.visLogo.checked = d.vis.logo; this.visDraw.checked = d.vis.draw;
-            this.clearDraw.disabled = !d.draw.length;
+            this.renderLayers();
+            this.renderView();
             let o = this.selObj();
             if (o && o.k === "path") { this.opt.strokeOn = !!o.stroke; this.opt.fillOn = !!o.fill; if (o.stroke) this.opt.stroke = o.stroke; if (o.fill) this.opt.fill = o.fill; this.opt.lineW = o.w / S; }
             this.strokePick.value = this.opt.stroke; this.fillColPick.value = this.opt.fill;
@@ -546,6 +771,16 @@
         applyOp(op, from) {   // from: the first point to draw (strokes are drawn as they grow)
             let c = this.lctx;
             if (op.k === "wand") return this.applyWand(op);
+            if (op.k === "area") {
+                c.save(); c.globalCompositeOperation = "destination-out"; c.fillStyle = "#000";
+                c.fill(polyPath(op.poly, op.invert ? [-1e5, -1e5, 2e5, 2e5] : null), "evenodd"); c.restore(); return;
+            }
+            if (op.clip) { c.save(); c.clip(polyPath(op.clip)); }
+            this.strokeOp(op, from);
+            if (op.clip) c.restore();
+        }
+        strokeOp(op, from) {
+            let c = this.lctx;
             let pts = op.pts.slice(Math.max(0, from - 1));
             let stroke = (ctx) => {
                 ctx.lineCap = ctx.lineJoin = "round"; ctx.lineWidth = op.r * 2; ctx.strokeStyle = ctx.fillStyle = "#fff";
@@ -587,6 +822,14 @@
         }
         applyWand(op) {
             let m = this.wandMask(op), { w, h } = this;
+            if (op.clip) {      // only inside the selected area
+                if (!op._clipped) {
+                    let t = ctx2d(this.tmp, { willReadFrequently: true }); t.globalCompositeOperation = "source-over"; t.clearRect(0, 0, w, h);
+                    t.fillStyle = "#000"; t.fill(polyPath(op.clip));
+                    let A = t.getImageData(0, 0, w, h).data; op._clipped = m.map((v, i) => v * (A[i * 4 + 3] / 255));
+                }
+                m = op._clipped;
+            }
             if (op.mode === "erase") {
                 let img = this.lctx.getImageData(0, 0, w, h), D = img.data, [r0, g0, b0] = op._seed;
                 for (let i = 0; i < w * h; i++) {
@@ -689,32 +932,43 @@
                 ctx.roundRect(0, 0, N, N, 4 * S); ctx.fillStyle = d.bg; ctx.fill();
             } else ctx.rect(0, 0, N, N);
             ctx.clip();
-            if (d.vis.logo) {
-                let L = this.adjusted();
-                ctx.setTransform(M.k * d.t.s, 0, 0, M.k * d.t.s, M.ox + M.k * d.t.x, M.oy + M.k * d.t.y);
-                ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
-                ctx.drawImage(L, 0, 0);
+            for (let l of d.layers) {      // bottom to top
+                if (!l.vis || !l.opacity) continue;
+                ctx.globalAlpha = l.opacity;
+                if (l.kind === "logo") {
+                    let L = this.adjusted();
+                    ctx.setTransform(M.k * d.t.s, 0, 0, M.k * d.t.s, M.ox + M.k * d.t.x, M.oy + M.k * d.t.y);
+                    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = "high";
+                    ctx.drawImage(L, 0, 0);
+                } else {
+                    let objs = d.draw.filter((o) => o.layer === l.id);
+                    if (!objs.length) continue;
+                    let x = ctx2d(dl); x.setTransform(1, 0, 0, 1, 0, 0); x.clearRect(0, 0, dl.width, dl.height);
+                    x.setTransform(M.k, 0, 0, M.k, M.ox, M.oy);
+                    this.renderDraw(x, objs);
+                    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(dl, 0, 0);
+                }
             }
-            if (d.vis.draw && d.draw.length) {
-                let x = ctx2d(dl); x.setTransform(1, 0, 0, 1, 0, 0); x.clearRect(0, 0, dl.width, dl.height);
-                x.setTransform(M.k, 0, 0, M.k, M.ox, M.oy);
-                this.renderDraw(x, d.draw);
-                ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(dl, 0, 0);
-            }
+            ctx.globalAlpha = 1;
             ctx.restore();
         }
         renderDraw(x, objs) {
             for (let o of objs) {
-                let p = pathOf(o);
+                if (o.clip) { x.save(); x.clip(polyPath(o.clip)); }
                 x.lineCap = "round"; x.lineJoin = "round";
-                if (o.k === "stroke") {
+                if (o.k === "area") {       // erase inside (or outside) a selected area
+                    x.globalCompositeOperation = "destination-out"; x.fillStyle = "#000";
+                    x.fill(polyPath(o.poly, o.invert ? [-1e4, -1e4, 2e4, 2e4] : null), "evenodd");
+                } else if (o.k === "stroke") {
                     x.globalCompositeOperation = o.mode === "erase" ? "destination-out" : "source-over";
-                    x.strokeStyle = o.colour || "#000"; x.lineWidth = o.w; x.stroke(p);
-                    continue;
+                    x.strokeStyle = o.colour || "#000"; x.lineWidth = o.w; x.stroke(pathOf(o));
+                } else {
+                    let p = pathOf(o);
+                    x.globalCompositeOperation = "source-over";
+                    if (o.fill && o.closed) { x.fillStyle = o.fill; x.fill(p); }
+                    if (o.stroke) { x.strokeStyle = o.stroke; x.lineWidth = o.w; x.stroke(p); }
                 }
-                x.globalCompositeOperation = "source-over";
-                if (o.fill && o.closed) { x.fillStyle = o.fill; x.fill(p); }
-                if (o.stroke) { x.strokeStyle = o.stroke; x.lineWidth = o.w; x.stroke(p); }
+                if (o.clip) x.restore();
             }
             x.globalCompositeOperation = "source-over";
         }
@@ -728,9 +982,16 @@
             let O = new Float32Array(content.length);
             for (let i = 0; i < 1600; i++) { let a = content[i * 4 + 3]; O[i * 4] = content[i * 4] + br * (1 - a); O[i * 4 + 1] = content[i * 4 + 1] + bgc * (1 - a); O[i * 4 + 2] = content[i * 4 + 2] + bb * (1 - a); O[i * 4 + 3] = 1; }
             let R = Math.round(this.doc.border * S), T = content;
+            if (!this.borderCv) this.borderCv = canvas(N, N);
+            let bctx = ctx2d(this.borderCv); bctx.clearRect(0, 0, N, N);
             if (R > 0) {
-                let Dm = maxFilter(A, R), [cr, cg, cb] = hex2rgb(this.doc.borderColour || this.doc.bg).map((v) => v / 255), Q = new Float32Array(P.length);
-                for (let i = 0; i < N * N; i++) { let a = P[i * 4 + 3], m = Dm[i] * (1 - a); Q[i * 4] = P[i * 4] + cr * m; Q[i * 4 + 1] = P[i * 4 + 1] + cg * m; Q[i * 4 + 2] = P[i * 4 + 2] + cb * m; Q[i * 4 + 3] = a + m; }
+                let Dm = maxFilter(A, R), bc = hex2rgb(this.doc.borderColour || this.doc.bg), [cr, cg, cb] = bc.map((v) => v / 255), Q = new Float32Array(P.length);
+                let B = new ImageData(N, N);       // the border alone, drawn under the scene in the transparent view
+                for (let i = 0; i < N * N; i++) {
+                    let a = P[i * 4 + 3], m = Dm[i] * (1 - a); Q[i * 4] = P[i * 4] + cr * m; Q[i * 4 + 1] = P[i * 4 + 1] + cg * m; Q[i * 4 + 2] = P[i * 4 + 2] + cb * m; Q[i * 4 + 3] = a + m;
+                    B.data[i * 4] = bc[0]; B.data[i * 4 + 1] = bc[1]; B.data[i * 4 + 2] = bc[2]; B.data[i * 4 + 3] = Dm[i] * 255;
+                }
+                bctx.putImageData(B, 0, 0);
                 T = reduce(Q);
             }
             return { op: toImageData(O, 0), tr: toImageData(T, 20), content: toImageData(content, 20) };
@@ -794,19 +1055,24 @@
             let M = { k: v.k * dpr, ox: v.px * dpr, oy: v.py * dpr };
             c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, this.cv.width, this.cv.height);
             // the logo outside the square, faint, so moving it shows what is cut off
-            if (d.vis.logo) {
+            let logoL = d.layers.find((l) => l.kind === "logo"), transparent = this.opt.preview === "transparent";
+            if (logoL.vis) {
                 c.save(); c.globalAlpha = 0.22;
                 c.setTransform(M.k * d.t.s, 0, 0, M.k * d.t.s, M.ox + M.k * d.t.x, M.oy + M.k * d.t.y);
                 c.drawImage(this.adjusted(), 0, 0); c.restore();
             }
             c.setTransform(M.k, 0, 0, M.k, M.ox, M.oy);
             if (!this.chk) { let p = canvas(16, 16), x = ctx2d(p); x.fillStyle = "#fff"; x.fillRect(0, 0, 16, 16); x.fillStyle = "#d4d4d4"; x.fillRect(0, 0, 8, 8); x.fillRect(8, 8, 8, 8); this.chk = c.createPattern(p, "repeat"); }
-            c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.fillStyle = this.chk; c.fillRect(M.ox, M.oy, N * M.k, N * M.k); c.restore();
+            c.save(); c.setTransform(1, 0, 0, 1, 0, 0);
+            c.fillStyle = transparent && this.opt.backdrop !== "checker" ? this.opt.backdrop : this.chk; c.fillRect(M.ox, M.oy, N * M.k, N * M.k); c.restore();
             if (this.opt.mode === "pixels") {
                 let r = (this.last && this.last.r) || this.result(), img = canvas(40, 40);
-                ctx2d(img).putImageData(this.opt.showBg ? r.op : r.tr, 0, 0);
+                ctx2d(img).putImageData(transparent ? r.tr : r.op, 0, 0);
                 c.imageSmoothingEnabled = false; c.drawImage(img, 0, 0, N, N); c.imageSmoothingEnabled = true;
-            } else this.scene(c, M, this.opt.showBg, this.dlView);
+            } else {
+                if (transparent && this.borderCv) { c.save(); c.beginPath(); c.rect(0, 0, N, N); c.clip(); c.drawImage(this.borderCv, 0, 0); c.restore(); }
+                this.scene(c, M, !transparent, this.dlView);
+            }
             // guides: the square, the 1 px safe margin, the pixel grid
             c.setTransform(1, 0, 0, 1, 0, 0);
             let sq = (x, y) => [M.ox + x * M.k, M.oy + y * M.k];
@@ -821,6 +1087,17 @@
         }
         overlay(c, M, dpr) {
             let toS = (x, y) => [M.ox + x * M.k, M.oy + y * M.k];
+            let ants = (poly) => {       // a selected area: black and white dashes
+                c.save(); c.setTransform(M.k, 0, 0, M.k, M.ox, M.oy); let p = polyPath(poly);
+                c.lineWidth = 1.5 * dpr / M.k; c.strokeStyle = "#fff"; c.stroke(p);
+                c.setLineDash([5 * dpr / M.k, 4 * dpr / M.k]); c.lineDashOffset = -((performance.now() / 60) % 9) * dpr / M.k; c.strokeStyle = "#1c1b19"; c.stroke(p); c.restore();
+            };
+            if (this.area) ants(this.area);
+            if (this.g && this.g.k === "marquee" && this.g.poly) ants(this.g.poly);
+            for (let so of this.selObjs()) if (so !== this.selObj()) {
+                c.save(); c.setTransform(M.k, 0, 0, M.k, M.ox, M.oy); c.strokeStyle = "#ff5a1f"; c.lineWidth = 1.5 / M.k * dpr; c.setLineDash([4 / M.k * dpr, 3 / M.k * dpr]);
+                c.stroke(pathOf(so)); c.restore();
+            }
             let o = this.selObj();
             if (o) {
                 c.save(); c.setTransform(M.k, 0, 0, M.k, M.ox, M.oy); c.strokeStyle = "#ff5a1f"; c.lineWidth = 1.5 / M.k * dpr; c.setLineDash([4 / M.k * dpr, 3 / M.k * dpr]);
@@ -881,15 +1158,24 @@
                 return s;
             };
             const px = (v) => v.toFixed(1) + " px";
-            if (this.tool === "erase") b.append(el("label", {}, "Erase from", seg("eraseOn", [["logo", "Logo"], ["draw", "Drawing"]])), slider("Size", "eraseSize", 0.5, 12, 0.5, px));
+            let lay = this.doc && this.layerOf(this.active);
+            if (this.tool === "erase") b.append(slider("Size", "eraseSize", 0.5, 12, 0.5, px), el("span", {}, "Erasing on: ", el("b", {}, lay ? lay.name : "Logo"), " (choose under Layers)"));
             if (this.tool === "restore") b.append(slider("Size", "restoreSize", 0.5, 12, 0.5, px));
             if (this.tool === "brush") b.append(slider("Size", "brushSize", 0.3, 8, 0.1, px), el("span", {}, "Colour: the line colour (right panel)"));
             if (this.tool === "wand") b.append(slider("Tolerance", "wandTol", 2, 120, 1, (v) => String(v)), el("label", {}, Object.assign(el("input", { type: "checkbox", checked: o.wandContig, onchange: (e) => { o.wandContig = e.target.checked; } })), "Only the connected area"));
             if (this.tool === "shape") b.append(seg("shape", [["rect", "Rectangle"], ["ellipse", "Ellipse"], ["line", "Line"]]));
+            if (this.tool === "select") b.append(el("label", {}, "Drag to select", seg("selShape", [["rect", "Rectangle"], ["lasso", "Lasso"]])));
+            if (this.area && ["select", "erase", "brush", "wand", "restore"].includes(this.tool)) {
+                b.append(el("span", {}, "Area on ", el("b", {}, lay ? lay.name : "Logo"), ":"),
+                    el("button", { className: "b", type: "button", title: "Delete", onclick: () => this.areaAction("delete") }, "Erase inside"),
+                    el("button", { className: "b", type: "button", onclick: () => this.areaAction("crop") }, "Keep only inside"),
+                    el("button", { className: "b", type: "button", title: "With the fill colour, on a drawing layer", onclick: () => this.areaAction("fill") }, "Fill"),
+                    el("button", { className: "b", type: "button", title: "Esc", onclick: () => { this.area = null; this.select([]); this.renderBar(); this.paint(); } }, "Deselect"));
+            }
             if (["pen", "shape", "select"].includes(this.tool)) {
-                let ob = this.selObj();
+                let ob = this.selObj(), many = this.sel.ids.length;
                 if (this.tool !== "select" || ob) b.append(el("span", {}, (ob ? "Selected: " : "New: ") + [o.strokeOn ? `line ${px(o.lineW)}` : "", o.fillOn ? "fill" : ""].filter(Boolean).join(" + ") + " (colours in the right panel)"));
-                if (ob) b.append(el("button", { className: "b", type: "button", onclick: () => this.deleteSel() }, "Delete shape"));
+                if (many) b.append(el("button", { className: "b", type: "button", onclick: () => this.deleteSel() }, many > 1 ? `Delete ${many} shapes` : "Delete shape"));
                 if (this.building) b.append(el("button", { className: "b", type: "button", onclick: () => this.finishPath() }, "Finish path (Enter)"));
             }
             if (this.tool === "picker") b.append(el("label", {}, "Pick into", seg("pickInto", [["stroke", "Line"], ["fill", "Fill"], ["bg", "Background"]])));
@@ -902,7 +1188,11 @@
         pt(e) { return { x: (e.offsetX - this.view.px) / this.view.k, y: (e.offsetY - this.view.py) / this.view.k }; }
         toSrc(p) { let t = this.doc.t; return [(p.x - t.x) / t.s, (p.y - t.y) / t.s]; }
         objById(id) { return this.doc.draw.find((o) => o.id === id); }
-        selObj() { return this.sel && this.doc && this.objById(this.sel.id); }
+        selObj() { return this.doc && this.sel.ids.length === 1 ? this.objById(this.sel.ids[0]) : null; }   // one shape: its points can be edited
+        selObjs() { return this.doc ? this.sel.ids.map((id) => this.objById(id)).filter(Boolean) : []; }
+        select(ids, node = -1) { this.sel = { ids, node }; }
+        clipCanvas() { return this.area ? this.area.map(([x, y]) => [x, y]) : undefined; }
+        clipSrc() { return this.area ? this.area.map((p) => this.toSrc({ x: p[0], y: p[1] })) : undefined; }
         replaceObj(o) { this.set({ draw: this.doc.draw.map((x) => (x.id === o.id ? o : x)) }, true); }
 
         down(e) {
@@ -923,13 +1213,13 @@
             if (tool === "picker") return this.pick(p, this.opt.pickInto);
             if (tool === "move") { this.g = { k: "move", p, t: this.doc.t }; return; }
             if (tool === "erase" || tool === "restore") {
-                let restore = (tool === "restore") !== e.altKey;
-                if (tool === "erase" && this.opt.eraseOn === "draw") {
-                    let o = { id: uid++, k: "stroke", mode: "erase", pts: [[p.x, p.y]], w: this.opt.eraseSize * S };
+                let restore = (tool === "restore") !== e.altKey, a = this.layerOf(this.active);
+                if (tool === "erase" && !restore && a.kind === "draw") {
+                    let o = { id: uid++, k: "stroke", mode: "erase", layer: a.id, pts: [[p.x, p.y]], w: this.opt.eraseSize * S, clip: this.clipCanvas() };
                     this.set({ draw: [...this.doc.draw, o] }); this.g = { k: "dstroke", o };
                     return;
                 }
-                let op = { k: restore ? "restore" : "erase", pts: [this.toSrc(p)], r: this.brushR() / this.doc.t.s };
+                let op = { k: restore ? "restore" : "erase", pts: [this.toSrc(p)], r: this.brushR() / this.doc.t.s, clip: this.clipSrc() };
                 this.set({ logoOps: [...this.doc.logoOps, op] }, true);
                 this.buildLayer(); this.g = { k: "lstroke", op }; this.paint();
                 return;
@@ -937,19 +1227,19 @@
             if (tool === "wand") {
                 let [sx, sy] = this.toSrc(p).map(Math.floor);
                 if (sx < 0 || sy < 0 || sx >= this.w || sy >= this.h) return this.flash("Click on the logo.");
-                let op = { k: "wand", mode: e.altKey ? "restore" : "erase", x: sx, y: sy, tol: this.opt.wandTol, contig: this.opt.wandContig };
+                let op = { k: "wand", mode: e.altKey ? "restore" : "erase", x: sx, y: sy, tol: this.opt.wandTol, contig: this.opt.wandContig, clip: this.clipSrc() };
                 this.set({ logoOps: [...this.doc.logoOps, op] }); this.commit();
                 return;
             }
             if (tool === "brush") {
-                let o = { id: uid++, k: "stroke", mode: "paint", pts: [[p.x, p.y]], w: this.opt.brushSize * S, colour: this.opt.stroke };
+                let o = { id: uid++, k: "stroke", mode: "paint", layer: this.drawLayer(), pts: [[p.x, p.y]], w: this.opt.brushSize * S, colour: this.opt.stroke, clip: this.clipCanvas() };
                 this.set({ draw: [...this.doc.draw, o] }); this.g = { k: "dstroke", o };
                 return;
             }
             if (tool === "shape") {
-                let o = Object.assign({ id: uid++, k: "path" }, this.style(), shapeNodes(this.opt.shape, p, p, false));
+                let o = Object.assign({ id: uid++, k: "path", layer: this.drawLayer() }, this.style(), shapeNodes(this.opt.shape, p, p, false));
                 if (!o.stroke && (!o.fill || this.opt.shape === "line")) { o.stroke = this.opt.stroke; this.opt.strokeOn = true; }
-                this.set({ draw: [...this.doc.draw, o] }); this.g = { k: "shape", p, id: o.id }; this.sel = { id: o.id, node: -1 };
+                this.set({ draw: [...this.doc.draw, o] }); this.g = { k: "shape", p, id: o.id }; this.select([o.id]);
                 return;
             }
             if (tool === "pen") return this.penDown(p, e);
@@ -986,7 +1276,12 @@
                 let o = Object.assign({}, this.objById(g.id), shapeNodes(this.opt.shape, g.p, p, e.shiftKey));
                 this.replaceObj(o); this.paint(); return;
             }
-            if (g.k === "penhandle" || g.k === "handle" || g.k === "node" || g.k === "obj") return this.editMove(g, p, e);
+            if (g.k === "marquee") {
+                if (this.opt.selShape === "lasso") { let q = g.pts[g.pts.length - 1]; if (Math.hypot(p.x - q[0], p.y - q[1]) > 1.5 / this.view.k * 2) g.pts.push([p.x, p.y]); g.poly = g.pts.length > 2 ? g.pts : null; }
+                else g.poly = Math.abs(p.x - g.p0.x) + Math.abs(p.y - g.p0.y) > 3 / this.view.k ? rectPoly(g.p0, p) : null;
+                this.paint(); return;
+            }
+            if (g.k === "penhandle" || g.k === "handle" || g.k === "node" || g.k === "objs") return this.editMove(g, p, e);
         }
         up(e) {
             this.pointers.delete(e.pointerId);
@@ -996,9 +1291,19 @@
             if (g && g.k === "lstroke") this.layerOps = null;   // redraw from the list, as undo and redo will
             if (g && g.k === "shape") {
                 let o = this.objById(g.id), xs = o.nodes.map((n) => n.x), ys = o.nodes.map((n) => n.y);
-                if (Math.max(...xs) - Math.min(...xs) < 2 && Math.max(...ys) - Math.min(...ys) < 2) { this.set({ draw: this.doc.draw.filter((x) => x.id !== g.id) }); this.sel = null; this.doc = this.base; this.paint(); return; }
+                if (Math.max(...xs) - Math.min(...xs) < 2 && Math.max(...ys) - Math.min(...ys) < 2) { this.set({ draw: this.doc.draw.filter((x) => x.id !== g.id) }); this.select([]); this.doc = this.base; this.paint(); return; }
             }
-            if (g && g.k === "penhandle" && g.fresh && !g.moved && e.altKey) { /* a click: a corner point */ }
+            if (g && g.k === "marquee") {
+                if (g.poly) {
+                    let poly = g.poly, a = this.layerOf(this.active);
+                    let inside = this.doc.draw.filter((o) => o.k !== "area" && (a.kind === "draw" ? o.layer === a.id : this.layerOf(o.layer) && this.layerOf(o.layer).vis) && this.pointsOf(o).every(([x, y]) => inPoly(poly, x, y))).map((o) => o.id);
+                    this.area = poly.map(([x, y]) => [clamp(x, -N, 2 * N), clamp(y, -N, 2 * N)]);
+                    this.select(g.add ? [...new Set([...this.sel.ids, ...inside])] : inside);
+                    this.flash(inside.length ? `Selected ${inside.length} shape${inside.length === 1 ? "" : "s"} and the area. The eraser, brush and wand now only work inside it.` : "Area selected: the eraser, brush and wand now only work inside it. Delete erases inside it.");
+                } else if (g.click) { this.area = null; this.select(g.add ? [...new Set([...this.sel.ids, g.click.id])] : [g.click.id]); this.active = g.click.layer; this.sync(); }
+                else { this.area = null; if (!g.add) this.select([]); }
+                this.renderBar(); this.paint(); return;
+            }
             if (g) { this.commit(); this.sync(); }
             this.paint();
         }
@@ -1018,10 +1323,13 @@
             clearTimeout(this.flashT); this.flashT = setTimeout(() => this.setTool(this.tool), 2600);
         }
         style() { return { stroke: this.opt.strokeOn ? this.opt.stroke : null, fill: this.opt.fillOn ? this.opt.fill : null, w: this.opt.lineW * S }; }
-        applyStyle(commit) {   // the colour controls change the selected shape too
-            let o = this.selObj();
-            if (o && o.k === "path") { this.replaceObj(Object.assign({}, o, this.style())); if (commit) this.commit(); }
-            else if (o && o.k === "stroke" && o.mode === "paint") { this.replaceObj(Object.assign({}, o, { colour: this.opt.stroke })); if (commit) this.commit(); }
+        applyStyle(commit) {   // the colour controls change the selected shapes too
+            let ids = this.sel.ids;
+            if (ids.length) {
+                let st = this.style();
+                this.set({ draw: this.doc.draw.map((x) => !ids.includes(x.id) ? x : x.k === "path" ? Object.assign({}, x, st) : x.k === "stroke" && x.mode === "paint" ? Object.assign({}, x, { colour: this.opt.stroke }) : x) }, true);
+                if (commit) this.commit();
+            }
             this.renderBar(); this.paint();
         }
 
@@ -1037,14 +1345,19 @@
             }
             return null;
         }
-        hitObj(p) {
+        hitObj(p, only) {   // only: a layer id, to look at that layer alone
             if (!this.hitCtx) this.hitCtx = ctx2d(canvas(1, 1));
             let x = this.hitCtx;
-            for (let i = this.doc.draw.length - 1; i >= 0; i--) {
-                let o = this.doc.draw[i]; if (o.k === "stroke" && o.mode === "erase") continue;
-                let path = pathOf(o);
-                x.lineWidth = Math.max(o.w || 1, 12 / this.view.k); x.lineCap = x.lineJoin = "round";
-                if ((o.fill && o.closed && x.isPointInPath(path, p.x, p.y)) || x.isPointInStroke(path, p.x, p.y)) return o;
+            let L = only ? this.doc.layers.filter((l) => l.id === only) : this.doc.layers;
+            for (let li = L.length - 1; li >= 0; li--) {      // the top layer first
+                if (L[li].kind === "logo" && L[li].vis && this.logoAlphaAt(p) > 127) return null;   // what you see: the logo covers what is under it
+                if (!L[li].vis || L[li].kind !== "draw") continue;
+                for (let i = this.doc.draw.length - 1; i >= 0; i--) {
+                    let o = this.doc.draw[i]; if (o.layer !== L[li].id || o.k === "area" || (o.k === "stroke" && o.mode === "erase")) continue;
+                    let path = pathOf(o);
+                    x.lineWidth = Math.max(o.w || 1, 12 / this.view.k); x.lineCap = x.lineJoin = "round";
+                    if ((o.fill && o.closed && x.isPointInPath(path, p.x, p.y)) || x.isPointInStroke(path, p.x, p.y)) return o;
+                }
             }
             return null;
         }
@@ -1083,12 +1396,12 @@
             let so = this.selObj();
             if (so && so.k === "path") {
                 let hit = this.segmentHit(so, p);
-                if (hit) { let o = this.splitAt(so, hit.s, hit.t); this.replaceObj(o); this.sel = { id: o.id, node: hit.s + 1 }; this.commit(); this.paint(); this.dragging = false; return; }
+                if (hit) { let o = this.splitAt(so, hit.s, hit.t); this.replaceObj(o); this.select([o.id], hit.s + 1); this.commit(); this.paint(); this.dragging = false; return; }
             }
-            let o = Object.assign({ id: uid++, k: "path", nodes: [node(p.x, p.y)], closed: false }, this.style());
+            let o = Object.assign({ id: uid++, k: "path", layer: this.drawLayer(), nodes: [node(p.x, p.y)], closed: false }, this.style());
             if (!o.stroke && !o.fill) { o.stroke = this.opt.stroke; this.opt.strokeOn = true; }
             this.set({ draw: [...this.doc.draw, o] }, true);
-            this.building = o.id; this.sel = { id: o.id, node: 0 };
+            this.building = o.id; this.select([o.id], 0);
             this.g = { k: "penhandle", id: o.id, i: 0 }; this.renderBar(); this.paint();
         }
         finishPath() {
@@ -1098,19 +1411,50 @@
                 let n = b.nodes.filter((m, i) => i === 0 || Math.hypot(m.x - b.nodes[i - 1].x, m.y - b.nodes[i - 1].y) > 3 / this.view.k);
                 if (n.length !== b.nodes.length) { b = Object.assign({}, b, { nodes: n }); this.replaceObj(b); }
             }
-            if (b && b.nodes.length < 2) { this.set({ draw: this.doc.draw.filter((x) => x.id !== b.id) }, true); this.sel = null; }
+            if (b && b.nodes.length < 2) { this.set({ draw: this.doc.draw.filter((x) => x.id !== b.id) }, true); this.select([]); }
             this.commit(); this.renderBar(); this.paint();
         }
+        logoAlphaAt(p) {
+            let [x, y] = this.toSrc(p).map(Math.floor);
+            if (x < 0 || y < 0 || x >= this.w || y >= this.h || p.x < 0 || p.y < 0 || p.x >= N || p.y >= N) return 0;
+            this.buildLayer();
+            return this.lctx.getImageData(x, y, 1, 1).data[3];
+        }
+        pointsOf(o) { return o.k === "stroke" ? o.pts : o.nodes ? o.nodes.map((n) => [n.x, n.y]) : []; }
         selectDown(p, e) {
             let h = this.hitHandle(p);
             if (h) return this.startEdit(h, p, e);
-            let o = this.hitObj(p);
-            if (o) { this.sel = { id: o.id, node: -1 }; this.g = { k: "obj", id: o.id, p, o }; this.sync(); this.paint(); return; }
-            this.sel = null; this.dragging = false; this.sync(); this.paint();
+            // a drawing layer selected: drags grab its own shapes only, so a marquee can start over other
+            // layers' shapes; a plain click still picks the top shape there (see up)
+            let a = this.layerOf(this.active), only = a.kind === "draw" ? a.id : null;
+            let o = this.hitObj(p, only);
+            if (o) {
+                let ids = this.sel.ids;
+                if (e.shiftKey) ids = ids.includes(o.id) ? ids.filter((x) => x !== o.id) : [...ids, o.id];
+                else if (!ids.includes(o.id)) ids = [o.id];
+                this.select(ids); this.active = o.layer;
+                this.g = { k: "objs", p, orig: this.selObjs() }; this.sync(); this.paint(); return;
+            }
+            // empty space: drag a rectangle (or a lasso) to select an area and the shapes inside it
+            this.g = { k: "marquee", p0: p, pts: [[p.x, p.y]], poly: null, add: e.shiftKey, click: only ? this.hitObj(p) : null };
+            this.paint();
+        }
+        areaAction(kind) {   // delete inside, keep only inside (crop), fill
+            if (!this.area) return;
+            let a = this.layerOf(this.active), poly = this.area;
+            if (kind === "fill") {
+                let o = { id: uid++, k: "path", layer: this.drawLayer(), nodes: poly.map(([x, y]) => node(x, y)), closed: true, fill: this.opt.fill, stroke: null, w: this.opt.lineW * S };
+                this.set({ draw: [...this.doc.draw, o] }, true); this.select([o.id]);
+            } else if (a.kind === "logo") {
+                this.set({ logoOps: [...this.doc.logoOps, { k: "area", poly: this.clipSrc(), invert: kind === "crop" }] }, true);
+            } else {
+                this.set({ draw: [...this.doc.draw, { id: uid++, k: "area", layer: a.id, poly: poly.map((q) => q.slice()), invert: kind === "crop" }] }, true);
+            }
+            this.commit(); this.sync(); this.paint();
         }
         startEdit(h, p, e) {
             let o = this.selObj();
-            this.sel = { id: o.id, node: h.i };
+            this.select([o.id], h.i);
             if (h.k === "node" && e.altKey) {     // Alt-click a point: corner <-> smooth
                 let n = o.nodes.map((x) => Object.assign({}, x)), m = n[h.i], corner = m.ix === m.x && m.iy === m.y && m.ox === m.x && m.oy === m.y;
                 if (corner) {
@@ -1122,13 +1466,15 @@
             this.g = Object.assign({ id: o.id, p, o }, h); this.paint();
         }
         editMove(g, p, e) {
-            let o = this.objById(g.id); if (!o) return;
-            if (g.k === "obj") {
-                let dx = p.x - g.p.x, dy = p.y - g.p.y, src = g.o;
+            let o = g.k === "objs" ? null : this.objById(g.id);
+            if (g.k !== "objs" && !o) return;
+            if (g.k === "objs") {
+                let dx = p.x - g.p.x, dy = p.y - g.p.y;
                 if (e.shiftKey) { if (Math.abs(dx) > Math.abs(dy)) dy = 0; else dx = 0; }
-                let moved = src.k === "stroke" ? Object.assign({}, src, { pts: src.pts.map(([x, y]) => [x + dx, y + dy]) })
+                let mv = (src) => src.k === "stroke" ? Object.assign({}, src, { pts: src.pts.map(([x, y]) => [x + dx, y + dy]) })
                     : Object.assign({}, src, { nodes: src.nodes.map((n) => ({ x: n.x + dx, y: n.y + dy, ix: n.ix + dx, iy: n.iy + dy, ox: n.ox + dx, oy: n.oy + dy, smooth: n.smooth })) });
-                this.replaceObj(moved); this.paint(); return;
+                let moved = new Map(g.orig.map((o) => [o.id, mv(o)]));
+                this.set({ draw: this.doc.draw.map((x) => moved.get(x.id) || x) }, true); this.paint(); return;
             }
             let n = o.nodes.map((x) => Object.assign({}, x)), m = n[g.i];
             if (g.k === "node") {
@@ -1149,11 +1495,15 @@
             this.replaceObj(Object.assign({}, o, { nodes: n })); this.paint();
         }
         deleteSel() {
-            let o = this.selObj(); if (!o) return;
-            if (o.k === "path" && this.sel.node >= 0 && o.nodes.length > 2) {
+            let o = this.selObj(), all = this.sel.ids;
+            if (o && o.k === "path" && this.sel.node >= 0 && o.nodes.length > 2) {
                 let n = o.nodes.filter((_, i) => i !== this.sel.node);
-                this.replaceObj(Object.assign({}, o, { nodes: n })); this.sel = { id: o.id, node: -1 };
-            } else { this.set({ draw: this.doc.draw.filter((x) => x.id !== o.id) }, true); this.sel = null; if (this.building === o.id) this.building = null; }
+                this.replaceObj(Object.assign({}, o, { nodes: n })); this.select([o.id]);
+            } else if (all.length) {
+                this.set({ draw: this.doc.draw.filter((x) => !all.includes(x.id)) }, true); this.select([]);
+                if (all.includes(this.building)) this.building = null;
+            } else if (this.area) return this.areaAction("delete");
+            else return;
             this.commit(); this.sync(); this.paint();
         }
 
@@ -1161,14 +1511,20 @@
             if (!this.doc) return;
             let tag = (e.target && e.target.tagName) || "", typing = (tag === "INPUT" && !["range", "checkbox", "color", "radio"].includes(e.target.type)) || tag === "SELECT" || tag === "TEXTAREA";
             if (!isDown) { this.keys.delete(e.key); if (e.key === " ") this.setTool(this.tool); return; }
-            if (this.helpBox && this.helpBox.open) return;
+            if ((this.helpBox && this.helpBox.open) || (this.exBox && this.exBox.open)) return;
             if (typing) return;
             let k = e.key.toLowerCase(), mod = e.ctrlKey || e.metaKey;
             if (mod && k === "z") { e.preventDefault(); return e.shiftKey ? this.doRedo() : this.doUndo(); }
             if (mod && k === "y") { e.preventDefault(); return this.doRedo(); }
+            if (mod && k === "s") { e.preventDefault(); return this.saveNow(true); }
+            if (mod && k === "e") { e.preventDefault(); return this.exportDialog(); }
+            if (mod && k === "a") {
+                e.preventDefault(); this.area = rectPoly({ x: 0, y: 0 }, { x: N, y: N });
+                this.select(this.doc.draw.filter((o) => o.k !== "area" && this.layerOf(o.layer).vis).map((o) => o.id)); this.renderBar(); return this.paint();
+            }
             if (mod) return;
             if (e.key === " ") { e.preventDefault(); if (!this.keys.has(" ")) { this.keys.add(" "); this.cv.style.cursor = "grab"; } return; }
-            if (e.key === "Escape") { e.preventDefault(); if (this.building) this.finishPath(); else { this.sel = null; this.sync(); this.paint(); } return; }
+            if (e.key === "Escape") { e.preventDefault(); if (this.building) this.finishPath(); else { this.select([]); this.area = null; this.sync(); this.paint(); } return; }
             if (e.key === "Enter" && this.building) { e.preventDefault(); return this.finishPath(); }
             if ((e.key === "Delete" || e.key === "Backspace")) {
                 e.preventDefault();
@@ -1190,6 +1546,7 @@
             if (k === "+" || k === "=") return this.zoomBy(1.25);
             if (k === "-") return this.zoomBy(0.8);
             if (k === "0") { this.fitView(); return this.paint(); }
+            if (k === "t") { this.opt.preview = this.opt.preview === "bg" ? "transparent" : "bg"; this.renderView(); return this.paint(); }
             if (k === "g") { this.opt.grid = !this.opt.grid; this.gridOn.checked = this.opt.grid; return this.paint(); }
             if (k === "x") { [this.opt.stroke, this.opt.fill] = [this.opt.fill, this.opt.stroke]; this.applyStyle(true); this.sync(); }
         }
@@ -1201,6 +1558,165 @@
                 this.root.append(this.helpBox);
             }
             this.helpBox.showModal();
+        }
+        // ---------- saving: in this browser, and as a project file ----------
+        saveState(text) { if (this.saveOut) this.saveOut.textContent = text; }
+        saveSoon() { if (!this.o.project) return; clearTimeout(this.saveT); this.saveState("Saving…"); this.saveT = setTimeout(() => this.saveNow(false), 700); }
+        async saveNow(manual) {
+            clearTimeout(this.saveT);
+            if (!this.doc) return;
+            let pr = this.o.project;
+            if (!pr) { if (manual) this.saveState("Not saved in this browser: use Download project file."); return; }
+            let r = this.updatePreview();
+            let rec = { id: pr.id, layersId: pr.layersId, team: pr.team || null, base: pr.base || "avatar", label: this.label, preset: this.o.preset || null,
+                doc: serialize(this.doc), active: this.active, thumb: r.tr, thumbOp: r.op, updated: Date.now() };
+            try {
+                await store.put(rec);
+                this.saveState("Saved in this browser " + new Date(rec.updated).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
+                if (this.o.onSaved) this.o.onSaved(rec);
+            } catch {
+                this.saveState("Couldn't save in this browser (private window?). Download a project file to keep it.");
+            }
+        }
+        projectData() {
+            let pr = this.o.project || {};
+            return { format: "ftc-embeds-avatar", version: 1, saved: new Date().toISOString(), label: this.label, team: pr.team || null, base: pr.base || this.o.fileBase || "avatar",
+                preset: this.o.preset || null, layers: this.L, doc: this.doc, active: this.active };
+        }
+        downloadProject() {
+            saveBlob(new Blob([serialize(this.projectData())], { type: "application/json" }), (this.o.fileBase || "avatar") + ".ftcavatar");
+            this.saveState("Project file downloaded");
+        }
+        async importFile(f) {
+            let proj;
+            try { proj = await readProject(f); } catch (e) { this.saveState(e.message); return; }
+            this.close(false);
+            (window.AvatarEditor.onImport || openProject)(proj);
+        }
+
+        // ---------- export: other sizes and formats ----------
+        renderAt(Z, transparent, style) {   // a Z x Z canvas of the avatar
+            let r = this.updatePreview().r, small = canvas(40, 40);
+            ctx2d(small).putImageData(transparent ? r.tr : r.op, 0, 0);
+            if (Z === 40) return small;
+            let c = canvas(Z, Z), x = ctx2d(c, { willReadFrequently: true });
+            if (style === "pixel") { x.imageSmoothingEnabled = false; x.drawImage(small, 0, 0, Z, Z); return c; }
+            let M = { k: Z / N, ox: 0, oy: 0 }, dl = canvas(Z, Z);
+            if (!transparent) { this.scene(x, M, true, dl); return c; }
+            this.scene(x, M, false, dl);
+            let R = Math.round(this.doc.border * (Z / 40));
+            if (R > 0) {     // the thin border, at this size
+                let img = x.getImageData(0, 0, Z, Z), A = new Float32Array(Z * Z);
+                for (let i = 0; i < Z * Z; i++) A[i] = img.data[i * 4 + 3] / 255;
+                let Dm = maxFilter(A, R, Z), bc = hex2rgb(this.doc.borderColour || this.doc.bg), B = new ImageData(Z, Z);
+                for (let i = 0; i < Z * Z; i++) { B.data[i * 4] = bc[0]; B.data[i * 4 + 1] = bc[1]; B.data[i * 4 + 2] = bc[2]; B.data[i * 4 + 3] = Dm[i] * 255; }
+                let b = canvas(Z, Z); ctx2d(b).putImageData(B, 0, 0); ctx2d(b).drawImage(c, 0, 0);
+                return b;
+            }
+            return c;
+        }
+        svgOf(transparent) {   // the 40 px avatar as crisp pixel art: one rectangle per run of equal pixels
+            let r = this.updatePreview().r, D = (transparent ? r.tr : r.op).data, out = [];
+            for (let y = 0; y < 40; y++) for (let x = 0; x < 40;) {
+                let i = (y * 40 + x) * 4, a = D[i + 3], run = 1;
+                while (x + run < 40 && [0, 1, 2, 3].every((k) => D[i + run * 4 + k] === D[i + k])) run++;
+                if (a) out.push(`<rect x="${x}" y="${y}" width="${run}" height="1" fill="${rgb2hex(D[i], D[i + 1], D[i + 2])}"${a < 255 ? ` fill-opacity="${(a / 255).toFixed(3)}"` : ""}/>`);
+                x += run;
+            }
+            return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="400" height="400" shape-rendering="crispEdges">\n${out.join("\n")}\n</svg>\n`;
+        }
+        async exportBlob(fmt, Z, transparent, style) {
+            if (fmt === "svg") return new Blob([this.svgOf(transparent)], { type: "image/svg+xml" });
+            if (fmt === "ico") {
+                let pngs = [];
+                for (let z of [16, 32, 48, 64, 128]) {
+                    let c = z < 40 ? canvas(z, z) : this.renderAt(z, transparent, "smooth");
+                    if (z < 40) { let x = ctx2d(c); x.imageSmoothingQuality = "high"; x.drawImage(this.renderAt(40, transparent), 0, 0, z, z); }
+                    pngs.push({ size: z, data: await bytesOfBlob(await blobOf(c, "image/png")) });
+                }
+                return ico(pngs);
+            }
+            let c = this.renderAt(Z, transparent && fmt !== "jpeg", style);
+            return blobOf(c, { png: "image/png", webp: "image/webp", jpeg: "image/jpeg" }[fmt], 0.92);
+        }
+        exportName(fmt, Z, transparent, style) {
+            let b = this.o.fileBase || "avatar";
+            if (fmt === "ico") return `${b}${transparent ? "" : "-with-background"}.ico`;
+            if (fmt === "svg") return `${b}-pixel${transparent ? "-transparent" : ""}.svg`;
+            if (Z === 40) return `${b}-avatar-40${transparent && fmt !== "jpeg" ? "-transparent" : ""}.${fmt === "jpeg" ? "jpg" : fmt}`;
+            return `${b}-${style === "pixel" ? "pixel-" : ""}${Z}${transparent && fmt !== "jpeg" ? "-transparent" : ""}.${fmt === "jpeg" ? "jpg" : fmt}`;
+        }
+        exportDialog() {
+            if (!this.doc) return;
+            let ex = this.ex || (this.ex = { fmt: "png", size: 40, version: "transparent", style: "smooth" });
+            if (!this.exBox) { this.exBox = el("dialog", { className: "ae-ex", ariaLabel: "Export" }); this.root.append(this.exBox); }
+            let box = this.exBox, note = el("p", { className: "ae-ok", ariaLive: "polite" });
+            let radios = (key, items) => el("span", { className: "row" }, ...items.map(([v, label]) => {
+                let r = el("input", { type: "radio", name: "ae-" + key, checked: ex[key] === v });
+                r.addEventListener("change", () => { ex[key] = v; draw(); });
+                return el("label", {}, r, label);
+            }));
+            let pv = el("canvas"), info = el("span", { className: "ae-ok" });
+            let draw = async () => {
+                let fixed = ex.fmt === "svg" || ex.fmt === "ico";
+                sizeSet.disabled = fixed; styleSet.disabled = fixed || ex.size === 40;
+                let tr = ex.version === "transparent" && ex.fmt !== "jpeg";
+                let c = ex.fmt === "svg" ? this.renderAt(400, tr, "pixel") : ex.fmt === "ico" ? this.renderAt(64, tr, "smooth") : this.renderAt(ex.size, tr, ex.style);
+                pv.width = c.width; pv.height = c.height; let x = ctx2d(pv); x.clearRect(0, 0, c.width, c.height); x.drawImage(c, 0, 0);
+                pv.className = tr ? "ae-chk" : ""; pv.style.width = pv.style.height = "128px";
+                let blob = await this.exportBlob(ex.fmt, ex.size, tr, ex.style);
+                info.textContent = `${this.exportName(ex.fmt, ex.size, tr, ex.style)} · ${(blob.size / 1024).toFixed(1)} kB`;
+                let msgs = [];
+                if (ex.fmt === "jpeg" && ex.version === "transparent") msgs.push("JPEG has no transparency: this one has the background.");
+                if (ex.fmt === "webp" && blob.type !== "image/webp") msgs.push("This browser can't make WebP; it would be a PNG.");
+                if (ex.fmt === "svg") msgs.push("SVG: the 40 px avatar as sharp pixel art, at any size (for print, stickers, slides).");
+                if (ex.fmt === "ico") msgs.push("ICO: a website icon (favicon) with 16, 32, 48, 64 and 128 px inside.");
+                if (!(ex.fmt === "png" && ex.size === 40)) msgs.push("For FIRST, upload the 40 × 40 PNG. The others are for your website, social media and print.");
+                note.textContent = msgs.join(" ");
+                this.exBlob = blob;
+            };
+            let sizeSet = el("fieldset", {}, el("legend", {}, "Size"), radios("size", [[40, "40 (FIRST)"], [80, "80"], [160, "160"], [320, "320"], [512, "512"], [1024, "1024"]]));
+            let styleSet = el("fieldset", {}, el("legend", {}, "Bigger sizes"), radios("style", [["smooth", "Smooth: drawn at that size"], ["pixel", "Pixel art: the 40 px avatar enlarged"]]));
+            box.textContent = "";
+            box.append(el("h3", { style: "margin:0 0 12px" }, "Export"),
+                el("fieldset", {}, el("legend", {}, "Version"), radios("version", [["transparent", "Transparent, with the border"], ["opaque", "With background"]])),
+                el("fieldset", {}, el("legend", {}, "Format"), radios("fmt", [["png", "PNG"], ["webp", "WebP"], ["jpeg", "JPEG"], ["svg", "SVG (pixel art)"], ["ico", "ICO (favicon)"]])),
+                sizeSet, styleSet,
+                el("div", { className: "pv" }, pv, info), note,
+                el("div", { className: "row" },
+                    el("button", { className: "b go", type: "button", onclick: async () => { await draw(); let tr = ex.version === "transparent" && ex.fmt !== "jpeg"; saveBlob(this.exBlob, this.exportName(ex.fmt, ex.size, tr, ex.style)); } }, "Download"),
+                    el("button", { className: "b", type: "button", title: "As a PNG, to paste into chats and documents", onclick: async () => {
+                        try { let tr = ex.version === "transparent"; let blob = await blobOf(this.renderAt(ex.fmt === "svg" || ex.fmt === "ico" ? 512 : ex.size, tr, ex.style), "image/png"); await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]); note.textContent = "Copied as a PNG. Paste it anywhere."; }
+                        catch { note.textContent = "This browser didn't allow copying the image. Use Download instead."; }
+                    } }, "Copy image"),
+                    el("button", { className: "b", type: "button", title: "40 px PNGs, 512 px, pixel art, SVG, ICO and the project file", onclick: () => this.exportAll(note) }, "Everything (.zip)"),
+                    el("button", { className: "b", type: "button", onclick: () => this.downloadProject() }, "Project file (.ftcavatar)"),
+                    el("form", { method: "dialog", style: "margin-left:auto" }, el("button", { className: "b" }, "Close"))));
+            box.showModal(); draw();
+        }
+        async exportAll(note) {
+            note.textContent = "Making the zip…";
+            let b = this.o.fileBase || "avatar", files = [], add = async (name, blob) => files.push({ name, data: await bytesOfBlob(blob) });
+            await add(`${b}-avatar-40.png`, await this.exportBlob("png", 40, false));
+            await add(`${b}-avatar-40-transparent.png`, await this.exportBlob("png", 40, true));
+            await add(`${b}-512-transparent.png`, await this.exportBlob("png", 512, true, "smooth"));
+            await add(`${b}-512.png`, await this.exportBlob("png", 512, false, "smooth"));
+            await add(`${b}-pixel-400-transparent.png`, await this.exportBlob("png", 400, true, "pixel"));
+            await add(`${b}-pixel-transparent.svg`, await this.exportBlob("svg", 40, true));
+            await add(`${b}.ico`, await this.exportBlob("ico", 40, true));
+            await add(`${b}.ftcavatar`, new Blob([serialize(this.projectData())]));
+            await add("README.txt", new Blob([`${this.label}
+
+${b}-avatar-40.png, ${b}-avatar-40-transparent.png
+    For FIRST: upload one at ftc-scoring.firstinspires.org (Team Avatar, Upload New Avatar).
+${b}-512*.png        smooth, for websites and social media
+${b}-pixel-400-transparent.png, ${b}-pixel-transparent.svg
+                     the 40 px avatar as pixel art; the SVG stays sharp at any size
+${b}.ico             a website icon (favicon)
+${b}.ftcavatar       the project: open it in the editor at ftc-embeds.com/avatar-upload to keep editing
+`]));
+            saveBlob(zip(files), `${b}-avatar-export.zip`);
+            note.textContent = `Downloaded ${files.length} files as a zip.`;
         }
         download(e, kind) {
             e.preventDefault();
@@ -1214,16 +1730,30 @@
             document.removeEventListener("keydown", this.onKey); document.removeEventListener("keyup", this.onKeyUp);
             this.ro.disconnect(); this.root.remove();
             document.documentElement.style.overflow = this.prevOverflow || "";
-            let saved = this.doc ? { doc: this.doc, undo: this.undo, redo: this.redo } : null;
+            if (this.doc && this.o.project) this.saveNow(false);
+            let saved = this.doc ? { doc: this.doc, undo: this.undo, redo: this.redo, active: this.active } : null;
             if (window.AvatarEditor.current === this) window.AvatarEditor.current = null;
             if (this.o.onClose) this.o.onClose(saved);
             if (use && this.o.onDone) this.o.onDone({ opaque: r.op, transparent: r.tr, warnings: r.warnings, saved });
         }
     }
 
+    async function readProject(file) {   // a .ftcavatar file -> {label, team, base, preset, layers, doc, active}
+        let p;
+        try { p = JSON.parse(await file.text()); } catch { throw new Error("This isn't a project file from the avatar editor."); }
+        if (!p || p.format !== "ftc-embeds-avatar" || !p.layers || !p.layers.layers || !p.layers.layers.logo || !p.doc) throw new Error("This isn't a project file from the avatar editor.");
+        if (p.version > 1) throw new Error("This project was made with a newer editor. Reload the page and try again.");
+        return p;
+    }
+    function openProject(p, extra) {   // open a project without the page's help (not saved in the browser)
+        return window.AvatarEditor.open(Object.assign({ label: p.label, preset: p.preset, layers: () => Promise.resolve(p.layers), saved: { doc: p.doc, active: p.active }, fileBase: p.base }, extra || {}));
+    }
+
     window.AvatarEditor = {
-        /** open({label, preset, layers: () => Promise<{w, h, layers}>, saved, fileBase, onDone, onClose}) */
+        /** open({label, preset, layers: () => Promise<{w, h, layers}>, saved, fileBase, project: {id, layersId, team, base}, onDone, onClose, onSaved}) */
         open(o) { let ed = new Editor(o); this.current = ed; ed.ready = ed.start(); return ed; },
-        _internal: { reduce, maxFilter, medianCut, shapeNodes },
+        readProject, openProject, store,
+        onImport: null,     // the page sets this: open a project file chosen inside the editor
+        _internal: { reduce, maxFilter, medianCut, shapeNodes, zip, ico, crc32 },
     };
 })();
