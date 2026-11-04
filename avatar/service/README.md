@@ -112,7 +112,8 @@ backgrounds, and the canvas with the background or transparent (border included)
 
 - **Saving:** in this browser as you go (IndexedDB: the projects, and the layers they start from),
   listed on the page under *Saved in this browser*; nothing leaves the browser. **Project files**
-  (`.ftcavatar`, JSON with the layers as PNG data URIs) open on the page or with *Open…* in the editor.
+  (`.ftcavatar`, JSON with the layers as PNG data URIs) open with *Open a saved avatar* on the page
+  (also `/avatars#open`, the logo chooser, or a drop anywhere on the page) or *Open…* in the editor.
 - **Export:** 40 × 40 (FIRST), 80, 160, 320, 512 or 1024 px, smooth (drawn at that size) or pixel art;
   PNG, WebP, JPEG, SVG (pixel art) or ICO (16 to 128 px); copy to the clipboard; or everything as a zip.
 
@@ -138,6 +139,7 @@ python3 tests/test_service.py http://127.0.0.1:8080 tests/logos --rate 5
 # restart the service with RATE=1000 for the page tests, which upload many times
 python3 tests/test_page.py http://127.0.0.1:8080 tests/logos/*.png --shots /tmp/shots
 python3 tests/test_editor.py http://127.0.0.1:8080 --shots /tmp/shots   # every editor tool, layers, saving, export
+python3 tests/screenshot.py http://127.0.0.1:8080   # remakes site/img/avatar-editor.webp, the homepage screenshot
 ```
 
 `tests/logos/` holds the test logos (not committed: they are other teams' artwork). Collect at least

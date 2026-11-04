@@ -120,6 +120,10 @@
     .warn { margin: 0; padding-left: 18px; font-size: 12.5px; color: var(--warn); }
     .dl { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
     .size { font: 11px var(--mono); color: var(--ink-2); }
+    .lede .note { display: grid; gap: 12px; justify-items: end; }
+    .open-saved { font-size: 13.5px; padding: 8px 14px; }
+    .open-saved.pulse { outline: 3px solid var(--accent); outline-offset: 3px; }
+    @media (max-width: 920px) { .lede .note { justify-items: start; } }
     .linkish { text-decoration: underline; text-underline-offset: 3px; cursor: pointer; color: var(--ink); }
     .linkish:hover { color: var(--accent); }
     .saved-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; margin-top: 12px; }
@@ -179,7 +183,10 @@
         <h1>Make your team's FIRST avatar.</h1>
         <p>Upload your logo and get 40 × 40 avatars that follow FIRST's rules, shown the way FTCScout and the event screens show them. Download the one you like and upload it to FIRST.</p>
     </div>
-    <div class="note">40 × 40 PNG, at most 20 kB<br>nothing is stored</div>
+    <div class="note">
+        <label class="btn open-saved" id="open-saved" for="open-project" tabindex="0" role="button">Open a saved avatar (.ftcavatar)</label>
+        <div>40 × 40 PNG, at most 20 kB<br>nothing is stored</div>
+    </div>
 </section>
 
 <div class="app">
@@ -192,12 +199,12 @@
         <fieldset>
             <legend><span>02</span>Logo</legend>
             <label class="drop" id="drop">
-                <input type="file" id="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml,image/avif,.svg">
+                <input type="file" id="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml,image/avif,.svg,.ftcavatar">
                 <img id="logo-preview" alt="Your logo" hidden>
                 <span id="drop-text"><b>Choose your logo</b> or drop it here<small>PNG, JPEG, WebP, GIF or SVG. A large logo on a plain or transparent background works best.</small></span>
             </label>
             <label class="check"><input type="checkbox" id="own"> <span>This is our team's own logo, and we may use it.</span></label>
-            <p class="hint">Saved a project from the editor? <label class="linkish">Open the project file<input type="file" id="open-project" accept=".ftcavatar,.json,application/json" hidden></label></p>
+            <p class="hint">Saved an avatar from the editor? <label class="linkish">Open the .ftcavatar file<input type="file" id="open-project" accept=".ftcavatar,.json,application/json" hidden></label>, or drop it anywhere on this page.</p>
         </fieldset>
         <fieldset>
             <button class="btn go" id="make" type="submit">Make avatars</button>
@@ -331,8 +338,16 @@
         return new Promise((ok) => canvas.toBlob(ok, "image/png"));
     }
 
+    const isProject = (file) => /\.(ftcavatar|json)$/i.test(file.name || "");
     function useFile(file) {
-        if (file) reading = readFile(file);
+        if (!file) return;
+        if (isProject(file)) return openFromDisk(file);      // a saved avatar, chosen or dropped as the logo
+        reading = readFile(file);
+    }
+    async function openFromDisk(file) {
+        try { let p = await window.AvatarEditor.readProject(file); status(""); openProjectFile(p); }
+        catch (e) { fail(e.message); }
+        $("file").value = "";
     }
     async function readFile(file) {
         if (logo) URL.revokeObjectURL(logo.url);
@@ -357,6 +372,17 @@
     drop.addEventListener("dragover", (e) => { e.preventDefault(); drop.classList.add("over"); });
     drop.addEventListener("dragleave", () => drop.classList.remove("over"));
     drop.addEventListener("drop", (e) => { e.preventDefault(); drop.classList.remove("over"); useFile(e.dataTransfer.files[0]); });
+    // a .ftcavatar dropped anywhere on the page opens in the editor
+    document.addEventListener("dragover", (e) => { if ([...e.dataTransfer.items].some((i) => i.kind === "file")) e.preventDefault(); });
+    document.addEventListener("drop", (e) => {
+        let f = e.dataTransfer.files[0];
+        if (!f || drop.contains(e.target)) return;
+        e.preventDefault();
+        if (isProject(f)) openFromDisk(f); else useFile(f);
+    });
+    $("open-saved").addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); $("open-project").click(); } });
+    const pointAtOpen = () => { if (location.hash === "#open") { $("open-saved").classList.add("pulse"); $("open-saved").focus(); } };
+    pointAtOpen(); window.addEventListener("hashchange", pointAtOpen);
     document.addEventListener("paste", (e) => { let f = [...(e.clipboardData || {}).files || []].find((f) => f.type.startsWith("image/")); if (f) useFile(f); });
 
     // --- Make: one request, then show the answer ------------------------------------------------

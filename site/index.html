@@ -172,6 +172,20 @@
         .wlist span { grid-column: 1 / -1; grid-row: 2; }
         .facts { padding: 22px 16px 36px; }
     }
+    .avatar-band { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 56px; align-items: center; max-width: 1320px; box-sizing: border-box; margin: 0 auto; padding: 8px 28px 52px; }
+    .avatar-band h2 { margin: 8px 0 10px; font-size: 30px; letter-spacing: -0.02em; line-height: 1.1; }
+    .avatar-band p { margin: 0 0 16px; color: var(--ink-2); max-width: 48ch; }
+    .avatar-band ul { margin: 0; padding: 0; list-style: none; font-size: 14.5px; color: var(--ink-2); }
+    .avatar-band li { padding: 6px 0 6px 16px; position: relative; border-top: 1px solid var(--rule); }
+    .avatar-band li::before { content: "–"; position: absolute; left: 0; color: var(--accent); }
+    .avatar-band .cta { margin-top: 22px; }
+    .ab-shot { display: block; border: 2px solid var(--ink); background: var(--paper-2); line-height: 0; box-shadow: 8px 8px 0 var(--rule); }
+    .ab-shot img { width: 100%; height: auto; display: block; }
+    .ab-shot:hover { box-shadow: 8px 8px 0 var(--accent); }
+    @media (max-width: 900px) {
+        .avatar-band { grid-template-columns: minmax(0, 1fr); gap: 28px; padding: 36px 16px; }
+        .ab-shot { box-shadow: 5px 5px 0 var(--rule); }
+    }
     .details { max-width: 1320px; box-sizing: border-box; margin: 0 auto; padding: 8px 28px 56px; }
     .d-head { border-top: 1px solid var(--rule); padding-top: 40px; margin-bottom: 30px; }
     .d-head h2 { margin: 0 0 8px; font-size: 26px; letter-spacing: -0.02em; }
@@ -237,6 +251,28 @@
     </div>
 </section>
 
+<section class="avatar-band" aria-labelledby="avatar-h">
+    <div class="ab-text">
+        <span class="eyebrow">For teams</span>
+        <h2 id="avatar-h">Your FIRST avatar, made from your logo</h2>
+        <p>Upload your logo and get 40 × 40 avatars that follow FIRST's rules, shown the way FTCScout and the event screens show them. Then make it yours in the editor.</p>
+        <ul>
+            <li>The background and the gaps inside letters are removed for you</li>
+            <li>Options on teal, navy and black, without the text, as a coin</li>
+            <li>An editor with layers, an eraser, a magic wand and a pen for curves</li>
+            <li>Saved in your browser; export PNG, SVG, ICO and bigger sizes</li>
+        </ul>
+        <div class="cta">
+            <a class="go" href="/avatars">Make your avatar</a>
+            <a href="/avatars#open">Open a saved avatar</a>
+        </div>
+    </div>
+    <a class="ab-shot" href="/avatars" aria-label="Open the avatar maker">
+        <img src="img/avatar-editor.webp" width="1440" height="900" loading="lazy" decoding="async"
+             alt="The avatar editor: a robot logo on the canvas with a curve being drawn behind it, the tools on the left, and the 40 px result on FIRST's backgrounds on the right">
+    </a>
+</section>
+
 <div class="paths">
     <section class="path">
         <span class="eyebrow">For teams</span>
@@ -253,6 +289,7 @@
         <a class="go-link" href="/pit-map">Make a pit map →</a>
     </section>
 </div>
+
 
 <p class="facts">iframe, HTML element or npm package · works with any website builder · no account, no cookies · data from FTCScout and <i>FIRST</i></p>
 
@@ -340,7 +377,6 @@
             <div class="d-foot"><a class="go-link" href="/team#%7B%22widget%22%3A%22league-standings%22%2C%22event%22%3A%22NLBNM7%22%2C%22season%22%3A%222023%22%7D">Configure →</a><code>&lt;ftc-league-standings&gt;</code></div>
         </article>
     </div>
-    <p class="d-head" style="border-top:0;padding-top:24px;margin:0;color:var(--ink-2)">No avatar yet? <a href="/avatars">Make one.</a></p>
 </section>
 
 <footer>
