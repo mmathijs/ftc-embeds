@@ -79,9 +79,12 @@ stay; in the campaign, those were fixed by hand. `subject.py` makes the same cal
   hairline slit inside the logo (at most about 5 px wide at 768 px) is cut out, so neither stays
   as a light line at 40 px.
 - Edge pixels are un-blended from the local background colour (colour to alpha), so no halo is left.
-- **Crisp edges:** the transparent PNGs have no half-transparent pixels (alpha at least 50% becomes
-  solid, the rest fully transparent): scaling the border down to 40 px would otherwise leave a muddy
-  half-transparent rim. The editor can switch to smooth edges (Transparent version).
+- **The border and its edge:** the transparent version's border follows the shape along a circle
+  with a soft edge (the skill's square MaxFilter gives boxy corners that turn into stair-steps at
+  40 px). Then the edges are tidied: every pixel inside the avatar and every near-solid one becomes
+  solid, faint specks go, and only the outer row of the outline stays soft, so the outline is smooth
+  without muddy half-transparent pixels inside. The editor also has *Pixel edges* (no
+  half-transparent pixels at all), under Transparent version.
 
 `tests/test_subject.py` checks these on made-up logos (counters of O, 8, 0 and 6 cut; eyes, white
 letters on a banner and a white face kept; gradient and two-tone backgrounds; a 3 px gap in an

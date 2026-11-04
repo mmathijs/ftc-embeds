@@ -92,13 +92,31 @@ def read_logo(raw):
     if max(im.size) > WORK_SIDE: im.thumbnail((WORK_SIDE, WORK_SIDE), Image.LANCZOS)
     return im
 
-def hard_edges(img):
-    """No half-transparent pixels: alpha at least 50% becomes solid, the rest fully transparent
-    (with no colour under it). Scaling down makes the border's outer edge half transparent, which
-    looks muddy on FTCScout and the event screens."""
-    a = np.asarray(img.convert('RGBA')).copy()
-    solid = a[..., 3] >= 128
-    a[solid, 3] = 255; a[~solid] = 0
+def round_border(lay, colour, width):
+    """The transparent version: the 320 px layer with a border of `width` (40 px units) in `colour`,
+    reduced to 40 x 40. The border follows the shape along a circle with a soft edge (the skill's
+    square MaxFilter gives boxy corners and bumps, which turn into stair-steps at 40 px)."""
+    a = np.asarray(lay.convert('RGBA')).astype(np.float32) / 255
+    A = a[..., 3]
+    ring = np.clip(width * c.S + 0.5 - ndimage.distance_transform_edt(A <= 0.5), 0, 1)
+    D = np.maximum(ring, A) * (1 - A)
+    col = np.asarray(colour[:3], np.float32) / 255
+    rgb = a[..., :3] * A[..., None] + col * D[..., None]
+    prem = np.dstack([rgb, A + D]) * 255
+    big = Image.fromarray(np.clip(prem + 0.5, 0, 255).astype(np.uint8), 'RGBa')
+    return c.clean(big.resize((40, 40), Image.LANCZOS).convert('RGBA'))
+
+def tidy_edges(img):
+    """A smooth outline without muddy pixels: inside the avatar (all four neighbours at least half
+    covered) and near-solid pixels become solid, faint specks (under 12%) go, and only the outer
+    row of the outline stays soft, so it isn't stair-stepped."""
+    a = np.asarray(img.convert('RGBA')).copy(); A2 = a[..., 3].astype(int)
+    for _ in range(4):        # until nothing changes: a pixel can become inside once its neighbours are solid
+        A = A2; P = np.pad(A, 1)
+        inside = (P[1:-1, :-2] >= 128) & (P[1:-1, 2:] >= 128) & (P[:-2, 1:-1] >= 128) & (P[2:, 1:-1] >= 128)
+        A2 = np.where(A < 31, 0, np.where((A >= 235) | ((A > 0) & inside), 255, A))
+        if (A2 == A).all(): break
+    a[..., 3] = A2; a[A2 == 0] = 0
     return Image.fromarray(a, 'RGBA')
 
 def png(img, mode):
@@ -177,13 +195,13 @@ def build_options(logo, name, number):
     def add(oid, label, lay, bg, edit, border=1.1, note=''):
         """lay: 320 x 320 RGBA layer; opaque = lay on bg; transparent = lay with a thin border."""
         op = c.on(bg, down(lay)).convert('RGB')
-        tr = hard_edges(c.add_border(lay, bg, border) if border else down(lay))
+        tr = tidy_edges(round_border(lay, bg, border) if border else down(lay))
         edit = dict(edit, bg=hexc(bg), border=border)
         opts.append(dict(id=oid, label=label, note=note, bg=hexc(bg), edit=edit, _op=op, _tr=tr, _content=down(lay)))
 
     if 'cut' not in src:      # no background found: keep the logo as it is, in a rounded square
         t = fit_t((0, 0, logo.width, logo.height), area=(0, 0, c.N, c.N))
-        lay = place(logo, t); op = c.on(bg0, down(lay)).convert('RGB'); tr = op.convert('RGBA'); tr.putalpha(c.mask("rounded")); tr = hard_edges(tr)
+        lay = place(logo, t); op = c.on(bg0, down(lay)).convert('RGB'); tr = op.convert('RGBA'); tr.putalpha(c.mask("rounded")); tr = tidy_edges(tr)
         opts.append(dict(id='whole', label='Whole logo', note="The logo has no plain background, so it is kept as it is. Use Edit to erase the background.",
                          bg=hexc(bg0), edit=dict(src='logo', **t, bg=hexc(bg0), border=0, frame=dict(type='rounded')),
                          _op=op, _tr=tr, _content=c.on(bg0, down(lay))))

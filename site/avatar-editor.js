@@ -102,6 +102,44 @@
         for (let y = 0; y < W; y++) for (let x = 0; x < W; x++) { let m = 0; for (let k = Math.max(0, y - R); k <= Math.min(W - 1, y + R); k++) m = Math.max(m, T[k * W + x]); U[y * W + x] = m; }
         return U;
     }
+    function edt(inside, W, H) {   // distance from every pixel to the nearest `inside` pixel (Felzenszwalb and Huttenlocher)
+        let INF = 1e20, n = Math.max(W, H), f = new Float64Array(n), dd = new Float64Array(n), v = new Int32Array(n), z = new Float64Array(n + 1), out = new Float64Array(W * H);
+        let pass = (len) => {
+            let k = 0; v[0] = 0; z[0] = -INF; z[1] = INF;
+            for (let q = 1; q < len; q++) {
+                let s2 = ((f[q] + q * q) - (f[v[k]] + v[k] * v[k])) / (2 * q - 2 * v[k]);
+                while (s2 <= z[k]) { k--; s2 = ((f[q] + q * q) - (f[v[k]] + v[k] * v[k])) / (2 * q - 2 * v[k]); }
+                k++; v[k] = q; z[k] = s2; z[k + 1] = INF;
+            }
+            k = 0;
+            for (let q = 0; q < len; q++) { while (z[k + 1] < q) k++; dd[q] = (q - v[k]) * (q - v[k]) + f[v[k]]; }
+        };
+        for (let x = 0; x < W; x++) { for (let y = 0; y < H; y++) f[y] = inside[y * W + x] ? 0 : INF; pass(H); for (let y = 0; y < H; y++) out[y * W + x] = dd[y]; }
+        for (let y = 0; y < H; y++) { for (let x = 0; x < W; x++) f[x] = out[y * W + x]; pass(W); for (let x = 0; x < W; x++) out[y * W + x] = Math.sqrt(dd[x]); }
+        return out;
+    }
+    function roundBorder(A, R, W) {   // how much of each pixel the border covers: a circle of radius R around the shape, soft-edged
+        let inside = new Uint8Array(W * W);
+        for (let i = 0; i < W * W; i++) inside[i] = A[i] > 0.5 ? 1 : 0;
+        let d = edt(inside, W, W), out = new Float32Array(W * W);
+        for (let i = 0; i < W * W; i++) out[i] = Math.max(A[i], clamp(R + 0.5 - d[i], 0, 1));
+        return out;
+    }
+    function tidyEdges(d, W = 40) {   // smooth outline: inside the avatar every pixel solid, only the outer row soft; no faint specks
+        let D = d.data, A = new Uint8ClampedArray(W * W);
+        for (let pass = 0; pass < 4; pass++) {      // until nothing changes: a pixel can become inside once its neighbours are solid
+            for (let i = 0; i < W * W; i++) A[i] = D[i * 4 + 3];
+            let at = (x, y) => (x < 0 || y < 0 || x >= W || y >= W ? 0 : A[y * W + x]), changed = false;
+            for (let y = 0; y < W; y++) for (let x = 0; x < W; x++) {
+                let i = y * W + x, a = A[i];
+                if (!a || a === 255) continue;
+                if (a < 31) { D[i * 4] = D[i * 4 + 1] = D[i * 4 + 2] = D[i * 4 + 3] = 0; changed = true; continue; }
+                if (a >= 235 || (at(x - 1, y) >= 128 && at(x + 1, y) >= 128 && at(x, y - 1) >= 128 && at(x, y + 1) >= 128)) { D[i * 4 + 3] = 255; changed = true; }
+            }
+            if (!changed) break;
+        }
+        return d;
+    }
     function toImageData(O, floor, crisp) {   // premultiplied 40 x 40 -> ImageData; alpha under `floor` becomes 0 (no hidden colour)
         let d = new ImageData(40, 40);       // crisp: no half-transparent pixels (at least 50% -> solid, the rest -> nothing)
         for (let i = 0; i < 1600; i++) {
@@ -595,10 +633,10 @@
             this.borderSame.addEventListener("change", () => { this.set({ borderColour: this.borderSame.checked ? "" : this.borderPick.value }); this.commit(); });
             this.borderPick.addEventListener("input", () => { this.borderSame.checked = false; this.set({ borderColour: this.borderPick.value }); });
             this.borderPick.addEventListener("change", () => this.commit());
-            this.crispOn = el("input", { type: "checkbox" });
-            this.crispOn.addEventListener("change", () => { this.set({ edges: this.crispOn.checked ? "crisp" : "smooth" }); this.commit(); });
+            this.edgeSel = el("select", { ariaLabel: "Edges" }, el("option", { value: "smooth" }, "Smooth outline (recommended)"), el("option", { value: "pixel" }, "Pixel edges: no half-transparent pixels"));
+            this.edgeSel.addEventListener("change", () => { this.set({ edges: this.edgeSel.value }); this.commit(); });
             s.append(sec("Transparent version", el("label", {}, "Border", this.borderR, this.borderOut),
-                el("label", {}, this.crispOn, "Crisp edges: no half-transparent pixels"),
+                el("label", {}, "Edges", this.edgeSel),
                 el("div", { className: "row" }, el("label", {}, this.borderSame, "in the background colour"), this.borderPick),
                 el("div", { className: "ae-ok" }, "A thin border keeps the cut-out readable on any page. 0 means no border.")));
             // logo
@@ -816,7 +854,7 @@
             this.bgPick.value = d.bg;
             this.borderR.value = d.border; this.borderOut.textContent = d.border ? d.border.toFixed(1) + " px" : "none";
             this.borderSame.checked = !d.borderColour; this.borderPick.value = d.borderColour || d.bg;
-            this.crispOn.checked = d.edges !== "smooth";
+            this.edgeSel.value = d.edges === "pixel" || d.edges === "crisp" ? "pixel" : "smooth";
             if (this.srcSel.options.length !== Object.keys(this.src || {}).length) {
                 this.srcSel.textContent = "";
                 for (let k of Object.keys(SOURCES)) if (this.src && this.src[k]) this.srcSel.append(el("option", { value: k }, SOURCES[k]));
@@ -1104,7 +1142,7 @@
             if (!this.borderCv) this.borderCv = canvas(N, N);
             let bctx = ctx2d(this.borderCv); bctx.clearRect(0, 0, N, N);
             if (R > 0) {
-                let Dm = maxFilter(A, R), bc = hex2rgb(this.doc.borderColour || this.doc.bg), [cr, cg, cb] = bc.map((v) => v / 255), Q = new Float32Array(P.length);
+                let Dm = roundBorder(A, this.doc.border * S, N), bc = hex2rgb(this.doc.borderColour || this.doc.bg), [cr, cg, cb] = bc.map((v) => v / 255), Q = new Float32Array(P.length);
                 let B = new ImageData(N, N);       // the border alone, drawn under the scene in the transparent view
                 for (let i = 0; i < N * N; i++) {
                     let a = P[i * 4 + 3], m = Dm[i] * (1 - a); Q[i * 4] = P[i * 4] + cr * m; Q[i * 4 + 1] = P[i * 4 + 1] + cg * m; Q[i * 4 + 2] = P[i * 4 + 2] + cb * m; Q[i * 4 + 3] = a + m;
@@ -1113,7 +1151,8 @@
                 bctx.putImageData(B, 0, 0);
                 T = reduce(Q);
             }
-            return { op: toImageData(O, 0), tr: toImageData(T, 20, this.doc.edges !== "smooth"), content: toImageData(content, 20) };
+            let pixel = this.doc.edges === "pixel" || this.doc.edges === "crisp";
+            return { op: toImageData(O, 0), tr: pixel ? toImageData(T, 20, true) : tidyEdges(toImageData(T, 20)), content: toImageData(content, 20) };
         }
         uri(imgData) { let c = canvas(40, 40); ctx2d(c).putImageData(imgData, 0, 0); return c.toDataURL("image/png"); }
         warnings(r, opUri, trUri) {
@@ -1122,9 +1161,9 @@
             let D = r.op.data, keyed = 0;
             for (let i = 0; i < 1600; i++) { let R = D[i * 4], G = D[i * 4 + 1], B = D[i * 4 + 2]; if ((G > 200 && R < 120 && B < 120) || (R > 200 && B > 200 && G < 80)) keyed++; }
             if (keyed) w.push(`${keyed} pixels are close to lime or magenta, which video overlays can key out.`);
-            let T = r.tr.data, half = 0;
-            for (let i = 0; i < 1600; i++) if (T[i * 4 + 3] > 0 && T[i * 4 + 3] < 255) half++;
-            if (half) w.push(`The transparent version has ${half} half-transparent pixels, which can look muddy. Crisp edges (under Transparent version) avoids them.`);
+            let T = r.tr.data, half = 0, A = (x, y) => (x < 0 || y < 0 || x > 39 || y > 39 ? 0 : T[(y * 40 + x) * 4 + 3]);
+            for (let y = 0; y < 40; y++) for (let x = 0; x < 40; x++) { let a = A(x, y); if (a > 0 && a < 255 && A(x - 1, y) >= 128 && A(x + 1, y) >= 128 && A(x, y - 1) >= 128 && A(x, y + 1) >= 128) half++; }
+            if (half) w.push(`The transparent version has ${half} half-transparent pixels inside it, which can look muddy.`);
             let C = r.content.data, x0 = 40, y0 = 40, x1 = -1, y1 = -1;
             for (let y = 0; y < 40; y++) for (let x = 0; x < 40; x++) if (C[(y * 40 + x) * 4 + 3] > 127) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
             if (x1 < 0) w.push("The avatar is empty.");
@@ -1790,7 +1829,7 @@
             if (R > 0) {     // the thin border, at this size
                 let img = x.getImageData(0, 0, Z, Z), A = new Float32Array(Z * Z);
                 for (let i = 0; i < Z * Z; i++) A[i] = img.data[i * 4 + 3] / 255;
-                let Dm = maxFilter(A, R, Z), bc = hex2rgb(this.doc.borderColour || this.doc.bg), B = new ImageData(Z, Z);
+                let Dm = roundBorder(A, this.doc.border * (Z / 40), Z), bc = hex2rgb(this.doc.borderColour || this.doc.bg), B = new ImageData(Z, Z);
                 for (let i = 0; i < Z * Z; i++) { B.data[i * 4] = bc[0]; B.data[i * 4 + 1] = bc[1]; B.data[i * 4 + 2] = bc[2]; B.data[i * 4 + 3] = Dm[i] * 255; }
                 let b = canvas(Z, Z); ctx2d(b).putImageData(B, 0, 0); ctx2d(b).drawImage(c, 0, 0);
                 return b;

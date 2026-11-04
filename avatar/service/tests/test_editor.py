@@ -81,12 +81,16 @@ with sync_playwright() as p:
         for k in mods or []: page.keyboard.up(k)
 
     first = result()
-    # crisp edges, the default; smooth brings them back, with a note
-    half = lambda: state("(() => { let d = e.updatePreview().r.tr.data, n = 0; for (let i = 3; i < d.length; i += 4) if (d[i] > 0 && d[i] < 255) n++; return n; })()")
-    check(half() == 0, 'crisp edges by default: no half-transparent pixels')
-    page.locator('.ae-sec label', has_text='Crisp edges').click()
-    check(half() > 0 and 'half-transparent' in page.text_content('.ae-sec .ae-warn'), f'smooth edges: {half()} half-transparent pixels, and a note')
-    page.keyboard.press('Control+z'); check(half() == 0, 'undo: crisp again')
+    # edges: a smooth outline by default (soft only at the outer row, solid inside); pixel edges on request
+    count = lambda: state("""(() => { let d = e.updatePreview().r.tr.data, A = (x, y) => (x < 0 || y < 0 || x > 39 || y > 39 ? 0 : d[(y * 40 + x) * 4 + 3]), soft = 0, inside = 0, faint = 0;
+        for (let y = 0; y < 40; y++) for (let x = 0; x < 40; x++) { let a = A(x, y); if (!a || a === 255) continue; soft++; if (a < 31) faint++;
+            if (A(x - 1, y) >= 128 && A(x + 1, y) >= 128 && A(x, y - 1) >= 128 && A(x, y + 1) >= 128) inside++; }
+        return [soft, inside, faint]; })()""")
+    soft, inside, faint = count()
+    check(soft > 0 and inside == 0 and faint == 0, f'smooth outline by default: {soft} soft pixels on the outline, none inside, no faint specks')
+    page.locator('.ae-sec select[aria-label="Edges"]').select_option('pixel')
+    check(count()[0] == 0, 'Pixel edges: no half-transparent pixels at all')
+    page.keyboard.press('Control+z'); check(count()[0] == soft, 'undo: the smooth outline again')
 
     tools = page.locator('.ae-tool').all_text_contents()
     check(len(tools) == 10 and all(any(c.isalpha() for c in t) for t in tools), f'ten tools, each labelled: {[t[:-1] for t in tools]}')
@@ -204,7 +208,7 @@ with sync_playwright() as p:
     t1 = state('e.doc.t'); check(abs(t1['x'] - t0['x'] - 20) < 1 and abs(t1['y'] - t0['y'] + 20) < 1, 'move drags the logo')
     page.keyboard.press('ArrowRight'); check(abs(state('e.doc.t.x') - t1['x'] - 8) < 0.01, 'arrow keys nudge by one avatar pixel')
     page.locator('.ae-side button', has_text='Fit').click()
-    page.locator('.ae-side select').first.select_option('all')
+    page.locator('.ae-side select[aria-label="Start from"]').select_option('all')
     check(state('e.doc.src') == 'all', 'start from another layer')
     page.evaluate(f"{ed}.sizeR.value = 120; {ed}.sizeR.dispatchEvent(new Event('input')); {ed}.sizeR.dispatchEvent(new Event('change'))")
     check(state("e.sizeOut.textContent") == '120%', 'size slider')
@@ -343,7 +347,9 @@ with sync_playwright() as p:
         page.locator('.opt[data-id^="edit-"] .dl a').nth(1).click()
     im = Image.open(dl.value.path()); check(im.size == (40, 40) and im.mode == 'RGBA' and dl.value.suggested_filename.endswith('-edited-avatar-40-transparent.png'), f'transparent download {dl.value.suggested_filename}')
     px = [im.getpixel((x, y)) for y in range(40) for x in range(40)]; check(all(p == (0, 0, 0, 0) for p in px if p[3] == 0), 'no hidden colour under transparent pixels')
-    check(all(p[3] in (0, 255) for p in px), 'crisp edges: no half-transparent pixels in the transparent PNG')
+    A = lambda x, y: 0 if x < 0 or y < 0 or x > 39 or y > 39 else px[y * 40 + x][3]
+    muddy = sum(1 for y in range(40) for x in range(40) if 0 < A(x, y) < 255 and min(A(x - 1, y), A(x + 1, y), A(x, y - 1), A(x, y + 1)) >= 128)
+    check(muddy == 0, 'the transparent PNG has no half-transparent pixels inside it')
     # the comparison sheet on the page: the edit (ticked first) and two options
     page.click('#sheet-open'); page.wait_for_selector('dialog.sheet-dialog[open] .sheet-pv img:not([hidden])')
     ticked = page.locator('dialog.sheet-dialog .sheet-list input:checked').count()
