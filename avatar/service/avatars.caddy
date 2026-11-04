@@ -1,0 +1,14 @@
+# Avatar maker API: /api/avatar/* goes to the ftc-embeds-avatars container (avatar/service).
+# Imported into the :80 site of deploy/Caddyfile by its "import extra/*.caddy" line.
+# 10MiB is the service's own limit (10 x 1024 x 1024 bytes); Caddy answers 413 above it.
+handle /api/avatar/* {
+	request_body {
+		max_size 10MiB
+	}
+	reverse_proxy ftc-embeds-avatars:8080 {
+		# The edge Caddy replaces X-Forwarded-For with the address it sees (a visitor can't add to
+		# it), and this Caddy would replace it again with the edge's address, so pass it on under
+		# another name. Behind Cloudflare, use {http.request.header.CF-Connecting-IP} instead.
+		header_up X-Client-IP {http.request.header.X-Forwarded-For}
+	}
+}

@@ -1,0 +1,24 @@
+# The avatar options service, on the same network as ftc-embeds-web. Lives in /opt/ftc-embeds/avatars
+# on the server; scripts/avatars.sh installs and updates it. Caddy forwards /api/avatar/ to it
+# (avatars.caddy, copied to /opt/ftc-embeds/extra/). No ports are published.
+services:
+    avatars:
+        build: .
+        image: ftc-embeds-avatars
+        container_name: ftc-embeds-avatars
+        networks: [ftcscout-edge]
+        environment:
+            MAX_JOBS: "2"
+            RATE: "10"
+        read_only: true
+        tmpfs: [/tmp]
+        cap_drop: [ALL]
+        security_opt: ["no-new-privileges:true"]
+        cpus: 2
+        mem_limit: 1g
+        pids_limit: 64
+        restart: unless-stopped
+
+networks:
+    ftcscout-edge:
+        external: true

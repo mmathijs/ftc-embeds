@@ -2,6 +2,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { createRequire } from "node:module";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -430,4 +431,12 @@ test("the first match is the earliest scheduled one", async () => {
     assert.equal(firstMatchTime([{ scheduledStartTime: "2026-02-07T10:30:00Z" }, { scheduledStartTime: "2026-02-07T09:15:00Z" }, { scheduledStartTime: null }]), Date.parse("2026-02-07T09:15:00Z"));
     assert.equal(firstMatchTime([{ scheduledStartTime: null }]), null);
     assert.equal(firstMatchTime(undefined), null);
+});
+
+// The website and the avatar maker (avatar/, site/, dist/site/) must never reach people who install the package.
+test("the npm package has none of the website or the avatar maker", () => {
+    const out = execFileSync("npm", ["pack", "--dry-run", "--json"], { cwd: root, encoding: "utf8" });
+    const files = JSON.parse(out.slice(out.search(/^\[/m)))[0].files.map((f) => f.path);
+    assert.ok(files.includes("package.json"), "npm pack listed no files");
+    assert.deepEqual(files.filter((p) => /^(avatar|site|dist\/site)\//.test(p)), []);
 });

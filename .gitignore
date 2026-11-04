@@ -2,3 +2,5 @@ node_modules/
 dist/
 .idea/
 .vscode/
+avatar/service/tests/logos/
+__pycache__/

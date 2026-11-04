@@ -1,0 +1,4 @@
+# Tested with Python 3.13 and these versions (November 2026).
+pillow==12.3.0
+numpy==2.5.3
+scipy==1.18.1

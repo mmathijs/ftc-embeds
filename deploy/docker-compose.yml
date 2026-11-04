@@ -7,6 +7,8 @@ services:
         volumes:
             - ./Caddyfile:/etc/caddy/Caddyfile:ro
             - ./site:/srv:ro
+            # Server-local Caddy snippets (import extra/*.caddy): the avatar service's route, the statistics.
+            - ./extra:/etc/caddy/extra:ro
         restart: unless-stopped
 
 networks:

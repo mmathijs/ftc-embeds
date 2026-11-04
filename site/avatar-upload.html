@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Avatar maker · ftc-embeds</title>
+<meta name="description" content="Upload your FTC team's logo and get 40 × 40 FIRST avatars that follow FIRST's rules, ready to upload.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%231c1b19'/%3E%3Crect x='3' y='3' width='4' height='4' fill='%23ff5a1f'/%3E%3Crect x='9' y='3' width='4' height='4' fill='%23f4f1ea'/%3E%3Crect x='3' y='9' width='4' height='4' fill='%23f4f1ea'/%3E%3Crect x='9' y='9' width='4' height='4' fill='%23f4f1ea'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+    /* Same tokens and header, lede, form and footer styles as site/team.html. */
+    :root {
+        --paper: #f4f1ea;
+        --paper-2: #ebe6db;
+        --ink: #1c1b19;
+        --ink-2: #5d5a53;
+        --rule: #cfc8b8;
+        --grid: rgba(28, 27, 25, 0.016);
+        --accent: #ff5a1f;
+        --accent-ink: #1c1b19;
+        --field: #fbf9f4;
+        --warn: #b3360f;
+        --sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+        --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+        color-scheme: light;
+    }
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --paper: #161512;
+            --paper-2: #1f1e1a;
+            --ink: #ece7dc;
+            --ink-2: #a39d90;
+            --rule: #3a3731;
+            --grid: rgba(236, 231, 220, 0.018);
+            --field: #1b1a17;
+            --warn: #ff8a5c;
+            color-scheme: dark;
+        }
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html { background: var(--paper); scroll-padding-top: var(--header, 56px); }
+    body {
+        margin: 0;
+        color: var(--ink);
+        font: 15px/1.5 var(--sans);
+        background-color: var(--paper);
+        background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+        background-size: 32px 32px;
+    }
+    a { color: inherit; text-underline-offset: 3px; }
+    a:hover { color: var(--accent); }
+
+    .top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 14px 28px; border-bottom: 2px solid var(--ink); position: sticky; top: 0; z-index: 30; background: var(--paper); }
+    .wordmark { font: 500 17px var(--mono); text-decoration: none; letter-spacing: -0.02em; }
+    .wordmark b { font-weight: 500; color: var(--accent); }
+    .top nav { display: flex; gap: 20px; font: 13px var(--mono); }
+    .top nav a { text-decoration: none; color: var(--ink-2); }
+    .top nav a:hover, .top nav a[aria-current] { color: var(--ink); }
+
+    .lede { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: end; padding: 36px 28px 26px; border-bottom: 1px solid var(--rule); }
+    .lede h1 { margin: 0; font-size: 34px; line-height: 1.1; font-weight: 600; letter-spacing: -0.025em; max-width: 18ch; }
+    .lede p { margin: 12px 0 0; color: var(--ink-2); max-width: 56ch; }
+    .lede .note { font: 12px/1.6 var(--mono); color: var(--ink-2); text-align: right; }
+
+    .app { display: grid; grid-template-columns: 330px minmax(0, 1fr); }
+    form { border-right: 1px solid var(--rule); }
+    fieldset { margin: 0; padding: 20px 28px 22px; border: 0; border-bottom: 1px solid var(--rule); display: grid; gap: 12px; min-width: 0; }
+    legend { float: left; width: 100%; padding: 0; margin-bottom: 4px; font-weight: 600; font-size: 15px; }
+    legend span { font: 12px var(--mono); color: var(--accent); margin-right: 8px; }
+    label.f { display: grid; gap: 5px; font-size: 13px; color: var(--ink-2); }
+    input[type="text"] { width: 100%; font: 14px var(--sans); color: var(--ink); background: var(--field); border: 1px solid var(--rule); border-radius: 2px; padding: 7px 9px; outline: none; }
+    input:focus-visible, button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+    input[type="checkbox"] { accent-color: var(--ink); width: 15px; height: 15px; margin: 2px 0 0; flex: none; }
+    .check { display: flex; align-items: flex-start; gap: 9px; font-size: 14px; cursor: pointer; }
+    .hint { margin: 0; font-size: 12.5px; color: var(--ink-2); }
+    .hint.bad { color: var(--warn); }
+    #team-hint { min-height: 20px; }
+    #team-hint img { width: 20px; height: 20px; vertical-align: -5px; }
+
+    .drop { position: relative; display: grid; place-items: center; gap: 10px; min-height: 150px; padding: 16px; border: 1px dashed var(--ink-2); border-radius: 2px; background: var(--field); text-align: center; font-size: 14px; cursor: pointer; }
+    .drop:hover, .drop.over { border-color: var(--ink); background: var(--paper-2); }
+    .drop:focus-within { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+    .drop small { display: block; margin-top: 4px; font-size: 12px; color: var(--ink-2); }
+    .drop img { max-width: 100%; max-height: 150px; }
+
+    .btn { font: 13px var(--sans); border: 1px solid var(--ink); border-radius: 2px; background: none; color: var(--ink); padding: 6px 11px; cursor: pointer; text-decoration: none; display: inline-block; }
+    .btn:hover { background: var(--paper-2); color: var(--ink); }
+    .btn.go { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 500; }
+    .btn.go:hover { filter: brightness(1.05); }
+    .btn:disabled { opacity: 0.6; cursor: progress; }
+    #make { justify-self: start; padding: 8px 16px; font-size: 14px; }
+
+    .work { padding: 24px 28px 32px; display: grid; gap: 20px; align-content: start; min-width: 0; }
+    .work h2 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
+    .intro { display: grid; gap: 14px; max-width: 64ch; }
+    .intro p, .intro ul { margin: 0; }
+    .intro ul { padding-left: 18px; color: var(--ink-2); }
+    .out-head { display: flex; justify-content: space-between; align-items: end; gap: 12px; flex-wrap: wrap; padding-bottom: 10px; border-bottom: 1px solid var(--rule); }
+    .out-head p { margin: 4px 0 0; font-size: 13px; color: var(--ink-2); }
+
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
+    .opt { border: 2px solid var(--ink); background: var(--field); padding: 14px; display: grid; gap: 12px; align-content: start; }
+    .opt.current { border-style: dashed; border-color: var(--ink-2); }
+    .opt h3 { margin: 0; font-size: 15px; font-weight: 600; }
+    .opt header p { margin: 2px 0 0; font-size: 12.5px; color: var(--ink-2); }
+    .zoom { display: flex; gap: 12px; flex-wrap: wrap; }
+    figure { margin: 0; }
+    figcaption, .cap { font: 11px var(--mono); color: var(--ink-2); margin-top: 4px; }
+    .px { display: block; width: 120px; height: 120px; image-rendering: pixelated; }
+    .checker { background: repeating-conic-gradient(#d4d4d4 0% 25%, #ffffff 0% 50%) 0 0 / 12px 12px; }
+    .strip { display: flex; gap: 6px; flex-wrap: wrap; }
+    .sw { display: grid; justify-items: center; align-content: start; gap: 6px; width: 52px; padding: 6px 0 5px; border-radius: 2px; }
+    .sw img { display: block; }
+    .sw span { font: 9.5px var(--mono); color: #fff; }
+    .sw.light span { color: #1c1b19; }
+    .sw.light { box-shadow: inset 0 0 0 1px var(--rule); }
+    .warn { margin: 0; padding-left: 18px; font-size: 12.5px; color: var(--warn); }
+    .dl { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .size { font: 11px var(--mono); color: var(--ink-2); }
+    .steps { border-top: 1px solid var(--rule); padding-top: 16px; max-width: 70ch; }
+    .steps h3 { margin: 0 0 8px; font-size: 15px; }
+    .steps ol { margin: 0; padding-left: 20px; display: grid; gap: 4px; font-size: 14px; }
+
+    footer { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 18px 28px 28px; border-top: 2px solid var(--ink); font: 12px/1.6 var(--mono); color: var(--ink-2); }
+
+    @media (max-width: 920px) {
+        .top, .lede, fieldset, .work, footer { padding-left: 16px; padding-right: 16px; }
+        .lede { grid-template-columns: 1fr; padding-top: 24px; }
+        .lede h1 { font-size: 27px; }
+        .lede .note { text-align: left; }
+        .app { grid-template-columns: minmax(0, 1fr); }
+        form { border-right: 0; }
+        .top nav { gap: 14px; }
+    }
+    @media (max-width: 560px) {
+        .top { flex-wrap: wrap; row-gap: 8px; }
+        .top nav { flex-wrap: wrap; gap: 6px 16px; width: 100%; }
+        .grid { grid-template-columns: minmax(0, 1fr); }
+    }
+</style>
+</head>
+<body>
+<header class="top">
+    <a class="wordmark" href="/">ftc<b>-</b>embeds</a>
+    <nav>
+        <a href="/setup">setup</a>
+        <a href="/pit-map">pit map</a>
+        <a href="/team">widgets</a>
+        <a href="/avatar-upload" aria-current="page">avatar</a>
+        <a href="https://github.com/mmathijs/ftc-embeds#readme">docs</a>
+        <a href="https://www.npmjs.com/package/ftc-embeds">npm</a>
+        <a href="https://github.com/mmathijs/ftc-embeds">source</a>
+        <a href="/stats">stats</a>
+    </nav>
+</header>
+<script>
+    (() => {
+        let head = document.querySelector("header.top");
+        let sync = () => document.documentElement.style.setProperty("--header", head.offsetHeight + "px");
+        sync();
+        if (window.ResizeObserver) new ResizeObserver(sync).observe(head);
+    })();
+</script>
+
+<section class="lede">
+    <div>
+        <h1>Make your team's FIRST avatar.</h1>
+        <p>Upload your logo and get 40 × 40 avatars that follow FIRST's rules, shown the way FTCScout and the event screens show them. Download the one you like and upload it to FIRST.</p>
+    </div>
+    <div class="note">40 × 40 PNG, at most 20 kB<br>nothing is stored</div>
+</section>
+
+<div class="app">
+    <form id="form" novalidate>
+        <fieldset>
+            <legend><span>01</span>Team</legend>
+            <label class="f">Team number <input type="text" id="team" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="e.g. 23452"></label>
+            <p class="hint" id="team-hint" aria-live="polite"></p>
+        </fieldset>
+        <fieldset>
+            <legend><span>02</span>Logo</legend>
+            <label class="drop" id="drop">
+                <input type="file" id="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml,image/avif,.svg">
+                <img id="logo-preview" alt="Your logo" hidden>
+                <span id="drop-text"><b>Choose your logo</b> or drop it here<small>PNG, JPEG, WebP, GIF or SVG. A large logo on a plain or transparent background works best.</small></span>
+            </label>
+            <label class="check"><input type="checkbox" id="own"> <span>This is our team's own logo, and we may use it.</span></label>
+        </fieldset>
+        <fieldset>
+            <button class="btn go" id="make" type="submit">Make avatars</button>
+            <p class="hint" id="status" role="status" aria-live="polite"></p>
+            <p class="hint">Your browser turns the logo into a PNG and sends it once to make the options. The server keeps nothing.</p>
+        </fieldset>
+    </form>
+
+    <main class="work">
+        <div class="intro" id="intro">
+            <h2>What you get</h2>
+            <p>Up to eight options, each as a PNG with a background and a transparent PNG:</p>
+            <ul>
+                <li>the whole logo, with its background or on the colour with the most contrast;</li>
+                <li>the main part only, without a separate name line;</li>
+                <li>the top part, cut off at the bottom edge, for tall mascots;</li>
+                <li>a coin with a complete ring, for round badges;</li>
+                <li>crisper colours, for soft or photo-like logos.</li>
+            </ul>
+            <p>Each option is checked against FIRST's rules (40 × 40 px, at most 20 kB, no colours near lime or magenta, which video overlays key out) and shown at actual size on FIRST's backgrounds. FTCScout shows avatars at 40 and 20 px.</p>
+        </div>
+
+        <div id="results" hidden>
+            <div class="out-head">
+                <div>
+                    <h2 id="res-title"></h2>
+                    <p id="res-sub"></p>
+                </div>
+                <a class="btn go" id="zip" href="#">Download all (.zip)</a>
+            </div>
+            <div class="grid" id="grid"></div>
+            <div class="steps">
+                <h3>Upload it to FIRST</h3>
+                <ol>
+                    <li>Lead Mentor 1 or 2 logs in at <a href="https://ftc-scoring.firstinspires.org">ftc-scoring.firstinspires.org</a>.</li>
+                    <li>Choose <b>Team Avatar</b>, then <b>Upload New Avatar</b>, and pick one PNG.</li>
+                    <li>Upload at least 2 weeks before your event. Changes can take up to 24 hours to show.</li>
+                    <li>One submission at a time, and FIRST may not review more than three a season. See <a href="https://community.firstinspires.org/team-avatars">FIRST's avatar rules</a>.</li>
+                </ol>
+            </div>
+        </div>
+    </main>
+</div>
+
+<footer>
+    <span>Made for the FTC community by <a href="https://github.com/mmathijs">mmathijs</a>. Open source, MIT license.</span>
+    <span>Not affiliated with <i>FIRST</i>®. Data from FTCScout and <i>FIRST</i>.</span>
+</footer>
+<script src="config.js"></script>
+<script>
+(() => {
+    const $ = (id) => document.getElementById(id);
+    const API = "/api/avatar/options";
+    const CARD_API = ((window.FTC_EMBEDS_SITE || {}).apiBase || "https://ftcscout-api.mmathijs.nl/rest/embeds/v1").replace(/\/$/, "");
+    const MAX_SIDE = 1024;                       // the server never needs more for a 40 px result
+    const BACKGROUNDS = [["white", "#ffffff", true], ["red", "#ed1c24"], ["blue", "#0066b3"], ["award", "#0083ae"], ["dark", "#16161a"]];
+    let logo = null;                             // {blob, url}: the logo as a PNG made in the browser
+    let reading = Promise.resolve();             // the file being read; Make waits for it
+    let readError = "";                          // why the last file couldn't be used
+    let urls = [];                               // object URLs of the current results
+
+    const status = (text, bad) => { $("status").textContent = text; $("status").classList.toggle("bad", !!bad); };
+    const fail = (text, field) => { status(text, true); if (field) field.focus(); };
+    const el = (tag, props = {}, ...kids) => { let e = Object.assign(document.createElement(tag), props); e.append(...kids); return e; };
+
+    // --- 01 Team: show the name, so a typo is noticed before uploading (optional, never blocks) ---
+    let timer, seq = 0;
+    $("team").addEventListener("input", () => {
+        clearTimeout(timer);
+        let n = $("team").value.trim(), hint = $("team-hint");
+        hint.textContent = ""; hint.classList.remove("bad");
+        if (!/^\d{1,6}$/.test(n)) return;
+        let mine = ++seq;
+        timer = setTimeout(async () => {
+            try {
+                let r = await fetch(`${CARD_API}/teams/${n}/card`, { signal: AbortSignal.timeout(5000) });
+                if (!r.ok && r.status !== 404) return;   // FTCScout has trouble: say nothing, the upload still works
+                let t = r.ok ? ((await r.json()).data || {}).teamByNumber : null;
+                if (mine !== seq) return;
+                if (!t) { hint.textContent = `FTCScout doesn't know team ${n}. Check the number.`; hint.classList.add("bad"); return; }
+                let loc = t.location || {}, place = [loc.city, loc.country].filter(Boolean).join(", ");
+                hint.append(t.name + (place ? ` · ${place}` : ""));
+                if (t.avatar) hint.append(" · current avatar ", el("img", { src: t.avatar.startsWith("data:") || t.avatar.startsWith("http") ? t.avatar : "data:image/png;base64," + t.avatar, alt: "" }));
+            } catch { /* the lookup is a convenience; the server looks the team up again */ }
+        }, 350);
+    });
+
+    // --- 02 Logo: any image the browser can show becomes a PNG of at most 1024 px -----------
+    async function toPng(file) {
+        let isSvg = file.type === "image/svg+xml" || /\.svg$/i.test(file.name);
+        let src = file;
+        if (isSvg) {
+            // Give the SVG an explicit size, so it is drawn sharp at 1024 px rather than at 300 x 150.
+            let svg = new DOMParser().parseFromString(await file.text(), "image/svg+xml").documentElement;
+            if (!svg || svg.nodeName.toLowerCase() !== "svg") throw new Error("This SVG couldn't be read.");
+            let num = (v) => (v && !/%\s*$/.test(v) ? parseFloat(v) : NaN);
+            let w = num(svg.getAttribute("width")), h = num(svg.getAttribute("height"));
+            let vb = (svg.getAttribute("viewBox") || "").trim().split(/[\s,]+/).map(Number);
+            if (!(w > 0 && h > 0) && vb.length === 4 && vb[2] > 0 && vb[3] > 0) { w = vb[2]; h = vb[3]; }
+            if (!(w > 0 && h > 0)) { w = h = MAX_SIDE; }
+            if (!svg.getAttribute("viewBox")) svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+            let k = MAX_SIDE / Math.max(w, h);
+            svg.setAttribute("width", Math.round(w * k)); svg.setAttribute("height", Math.round(h * k));
+            src = new Blob([new XMLSerializer().serializeToString(svg)], { type: "image/svg+xml" });
+        }
+        let url = URL.createObjectURL(src), img = new Image();
+        img.src = url;
+        try { await img.decode(); }
+        catch { throw new Error("Your browser can't open this file. Save the logo as a PNG or JPEG and try again."); }
+        finally { URL.revokeObjectURL(url); }
+        let k = Math.min(1, MAX_SIDE / Math.max(img.naturalWidth, img.naturalHeight));
+        let canvas = el("canvas", { width: Math.max(1, Math.round(img.naturalWidth * k)), height: Math.max(1, Math.round(img.naturalHeight * k)) });
+        if (canvas.width < 16 || canvas.height < 16) throw new Error("This image is too small. Upload a larger logo.");
+        let ctx = canvas.getContext("2d");
+        ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        return new Promise((ok) => canvas.toBlob(ok, "image/png"));
+    }
+
+    function useFile(file) {
+        if (file) reading = readFile(file);
+    }
+    async function readFile(file) {
+        if (logo) URL.revokeObjectURL(logo.url);
+        logo = null;                             // never send the previous logo by mistake
+        readError = "";
+        if (file.size > 40 * 1024 * 1024) return fail(readError = "This file is larger than 40 MB. Save a smaller version of the logo.");
+        status("Reading the logo…");
+        try {
+            let blob = await toPng(file);
+            logo = { blob, url: URL.createObjectURL(blob) };
+            $("logo-preview").src = logo.url; $("logo-preview").hidden = false;
+            $("drop-text").textContent = file.name + " · choose another";
+            status("");
+        } catch (e) {
+            logo = null; $("logo-preview").hidden = true; $("file").value = "";
+            $("drop-text").textContent = "Choose another logo, or drop it here";
+            fail(readError = e.message || "This file couldn't be read.");
+        }
+    }
+    $("file").addEventListener("change", () => useFile($("file").files[0]));
+    let drop = $("drop");
+    drop.addEventListener("dragover", (e) => { e.preventDefault(); drop.classList.add("over"); });
+    drop.addEventListener("dragleave", () => drop.classList.remove("over"));
+    drop.addEventListener("drop", (e) => { e.preventDefault(); drop.classList.remove("over"); useFile(e.dataTransfer.files[0]); });
+    document.addEventListener("paste", (e) => { let f = [...(e.clipboardData || {}).files || []].find((f) => f.type.startsWith("image/")); if (f) useFile(f); });
+
+    // --- Make: one request, then show the answer ------------------------------------------------
+    $("form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        let n = $("team").value.trim();
+        if (!/^\d{1,6}$/.test(n)) return fail("Enter your team number.", $("team"));
+        await reading;
+        if (!logo) return fail(readError || "Choose your logo first.", $("file"));
+        if (!$("own").checked) return fail("Tick the box to confirm it's your team's own logo.", $("own"));
+        $("make").disabled = true;
+        status("Making your options… this takes a few seconds.");
+        try {
+            let r = await fetch(`${API}?team=${n}`, { method: "POST", body: logo.blob, headers: { "Content-Type": "image/png" }, signal: AbortSignal.timeout(90000) });
+            let data = null;
+            try { data = await r.json(); } catch { /* not JSON: a proxy error page */ }
+            if (!r.ok || !data || !Array.isArray(data.options)) {
+                if (data && data.error) throw new Error(data.error);
+                throw new Error(r.status === 413 ? "This file is too large. Upload a logo under 10 MB."
+                    : [404, 405, 502, 503, 504].includes(r.status) ? "The avatar maker is offline right now. Try again later."
+                    : "Something went wrong making the options.");
+            }
+            render(data);
+            status("");
+            if (matchMedia("(max-width: 920px)").matches) $("results").scrollIntoView({ behavior: "smooth" });
+        } catch (err) {
+            fail(err.name === "TimeoutError" ? "This took too long. Try again in a minute."
+                : err instanceof TypeError ? "Couldn't reach the avatar maker. Check your connection and try again."
+                : err.message);
+        } finally {
+            $("make").disabled = false;
+        }
+    });
+
+    function blobUrl(dataUri) {
+        let [head, b64] = dataUri.split(","), bin = atob(b64), bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        let url = URL.createObjectURL(new Blob([bytes], { type: head.slice(5).split(";")[0] }));
+        urls.push(url);
+        return url;
+    }
+    const kb = (b) => (b / 1024).toFixed(1) + " kB";
+
+    function card(o, current) {
+        let t = o.transparent;
+        let zoom = el("div", { className: "zoom" },
+            el("figure", {}, el("img", { className: "px", src: o.opaque, alt: `${o.label}, zoomed in` }), el("figcaption", {}, current ? "zoomed in" : "with background")),
+            current ? "" : el("figure", {}, el("img", { className: "px checker", src: t, alt: `${o.label}, transparent version, zoomed in` }), el("figcaption", {}, "transparent")));
+        let strip = el("div", { className: "strip" });
+        for (let [name, colour, light] of BACKGROUNDS) {
+            strip.append(el("div", { className: "sw" + (light ? " light" : ""), style: `background:${colour}` },
+                el("img", { src: t, width: 40, height: 40, alt: "" }), el("img", { src: t, width: 20, height: 20, alt: "" }), el("span", {}, name)));
+        }
+        let box = el("article", { className: "opt" + (current ? " current" : "") },
+            el("header", {}, el("h3", {}, o.label), el("p", {}, o.note || "")),
+            zoom,
+            el("div", { role: "group", ariaLabel: `${o.label} at 40 and 20 px on FIRST's backgrounds` }, strip, el("div", { className: "cap" }, "actual size, 40 and 20 px")));
+        if (o.warnings && o.warnings.length) box.append(el("ul", { className: "warn" }, ...o.warnings.map((w) => el("li", {}, w))));
+        if (!current) {
+            box.append(el("div", { className: "dl" },
+                el("a", { className: "btn", href: blobUrl(o.opaque), download: o.files[0] }, "PNG"),
+                el("a", { className: "btn", href: blobUrl(o.transparent), download: o.files[1] }, "Transparent PNG"),
+                el("span", { className: "size" }, `${kb(o.bytes[0])} · ${kb(o.bytes[1])}`)));
+        }
+        return box;
+    }
+
+    function render(d) {
+        urls.forEach((u) => URL.revokeObjectURL(u));
+        urls = [];
+        let who = d.name ? `${d.name} (${d.team})` : `Team ${d.team}`;
+        $("res-title").textContent = `${who}: ${d.options.length} option${d.options.length === 1 ? "" : "s"}`;
+        $("res-sub").textContent = "Pick the one that still reads at 20 px. Notes in orange are worth a look, not errors.";
+        let grid = $("grid");
+        grid.textContent = "";
+        if (d.current) grid.append(card({ label: "Your current avatar", note: "What FIRST and FTCScout show now.", opaque: d.current, transparent: d.current }, true));
+        d.options.forEach((o) => grid.append(card(o)));
+        let zip = $("zip");
+        zip.href = blobUrl(d.zip);
+        zip.download = `${d.base}-avatars.zip`;
+        $("intro").hidden = true;
+        $("results").hidden = false;
+    }
+})();
+</script>
+</body>
+</html>
