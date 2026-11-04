@@ -11,6 +11,9 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { deflateSync, inflateSync } from "node:zlib";
 import * as A from "../avatar/core/avatar.mjs";
+import { analyze, cutoutRegion, suggestBackgrounds, edgeSamples, backgroundScore, colorName } from "../avatar/core/analyze.mjs";
+import { candidates, initials } from "../avatar/core/candidates.mjs";
+import { layoutText, textPixels, nameBarSize, FONTS } from "../avatar/core/font.mjs";
 import { checkText, fixText } from "../avatar/app/text.js";
 import { SOURCES } from "./fixtures/avatar/sources.mjs";
 
@@ -36,6 +39,20 @@ function projectFor(name, edit = () => {}) {
     return A.validateProject(JSON.parse(JSON.stringify(p)));
 }
 const renderOf = (p, name) => A.render(p, p.selected, { source: sourceOf(name) });
+// Source plus analysis, as the page has them once the worker is done.
+const analyses = {};
+const assetsOf = (name) => ({ source: sourceOf(name), analysis: (analyses[name] ??= analyze(sourceOf(name))) });
+/** Like projectFor, with the analysis (so the cut-out works). */
+function cutProject(name, edit = () => {}) {
+    let assets = assetsOf(name);
+    let p = A.newProject({ name, width: assets.source.width, height: assets.source.height });
+    let v = p.variants[0];
+    v.cutout.mode = "edge";
+    v.fit = A.fitFor("fit", v, assets);
+    edit(v, assets);
+    return A.validateProject(JSON.parse(JSON.stringify(p)));
+}
+const renderCut = (p, name) => A.render(p, p.selected, assetsOf(name));
 const ids = (checks) => checks.map((c) => c.id);
 const pixel = (img, x, y) => [...img.data.subarray((y * img.width + x) * 4, (y * img.width + x) * 4 + 4)];
 
@@ -553,7 +570,7 @@ for (let file of GOLDEN) {
     test(`golden: ${name}`, async () => {
         let fx = JSON.parse(readFileSync(join(FIXTURES, file), "utf8"));
         let p = A.validateProject(fx.project);
-        let r = renderOf(p, fx.source);
+        let r = A.render(p, p.selected, assetsOf(fx.source));
         for (let [kind, alpha] of [["opaque", false], ["transparent", true]]) {
             let path = join(FIXTURES, `${name}.${kind}.png`);
             if (process.env.UPDATE_GOLDEN) writeFileSync(path, await A.encodePNG(r[kind], { alpha }, deflate));
@@ -602,4 +619,186 @@ test("guard: the build makes avatar.js and avatar-worker.js in dist/site only, w
     assert.ok(worker.length <= 80 * 1024, `avatar-worker.js is ${worker.length} bytes`);
     assert.match(readFileSync(join(site, "avatar.html"), "utf8"), /<script type="module" src="avatar\.js\?v=[0-9a-f]{8}"><\/script>/);
     assert.deepEqual(readdirSync(resolve(root, "dist")).filter((f) => /avatar/i.test(f)), [], "nothing at the top of dist/");
+});
+
+// ------------------------------------------------------------ analysis (M2)
+
+test("analyze: a flat background, a transparent one, a busy one, and noise", () => {
+    assert.deepEqual(assetsOf("disc-on-white").analysis.background, { kind: "flat", color: "#ffffff" });
+    assert.equal(assetsOf("mascot-alpha").analysis.background.kind, "transparent");
+    assert.equal(assetsOf("gradient").analysis.background.kind, "none");
+    let noisy = assetsOf("noisy-disc").analysis;
+    assert.equal(noisy.background.kind, "flat");
+    let r = cutoutRegion(noisy, { mode: "edge", color: "auto", tolerance: 0.06, mainPart: false });
+    let kept = r.removed.map((x) => (x ? 0 : 1));
+    assert.equal(A.labelComponents(kept, noisy.proxy.width, noisy.proxy.height).count, 1, "no specks left");
+});
+
+test("analyze: the edge cut-out keeps an enclosed white eye, the all cut-out removes it", () => {
+    let a = assetsOf("disc-on-white").analysis;
+    let eye = 130 * a.proxy.width + 290;
+    assert.equal(cutoutRegion(a, { mode: "edge", color: "auto", tolerance: 0.06, mainPart: false }).removed[eye], 0);
+    assert.equal(cutoutRegion(a, { mode: "all", color: "auto", tolerance: 0.06, mainPart: false }).removed[eye], 1);
+    assert.equal(cutoutRegion(a, { mode: "edge", color: "auto", tolerance: 0.06, mainPart: false }).removed[0], 1, "the corner is background");
+});
+
+test("analyze: main part only drops a name line under a mascot, and reads its banner colours", () => {
+    let a = assetsOf("mascot-banner").analysis;
+    assert.ok(a.mainPart.change >= 0.03);
+    let r = cutoutRegion(a, { mode: "edge", color: "auto", tolerance: 0.06, mainPart: true });
+    assert.equal(r.removed[440 * a.proxy.width + 200], 1, "the banner is gone");
+    assert.equal(r.removed[190 * a.proxy.width + 300], 0, "the mascot stays");
+    assert.deepEqual(a.nameLine.colors, ["#1e5aaa", "#86c4ed"], "two colours, left to right");
+    assert.equal(a.nameLine.outline, "#141e3c", "the darkest colour is the outline");
+});
+
+test("analyze: a circle badge is found to within a pixel", () => {
+    let c = assetsOf("coin").analysis.circle;
+    close(c.cx, 200, 1, "cx");
+    close(c.cy, 200, 1, "cy");
+    close(c.r, 190, 1.5, "r");
+    assert.equal(assetsOf("mascot-alpha").analysis.circle, null);
+});
+
+test("colour suggestions: the orange robot is low contrast on its own orange, good on teal, navy and black", () => {
+    let p = cutProject("robot-orange");
+    let r = renderCut(p, "robot-orange");
+    let edge = edgeSamples(r.info.subject40);
+    assert.ok(backgroundScore(edge, "#e2961a") >= 0.35, "low on orange");
+    for (let c of ["#00626e", "#16264a", "#121216"]) assert.ok(backgroundScore(edge, c) < 0.15, `good on ${c}`);
+    let list = suggestBackgrounds(assetsOf("robot-orange").analysis, r.info.subject40);
+    assert.ok(list.length === 5 && list.every((s) => s.label === "good"));
+    assert.ok(list.every((s) => !A.chromaKeyOf(...A.parseHex(s.color).slice(0, 3).map((v) => v * 255))), "no chroma-key colours");
+    assert.equal(colorName("#00626e"), "teal");
+    assert.equal(colorName("#6b4a1a"), "brown");
+});
+
+// ------------------------------------------------------------ render (M2)
+
+test("render: the cut-out leaves no halo of the background, and fitting uses what it keeps", () => {
+    let p = cutProject("disc-on-white", (v) => (v.background = "#00626e"));
+    let r = renderCut(p, "disc-on-white");
+    close(r.info.subjectBox.w, 38, 1e-6, "the disc fills the width");
+    let t = r.transparent;
+    assert.deepEqual(pixel(t, 0, 0), [0, 0, 0, 0], "outside the disc and its border");
+    // Edge pixels of the disc (partly transparent, before the border) are blue, not whitish.
+    let q = A.render({ ...p, variants: [{ ...p.variants[0], border: { width: 0, color: null } }] }, "v1", assetsOf("disc-on-white")).transparent;
+    let edgy = 0;
+    for (let i = 0; i < q.data.length; i += 4) {
+        let a = q.data[i + 3];
+        if (a > 0 && a < 255) {
+            edgy++;
+            assert.ok(q.data[i + 2] > q.data[i] + 60, `a whitish edge pixel: ${[...q.data.slice(i, i + 4)]}`);
+        }
+    }
+    assert.ok(edgy > 10);
+});
+
+test("render: adjustments (brightness, saturation, thicken)", () => {
+    let mean = (img) => {
+        let s = 0;
+        for (let i = 0; i < img.data.length; i += 4) s += img.data[i] + img.data[i + 1] + img.data[i + 2];
+        return s / (img.data.length / 4);
+    };
+    let base = renderOf(projectFor("gradient"), "gradient");
+    let bright = renderOf(projectFor("gradient", (v) => (v.adjust.brightness = 50)), "gradient");
+    assert.ok(mean(bright.opaque) > mean(base.opaque) + 50);
+    let grey = renderOf(projectFor("gradient", (v) => (v.adjust.saturation = -100)), "gradient");
+    for (let i = 0; i < grey.opaque.data.length; i += 4) {
+        let [r, g, b] = grey.opaque.data.slice(i, i + 3);
+        assert.ok(Math.max(r, g, b) - Math.min(r, g, b) <= 3, "greyscale");
+    }
+    let dark = (img) => {
+        let n = 0;
+        for (let i = 0; i < img.data.length; i += 4) if (img.data[i] + img.data[i + 1] + img.data[i + 2] < 200) n++;
+        return n;
+    };
+    let thin = renderOf(projectFor("mascot-alpha"), "mascot-alpha");
+    let thick = renderOf(projectFor("mascot-alpha", (v) => (v.adjust.thicken = 0.5)), "mascot-alpha");
+    assert.ok(dark(thick.opaque) > dark(thin.opaque) + 10, "dark lines get thicker");
+});
+
+test("render: pixel text is drawn exactly, and a bold name bar with pad 2 is 13 px tall and flush with the bottom", () => {
+    let lay = layoutText({ lines: ["A"], font: "bold", scale: 1, align: "left", letterSpacing: 1, lineGap: 1 });
+    let want = FONTS.bold.glyphs.A.flatMap((row, y) => [...row].map((c, x) => (c === "#" ? `${x},${y}` : null)).filter(Boolean));
+    assert.deepEqual(lay.pixels.map(([x, y]) => `${x},${y}`).sort(), want.sort());
+    assert.deepEqual(layoutText({ lines: ["Été"], font: "light", scale: 2 }).missing, [], "accents map to their letter");
+    assert.deepEqual(layoutText({ lines: ["A€B"], font: "bold" }).missing, ["€"], "a character without a glyph is reported (and drawn as a gap)");
+    let bar = { lines: [""], font: "bold", scale: 1, align: "center", x: 2, y: 27, color: "#ffffff", outline: "#141e3c", plate: null, segments: [{ text: "C", color: "#1e5aaa" }, { text: "T", color: "#86c4ed" }], width: "fill", radius: "pill", pad: 2 };
+    assert.equal(nameBarSize(bar).height, 13);
+    let px = textPixels(bar);
+    let ys = px.map(([, y]) => y);
+    assert.deepEqual([Math.min(...ys), Math.max(...ys)], [27, 39], "rows 27 to 39: no gap under it");
+    let fx = JSON.parse(readFileSync(join(FIXTURES, "name-bar.json"), "utf8"));
+    let r = A.render(A.validateProject(fx.project), "v1", assetsOf("mascot-banner"));
+    assert.deepEqual(pixel(r.opaque, 20, 39).slice(0, 3), [0x14, 0x1e, 0x3c], "the outline runs along the bottom row");
+    assert.equal(pixel(r.transparent, 20, 39)[3], 255, "and is opaque in the transparent version");
+});
+
+// ------------------------------------------------------------ checks (M2)
+
+test("checks: C5 (contrast), C7 (cut in the wrong place), C8 (circle cut off), C9 (edge disappears) fire and are fixed", () => {
+    // C5: the orange robot on its own orange; the fix picks a suggested colour.
+    let orange = cutProject("robot-orange", (v) => (v.background = "#e2961a"));
+    let or = renderCut(orange, "robot-orange");
+    let c5 = A.runChecks(or, orange, "v1", null, assetsOf("robot-orange").analysis).find((c) => c.id === "C5");
+    assert.ok(c5 && c5.fix.action === "setBackground");
+    let fixed = A.applyFix(orange, "v1", c5, { result: or, assets: assetsOf("robot-orange") });
+    assert.ok(!ids(A.runChecks(renderCut(fixed, "robot-orange"), fixed, "v1")).includes("C5"));
+    let teal = cutProject("robot-orange", (v) => (v.background = "#00626e"));
+    assert.ok(!ids(A.runChecks(renderCut(teal, "robot-orange"), teal, "v1")).includes("C5"));
+
+    // C7: a tall figure pushed off the left edge; cutting at the bottom instead is fine.
+    let left = cutProject("tall-figure", (v, a) => ((v.fit = A.fitFor("fillWidth", v, a)), (v.fit.x -= 6)));
+    let lr = renderCut(left, "tall-figure");
+    let c7 = A.runChecks(lr, left, "v1").find((c) => c.id === "C7");
+    assert.deepEqual([c7?.params.side, c7?.fix.action], ["left", "cutOrFit"]);
+    let cutBottom = A.applyFix(left, "v1", c7, { result: lr, assets: assetsOf("tall-figure") });
+    assert.ok(!ids(A.runChecks(renderCut(cutBottom, "tall-figure"), cutBottom, "v1")).includes("C7"));
+
+    // C8: the coin, slightly too big for the square; the fix puts it in a circle frame.
+    let a = assetsOf("coin");
+    let big = projectFor("coin", (v) => (v.fit = A.zoomFit(v, a, v.fit.scale * 1.16)));
+    let br = A.render(big, "v1", a);
+    let c8 = A.runChecks(br, big, "v1", null, a.analysis).find((c) => c.id === "C8");
+    assert.ok(c8, "C8 fires");
+    let coin = A.applyFix(big, "v1", c8, { result: br, assets: a });
+    assert.equal(coin.variants[0].frame.kind, "circle");
+    assert.ok(!ids(A.runChecks(A.render(coin, "v1", a), coin, "v1", null, a.analysis)).includes("C8"));
+    let fits = projectFor("coin");
+    assert.ok(!ids(A.runChecks(A.render(fits, "v1", a), fits, "v1", null, a.analysis)).includes("C8"));
+
+    // C9: a red subject without a border vanishes on FIRST's red; a border fixes it.
+    let n = 200;
+    let red = new Uint8ClampedArray(n * n * 4);
+    for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) if ((x - 100) ** 2 + (y - 100) ** 2 < 80 ** 2) red.set([237, 28, 36, 255], (y * n + x) * 4);
+    let src = A.sourceFromRGBA(n, n, red);
+    let rp = A.newProject({ name: "red", width: n, height: n });
+    rp.variants[0].border.width = 0;
+    rp.variants[0].fit = A.fitFor("fit", rp.variants[0], src);
+    let rr = A.render(rp, "v1", { source: src });
+    let c9 = A.runChecks(rr, rp, "v1").find((c) => c.id === "C9");
+    assert.deepEqual([c9?.params.backgrounds, c9?.fix.action], [["red"], "addBorder"]);
+    let bordered = A.applyFix(rp, "v1", c9, { result: rr, source: src });
+    assert.ok(!ids(A.runChecks(A.render(bordered, "v1", { source: src }), bordered, "v1")).includes("C9"));
+});
+
+// ------------------------------------------------------------ candidates (M2)
+
+test("candidates: the starting points a logo gets, each a valid variant, no duplicates", () => {
+    let kinds = (name, team) => candidates(sourceOf(name), assetsOf(name).analysis, team).map((c) => c.kind);
+    assert.deepEqual(kinds("mascot-banner", { number: 16382, name: "Casimir Tech" }).filter((k) => k === 4 || k === 10), [4, 10]);
+    assert.ok(!kinds("mascot-banner", null).includes(10), "no name bar without a team name");
+    assert.ok(kinds("coin").includes(7) && kinds("coin").includes(8), "coin candidates");
+    assert.ok(kinds("tall-figure").includes(5) && kinds("tall-figure").includes(6), "tall subjects: cut at the bottom, top part");
+    assert.deepEqual(kinds("gradient"), [1], "a busy background: the whole logo only");
+    let avatar = candidates(sourceOf("pixel-avatar"), analyze(sourceOf("pixel-avatar")));
+    assert.deepEqual(avatar.map((c) => c.label), ["Edit as is"]);
+    for (let c of candidates(sourceOf("disc-on-white"), assetsOf("disc-on-white").analysis)) {
+        let p = A.newProject({ name: "d", width: 480, height: 360 });
+        p.variants = [{ ...c.variant, id: "v1" }];
+        assert.doesNotThrow(() => A.validateProject(JSON.parse(JSON.stringify(p))), c.label);
+    }
+    assert.deepEqual(initials("Casimir Tech"), ["C", "T"]);
+    assert.deepEqual(initials("Ré-Bots"), ["R", "B"]);
 });

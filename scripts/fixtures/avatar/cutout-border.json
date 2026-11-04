@@ -1,0 +1,69 @@
+{
+    "about": "Cut-out of a disc on a noisy off-white background (colour-to-alpha at the edge), on teal with a 1.1 px border.",
+    "source": "noisy-disc",
+    "project": {
+        "format": "ftc-avatar-project",
+        "version": 1,
+        "team": null,
+        "source": {
+            "name": "noisy-disc.png",
+            "width": 300,
+            "height": 300,
+            "kind": "logo"
+        },
+        "selected": "v1",
+        "variants": [
+            {
+                "id": "v1",
+                "name": "cutout-border",
+                "fit": {
+                    "scale": 0.19,
+                    "x": -8.5,
+                    "y": -8.5,
+                    "rotate": 0,
+                    "flip": false,
+                    "sampling": "auto",
+                    "anchor": "free"
+                },
+                "pieces": [],
+                "background": "#00626e",
+                "frame": {
+                    "kind": "square",
+                    "radius": 4,
+                    "ring": null,
+                    "outside": null,
+                    "breakOut": false
+                },
+                "cutout": {
+                    "mode": "edge",
+                    "color": "auto",
+                    "tolerance": 0.06,
+                    "softness": 2,
+                    "mainPart": false
+                },
+                "maskOps": [],
+                "paintOps": [],
+                "adjust": {
+                    "brightness": 0,
+                    "contrast": 0,
+                    "saturation": 0,
+                    "thicken": 0,
+                    "colors": 0
+                },
+                "shapes": [],
+                "texts": [],
+                "border": {
+                    "width": 1.1,
+                    "color": null
+                },
+                "transparent": "auto",
+                "resample": "lanczos3",
+                "alphaFloor": 20,
+                "pixels": {
+                    "opaque": [],
+                    "transparent": []
+                }
+            }
+        ]
+    }
+}

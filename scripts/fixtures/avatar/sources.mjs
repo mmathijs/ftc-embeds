@@ -3,6 +3,18 @@
 
 const SS = 4;
 
+// mulberry32: seeded noise, so the fixtures are the same everywhere.
+function mulberry32(seed) {
+    let a = seed >>> 0;
+    return () => {
+        a = (a + 0x6d2b79f5) >>> 0;
+        let t = a;
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+}
+
 // Paint layers [{ hit(x, y) → bool, rgb: [r, g, b] in 0..255, or (x, y) → [r, g, b] }] over a
 // background (null: transparent).
 function paint(width, height, background, layers) {
@@ -82,6 +94,34 @@ export const SOURCES = {
             { hit: disc(80, 60, 10), rgb: [255, 255, 255] },
             { hit: disc(120, 60, 10), rgb: [255, 255, 255] },
         ]),
+    // A mascot (gears) above a separate two-colour name banner, on white: the Casimir Tech pattern.
+    "mascot-banner": () =>
+        paint(600, 520, [255, 255, 255], [
+            { hit: disc(300, 190, 160), rgb: [28, 60, 120] },
+            { hit: disc(300, 190, 120), rgb: [90, 160, 220] },
+            { hit: disc(300, 190, 50), rgb: [28, 60, 120] },
+            { hit: rect(60, 400, 300, 480), rgb: [30, 90, 170] },
+            { hit: rect(300, 400, 540, 480), rgb: [120, 190, 235] },
+            { hit: (x, y) => rect(60, 400, 540, 480)(x, y) && !rect(66, 406, 534, 474)(x, y), rgb: [20, 30, 60] },
+            { hit: rect(110, 420, 130, 460), rgb: [255, 255, 255] },
+            { hit: rect(420, 420, 440, 460), rgb: [255, 255, 255] },
+        ]),
+    // An orange robot without an outline on transparency (the Tiewraps case: invisible on its own orange).
+    "robot-orange": () =>
+        paint(400, 440, null, [
+            { hit: rect(110, 60, 290, 210), rgb: [226, 150, 26] },
+            { hit: rect(80, 230, 320, 420), rgb: [226, 150, 26] },
+            { hit: disc(160, 130, 26), rgb: [255, 255, 255] },
+            { hit: disc(240, 130, 26), rgb: [255, 255, 255] },
+            { hit: rect(190, 210, 210, 230), rgb: [226, 150, 26] },
+        ]),
+    // A navy disc on an off-white background with ±6 levels of noise per channel (a JPEG-ish scan).
+    "noisy-disc": () => {
+        let s = paint(300, 300, [244, 240, 232], [{ hit: disc(150, 150, 100), rgb: [22, 38, 74] }]);
+        let rng = mulberry32(5);
+        for (let i = 0; i < s.rgba.length; i += 4) for (let c = 0; c < 3; c++) s.rgba[i + c] = Math.max(0, Math.min(255, s.rgba[i + c] + Math.round((rng() * 2 - 1) * 6)));
+        return s;
+    },
     // A 40 × 40 pixel-art avatar with hard pixels and a transparent corner (an existing FIRST avatar).
     "pixel-avatar": () => {
         let rgba = new Uint8ClampedArray(40 * 40 * 4);

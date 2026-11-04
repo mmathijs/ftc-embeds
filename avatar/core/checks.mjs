@@ -2,34 +2,26 @@
 // fix }; the page turns ids and params into words (avatar/app/text.js) and fix into a button that
 // calls applyFix(). Errors block only that download; warnings and info never block.
 //
-// Implemented: C1, C2, C4, C6, C10, C11, C12. C5, C7, C8 and C9 need the analysis; C13 and C14 the editor.
+// Implemented: C1, C2, C4 to C12. C13 (text) and C14 (stale pixel edits) come with the editor.
 
-import { srgbToOklab, deltaE, rgbToHsv, hsvToRgb, parseHex, formatHex } from "./color.mjs";
-import { fitFor, AVATAR_SIZE } from "./render.mjs";
+import { srgbToOklab, deltaE, rgbToHsv, hsvToRgb, parseHex, formatHex, chromaKeyOf, hueDiff, CHROMA_KEYS } from "./color.mjs";
+import { fitFor, orientPoint, AVATAR_SIZE } from "./render.mjs";
 import { LIMITS } from "./project.mjs";
+import { edgeSamples, backgroundScore, suggestBackgrounds } from "./analyze.mjs";
 
 /** FIRST's file size limit in bytes. */
 export const MAX_BYTES = 20000;
 
-// Lime and magenta, the keying colours of event video overlays (C4). *calibrate*
-const CHROMA_KEYS = { lime: 120, magenta: 300 };
-const KEY_HUE_RANGE = 25;
-const KEY_MIN_SAT = 0.55;
-const KEY_MIN_VALUE = 0.6;
 // C6: content smaller than this on its longest side, or a margin this wide, is empty space.
 const MIN_CONTENT = 34;
 const MAX_MARGIN = 5;
 const BACKGROUND_DELTA = 0.04;
+// C5: share of the edge within ΔE 0.12 of the background. C9: share of the outer edge within this of a FIRST background. *calibrate*
+const LOW_CONTRAST = 0.35;
+const VANISH_DELTA = 0.1;
 
-const hueDiff = (h, key) => ((h - key + 540) % 360) - 180;
-
-/** Which chroma key an 8-bit colour is close to, or null. */
-export function chromaKeyOf(r, g, b) {
-    let [h, s, v] = rgbToHsv(r / 255, g / 255, b / 255);
-    if (s < KEY_MIN_SAT || v < KEY_MIN_VALUE) return null;
-    for (let [name, key] of Object.entries(CHROMA_KEYS)) if (Math.abs(hueDiff(h, key)) <= KEY_HUE_RANGE) return name;
-    return null;
-}
+/** FIRST's display backgrounds (section 2). */
+export const FIRST_BACKGROUNDS = { white: "#ffffff", red: "#ed1c24", blue: "#0066b3", award: "#0083ae" };
 
 /**
  * The content box (C6, C11) in output px [x0, y0, x1, y1), or null when empty: with a transparent
@@ -66,7 +58,7 @@ export function contentBox(result, variant) {
  * Run the checks on a render (result of render()). bytes: { opaque, transparent } encoded PNG sizes,
  * when known (C2).
  */
-export function runChecks(result, project, variantId, bytes = null) {
+export function runChecks(result, project, variantId, bytes = null, analysis = null) {
     let v = project.variants.find((x) => x.id === variantId);
     let out = [];
     let outputs = [["opaque", result.opaque], ["transparent", result.transparent]];
@@ -111,6 +103,90 @@ export function runChecks(result, project, variantId, bytes = null) {
         if (Math.abs(off) >= 2) out.push({ id: "C11", level: "info", output: null, params: { px: Math.round(Math.abs(off) / 2), side: off > 0 ? "left" : "right" }, fix: { action: "nudge", dx: off / 2 } });
     }
 
+    // C5: the logo's edge blends into the background (opaque version).
+    if (v.background) {
+        let score = backgroundScore(edgeSamples(result.info.subject40), v.background);
+        if (score >= LOW_CONTRAST) {
+            let best = suggestBackgrounds(analysis, result.info.subject40).find((s) => s.color !== v.background && s.score < LOW_CONTRAST);
+            out.push({ id: "C5", level: "warning", output: "opaque", params: { score, suggestion: best?.color ?? null, name: best?.name ?? null }, fix: best ? { action: "setBackground", color: best.color } : undefined });
+        }
+    }
+
+    // C7: the subject is cut off at the top, left or right (only a cut-out subject: a full-bleed
+    // logo is cut everywhere on purpose).
+    if (result.info.transparentMode === "cutout") {
+        let a = result.info.subjectAlpha;
+        let N = AVATAR_SIZE;
+        let run = (at) => {
+            let best = 0, cur = 0;
+            for (let i = 0; i < N; i++) {
+                cur = a[at(i)] >= 0.5 ? cur + 1 : 0;
+                best = Math.max(best, cur);
+            }
+            return best;
+        };
+        let b = result.info.subjectBox;
+        let sides = [
+            ["top", run((i) => i), b.y < -0.01],
+            ["left", run((i) => i * N), b.x < -0.01],
+            ["right", run((i) => i * N + N - 1), b.x + b.w > N + 0.01],
+        ];
+        let cut = sides.find(([, n, past]) => n >= 3 && past);
+        if (cut) out.push({ id: "C7", level: "warning", output: null, params: { side: cut[0] }, fix: { action: "cutOrFit" } });
+    }
+
+    // C8: the logo's circle is cut off by the square's edge.
+    if (analysis?.circle && v.frame.kind !== "circle") {
+        let c = analysis.circle;
+        let src = project.source;
+        let [ox, oy] = orientPoint(c.cx, c.cy, src.width, src.height, v.fit.rotate, v.fit.flip);
+        let cx = v.fit.x + ox * v.fit.scale;
+        let cy = v.fit.y + oy * v.fit.scale;
+        let r = c.r * v.fit.scale;
+        let past = Math.max(-(cx - r), -(cy - r), cx + r - AVATAR_SIZE, cy + r - AVATAR_SIZE);
+        if (past > 0.25) {
+            // Share of the disc inside the square, sampled on a 48 × 48 grid over its box.
+            let inside = 0, all = 0;
+            for (let j = 0; j < 48; j++) {
+                for (let i = 0; i < 48; i++) {
+                    let x = cx - r + ((i + 0.5) / 48) * 2 * r;
+                    let y = cy - r + ((j + 0.5) / 48) * 2 * r;
+                    if ((x - cx) ** 2 + (y - cy) ** 2 > r * r) continue;
+                    all++;
+                    if (x >= 0 && y >= 0 && x <= AVATAR_SIZE && y <= AVATAR_SIZE) inside++;
+                }
+            }
+            if (all && inside / all >= 0.75) out.push({ id: "C8", level: "warning", output: null, params: {}, fix: { action: "coinFrame" } });
+        }
+    }
+
+    // C9: on one of FIRST's backgrounds, the transparent version's outer edge disappears.
+    {
+        let t = result.transparent;
+        let N = AVATAR_SIZE;
+        let solid = (x, y) => x >= 0 && y >= 0 && x < N && y < N && t.data[(y * N + x) * 4 + 3] >= 128;
+        let edge = [];
+        for (let y = 0; y < N; y++) {
+            for (let x = 0; x < N; x++) {
+                if (!solid(x, y)) continue;
+                let border = x === 0 || y === 0 || x === N - 1 || y === N - 1;
+                if (border || !solid(x - 1, y) || !solid(x + 1, y) || !solid(x, y - 1) || !solid(x, y + 1)) {
+                    let i = (y * N + x) * 4;
+                    edge.push({ lab: srgbToOklab([t.data[i] / 255, t.data[i + 1] / 255, t.data[i + 2] / 255]), w: t.data[i + 3] / 255 });
+                }
+            }
+        }
+        let total = edge.reduce((n, e) => n + e.w, 0);
+        let lost = Object.entries(FIRST_BACKGROUNDS).filter(([, hex]) => {
+            let lab = srgbToOklab(parseHex(hex));
+            let near = edge.reduce((n, e) => n + (deltaE(e.lab, lab) <= VANISH_DELTA ? e.w : 0), 0);
+            return total > 0 && near >= total / 2;
+        });
+        if (lost.length) {
+            out.push({ id: "C9", level: "warning", output: "transparent", params: { backgrounds: lost.map(([name]) => name) }, fix: { action: v.border.width > 0 ? "darkerBorder" : "addBorder" } });
+        }
+    }
+
     // C10: one source pixel is bigger than an output pixel.
     if (v.fit.scale > 1 && project.source.kind === "logo") out.push({ id: "C10", level: "warning", output: null, params: { scale: v.fit.scale } });
 
@@ -122,18 +198,38 @@ export function runChecks(result, project, variantId, bytes = null) {
 
 /**
  * Apply a check's fix: a new project, or null when the page has to ask something first (a colour).
- * ctx: { result, source } of the variant's current render.
+ * ctx: { result, assets: { source, analysis } } of the variant's current render.
  */
 export function applyFix(project, variantId, check, ctx) {
     let fix = check.fix;
     if (!fix || fix.action === "pickBackground") return null;
+    ctx = { ...ctx, assets: ctx.assets ?? { source: ctx.source, analysis: null } };
     let next = JSON.parse(JSON.stringify(project));
     let v = next.variants.find((x) => x.id === variantId);
     if (fix.action === "fewerColors") {
         let c = v.adjust.colors;
         v.adjust.colors = c === 0 ? 32 : c > 24 ? 24 : c > 16 ? 16 : Math.max(4, c - 4);
     } else if (fix.action === "fit" || fix.action === "fillWidth" || fix.action === "centre") {
-        v.fit = fitFor(fix.action, v, ctx.source);
+        v.fit = fitFor(fix.action, v, ctx.assets);
+    } else if (fix.action === "cutOrFit") {
+        v.fit = fitFor("cutBottom", v, ctx.assets) ?? fitFor("fit", v, ctx.assets);
+    } else if (fix.action === "setBackground") {
+        v.background = fix.color;
+    } else if (fix.action === "addBorder") {
+        // A border in a colour that itself disappears on one of FIRST's backgrounds (white, often
+        // the background colour) only moves the problem: then it is near-black.
+        v.border.width = 1.1;
+        let col = srgbToOklab(parseHex(v.border.color ?? v.background ?? "#000000"));
+        if (Object.values(FIRST_BACKGROUNDS).some((hex) => deltaE(col, srgbToOklab(parseHex(hex))) <= VANISH_DELTA)) v.border.color = "#121216";
+    } else if (fix.action === "darkerBorder") {
+        v.border = { width: Math.max(1.1, v.border.width), color: "#121216" };
+    } else if (fix.action === "coinFrame") {
+        let c = ctx.assets.analysis.circle;
+        let src = next.source;
+        let [ox, oy] = orientPoint(c.cx, c.cy, src.width, src.height, v.fit.rotate, v.fit.flip);
+        let s = 39.5 / (2 * c.r);
+        v.fit = { ...v.fit, scale: s, x: 20 - ox * s, y: 20 - oy * s, anchor: "free" };
+        v.frame = { ...v.frame, kind: "circle" };
     } else if (fix.action === "nudge") {
         v.fit.x += fix.dx;
     } else if (fix.action === "removeBackground") {

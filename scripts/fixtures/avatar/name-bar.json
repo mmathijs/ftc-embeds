@@ -1,0 +1,102 @@
+{
+    "about": "Candidate 10: main part only, with the logo's two-colour banner redrawn as a bold C | T name bar flush with the bottom.",
+    "source": "mascot-banner",
+    "project": {
+        "format": "ftc-avatar-project",
+        "version": 1,
+        "team": {
+            "number": 16382,
+            "name": "Casimir Tech"
+        },
+        "source": {
+            "name": "mascot-banner.png",
+            "width": 600,
+            "height": 520,
+            "kind": "logo"
+        },
+        "selected": "v1",
+        "variants": [
+            {
+                "id": "v1",
+                "name": "name-bar",
+                "fit": {
+                    "scale": 0.078125,
+                    "x": -3.4375,
+                    "y": -1.34375,
+                    "rotate": 0,
+                    "flip": false,
+                    "sampling": "auto",
+                    "anchor": "free"
+                },
+                "pieces": [],
+                "background": "#6e4300",
+                "frame": {
+                    "kind": "square",
+                    "radius": 4,
+                    "ring": null,
+                    "outside": null,
+                    "breakOut": false
+                },
+                "cutout": {
+                    "mode": "edge",
+                    "color": "auto",
+                    "tolerance": 0.06,
+                    "softness": 2,
+                    "mainPart": true
+                },
+                "maskOps": [],
+                "paintOps": [],
+                "adjust": {
+                    "brightness": 0,
+                    "contrast": 0,
+                    "saturation": 0,
+                    "thicken": 0,
+                    "colors": 0
+                },
+                "shapes": [],
+                "texts": [
+                    {
+                        "id": "t1",
+                        "lines": [
+                            ""
+                        ],
+                        "font": "bold",
+                        "scale": 1,
+                        "align": "center",
+                        "x": 2,
+                        "y": 27,
+                        "color": "#000000",
+                        "outline": "#141e3c",
+                        "plate": null,
+                        "letterSpacing": 1,
+                        "lineGap": 1,
+                        "segments": [
+                            {
+                                "text": "C",
+                                "color": "#1e5aaa"
+                            },
+                            {
+                                "text": "T",
+                                "color": "#86c4ed"
+                            }
+                        ],
+                        "width": "fill",
+                        "radius": "pill",
+                        "pad": 2
+                    }
+                ],
+                "border": {
+                    "width": 1.1,
+                    "color": null
+                },
+                "transparent": "auto",
+                "resample": "lanczos3",
+                "alphaFloor": 20,
+                "pixels": {
+                    "opaque": [],
+                    "transparent": []
+                }
+            }
+        ]
+    }
+}

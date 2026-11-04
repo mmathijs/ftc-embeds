@@ -133,6 +133,47 @@ export interface Project {
 
 export interface Assets {
     source: Source;
+    /** From analyze(); null until the worker has it (the cut-out then counts as off). */
+    analysis?: Analysis | null;
+}
+
+/** What analyze() finds (section 9): plain data and typed arrays, so it can cross threads. */
+export interface Analysis {
+    proxy: { width: number; height: number; kx: number; ky: number; rgba: Uint8ClampedArray; lab?: Float32Array };
+    background: { kind: "transparent" | "flat" | "none"; color: Hex | null };
+    hasAlpha: boolean;
+    canCut: boolean;
+    /** Kept box of the default cut-out, proxy px [x0, y0, x1, y1). */
+    subjectBox: [number, number, number, number] | null;
+    palette: { color: Hex; share: number }[];
+    mainPart: { change: number; box: [number, number, number, number] | null } | null;
+    nameLine: { colors: Hex[]; outline: Hex; box: [number, number, number, number] } | null;
+    circle: { cx: number; cy: number; r: number } | null;
+    rimColor: Hex | null;
+}
+
+export interface CutoutRegion {
+    removed: Uint8Array;
+    box: [number, number, number, number] | null;
+    keptArea: number;
+    dropped: { label: number; box: [number, number, number, number]; area: number; pixels: number[] }[];
+}
+
+export interface Swatch {
+    color: Hex;
+    score: number;
+    label: "good" | "fair" | "low";
+    name: string;
+}
+
+export interface Candidate {
+    /** The row of the table in section 11, 1 to 10. */
+    kind: number;
+    label: string;
+    colorName: string | null;
+    variant: Variant;
+    result: RenderResult;
+    checks: Check[];
 }
 
 export interface RenderInfo {
@@ -146,6 +187,8 @@ export interface RenderInfo {
     frameCoverage: Float32Array;
     /** The subject box in frame px. */
     subjectBox: { x: number; y: number; w: number; h: number };
+    /** The subject without background or border at 40 × 40. */
+    subject40: Image8;
 }
 
 export interface RenderResult {
@@ -166,22 +209,55 @@ export interface Check {
 }
 
 export type FitMode = "fit" | "fillWidth" | "cutBottom" | "centre";
+/** Assets, or a bare source where only the source is needed. */
+export type AssetsLike = Assets | Source;
 
 export declare function sourceFromRGBA(width: number, height: number, rgba: Uint8ClampedArray, name?: string): Source;
 export declare function subjectBox(source: Source, rotate?: number, flip?: boolean): { x: number; y: number; w: number; h: number };
 export declare function resolveSampling(fit: Fit, sourceInfo: { kind: "logo" | "avatar"; width: number }): "smooth" | "pixel";
 export declare function resolveTransparent(variant: Variant, sourceInfo: { hasAlpha: boolean }, hasCutout?: boolean): "cutout" | "shape" | "rounded";
-export declare function fitFor(mode: FitMode, variant: Variant, source: Source, margin?: number): Fit | null;
-export declare function zoomFit(variant: Variant, source: Source, scale: number, margin?: number): Fit;
-export declare function orientFit(variant: Variant, source: Source, rotate: Fit["rotate"], flip: boolean): Fit;
+export declare function fitFor(mode: FitMode, variant: Variant, assets: AssetsLike, margin?: number): Fit | null;
+export declare function zoomFit(variant: Variant, assets: AssetsLike, scale: number, margin?: number): Fit;
+export declare function orientFit(variant: Variant, assets: AssetsLike, rotate: Fit["rotate"], flip: boolean): Fit;
+export declare function subjectBoxFor(assets: AssetsLike, variant: Variant): { x: number; y: number; w: number; h: number };
+export declare function orientBox(b: { x: number; y: number; w: number; h: number }, w: number, h: number, rotate: number, flip: boolean): { x: number; y: number; w: number; h: number };
+export declare function orientPoint(u: number, v: number, w: number, h: number, rotate: number, flip: boolean): [number, number];
+export declare function cutoutOn(variant: Variant, assets: AssetsLike): boolean;
 export declare function quantizeColors(image: Image8, n: number, floor: number): void;
-export declare function render(project: Project, variantId: string, assets: Assets): RenderResult;
+export declare function render(project: Project, variantId: string, assets: AssetsLike): RenderResult;
 
 export declare const MAX_BYTES: 20000;
-export declare function runChecks(result: RenderResult, project: Project, variantId: string, bytes?: { opaque: number; transparent: number } | null): Check[];
-export declare function applyFix(project: Project, variantId: string, check: Check, ctx: { result: RenderResult; source: Source }): Project | null;
+export declare function runChecks(result: RenderResult, project: Project, variantId: string, bytes?: { opaque: number; transparent: number } | null, analysis?: Analysis | null): Check[];
+export declare function applyFix(project: Project, variantId: string, check: Check, ctx: { result: RenderResult | null; assets?: Assets; source?: Source | null }): Project | null;
+export declare const FIRST_BACKGROUNDS: { white: Hex; red: Hex; blue: Hex; award: Hex };
+
+export declare const PROXY_SIZE: 1024;
+export declare function analyze(source: Source): Analysis;
+export declare function analysisBuffers(analysis: Analysis): ArrayBuffer[];
+export declare function makeProxy(source: Source): Analysis["proxy"];
+export declare function detectBackground(proxy: Analysis["proxy"]): Analysis["background"];
+export declare function cutoutRegion(analysis: Analysis, cutout: Variant["cutout"]): CutoutRegion;
+export declare function cutoutColor(analysis: Analysis, cutout: Variant["cutout"]): Hex | null;
+export declare function kmeansLab(points: number[][], weights: number[], k: number): { lab: number[]; share: number; members: number[] }[];
+export declare function edgeSamples(subject: Image8): { lab: number[]; w: number }[];
+export declare function backgroundScore(samples: { lab: ArrayLike<number>; w: number }[], hex: Hex): number;
+export declare function scoreLabel(score: number): "good" | "fair" | "low";
+export declare function suggestBackgrounds(analysis: Analysis | null, subject: Image8): Swatch[];
+export declare function colorName(hex: Hex): string;
+export declare const COLOR_NAMES: Record<string, Hex>;
+
+export declare function candidates(source: Source, analysis: Analysis, team?: { number: number; name: string } | null, onTile?: ((c: Candidate) => void) | null): Candidate[];
+export declare function initials(name: string): string[];
+export declare function warningCount(c: Candidate): number;
+
+export declare const FONTS: { bold: { height: 7; glyphs: Record<string, string[]> }; light: { height: 5; glyphs: Record<string, string[]> } };
+export declare function fontText(text: string, font?: "bold" | "light"): { chars: string[]; missing: string[] };
+export declare function layoutText(block: Partial<TextBlock> & { lines: string[] }): { width: number; height: number; pixels: [number, number][]; missing: string[] };
+export declare function textPixels(block: TextBlock, size?: number): [number, number, number[]][];
+export declare function drawTexts(img: Image8, texts: TextBlock[]): void;
+export declare function nameBarSize(block: TextBlock): { width: number; height: number };
+export declare function inRoundedRect(px: number, py: number, x0: number, y0: number, w: number, h: number, r: number): boolean;
 export declare function contentBox(result: RenderResult, variant: Variant): [number, number, number, number] | null;
-export declare function chromaKeyOf(r: number, g: number, b: number): "lime" | "magenta" | null;
 
 export declare const PROJECT_FORMAT: "ftc-avatar-project";
 export declare const PROJECT_VERSION: 1;
@@ -217,6 +293,9 @@ export declare function hsvToRgb(h: number, s: number, v: number): RGB;
 export declare function parseHex(hex: string): [number, number, number, number] | null;
 export declare function formatHex(rgb: ArrayLike<number>, withAlpha?: boolean): string;
 export declare function relativeLuminance(rgb: ArrayLike<number>): number;
+export declare const CHROMA_KEYS: { lime: number; magenta: number };
+export declare function hueDiff(h: number, key: number): number;
+export declare function chromaKeyOf(r: number, g: number, b: number): "lime" | "magenta" | null;
 export declare function contrastRatio(rgb1: ArrayLike<number>, rgb2: ArrayLike<number>): number;
 export declare function colorToAlpha(c: ArrayLike<number>, b: ArrayLike<number>): { alpha: number; color: RGB };
 
@@ -247,6 +326,7 @@ export declare function boxReduce(r: Raster, k: number): Raster;
 export declare function boxReduceChannel(values: ArrayLike<number>, width: number, height: number, k: number): Float32Array;
 export declare function orientRGBA(width: number, height: number, rgba: Uint8ClampedArray, rotate: number, flip: boolean): { width: number; height: number; rgba: Uint8ClampedArray };
 export declare function distanceTransform(mask: ArrayLike<number>, width: number, height: number): Float64Array;
+export declare function distanceTransformNearest(mask: ArrayLike<number>, width: number, height: number): { distance: Float64Array; nearest: Int32Array };
 export declare function floodFill(ok: ArrayLike<number>, width: number, height: number, seeds: number[]): Uint8Array;
 export declare function labelComponents(mask: ArrayLike<number>, width: number, height: number): { labels: Int32Array; count: number; areas: number[]; boxes: [number, number, number, number][] };
 export declare function mulberry32(seed: number): () => number;

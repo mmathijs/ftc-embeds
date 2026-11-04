@@ -129,3 +129,20 @@ export function colorToAlpha(c, b) {
     if (alpha <= 0) return { alpha: 0, color: [c[0], c[1], c[2]] };
     return { alpha, color: [0, 1, 2].map((k) => clamp01((c[k] - b[k]) / alpha + b[k])) };
 }
+
+// Lime and magenta, the keying colours of event video overlays (check C4). *calibrate*
+export const CHROMA_KEYS = { lime: 120, magenta: 300 };
+const KEY_HUE_RANGE = 25;
+const KEY_MIN_SAT = 0.55;
+const KEY_MIN_VALUE = 0.6;
+
+/** Signed hue difference h − key in degrees, in −180..180. */
+export const hueDiff = (h, key) => ((h - key + 540) % 360) - 180;
+
+/** Which chroma key ("lime" or "magenta") an 8-bit colour is close to, or null. */
+export function chromaKeyOf(r, g, b) {
+    let [h, s, v] = rgbToHsv(r / 255, g / 255, b / 255);
+    if (s < KEY_MIN_SAT || v < KEY_MIN_VALUE) return null;
+    for (let [name, key] of Object.entries(CHROMA_KEYS)) if (Math.abs(hueDiff(h, key)) <= KEY_HUE_RANGE) return name;
+    return null;
+}

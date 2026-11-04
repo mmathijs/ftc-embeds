@@ -381,6 +381,71 @@ export function distanceTransform(mask, width, height) {
     return grid;
 }
 
+// The same envelope, also tracking which input position each output takes its value from.
+function edtLineNearest(f, fi, n, d, di, v, z) {
+    let k = 0;
+    v[0] = 0;
+    z[0] = -FAR;
+    z[1] = FAR;
+    for (let q = 1; q < n; q++) {
+        let s = (f[q] + q * q - (f[v[k]] + v[k] * v[k])) / (2 * q - 2 * v[k]);
+        while (s <= z[k]) {
+            k--;
+            s = (f[q] + q * q - (f[v[k]] + v[k] * v[k])) / (2 * q - 2 * v[k]);
+        }
+        k++;
+        v[k] = q;
+        z[k] = s;
+        z[k + 1] = FAR;
+    }
+    k = 0;
+    for (let q = 0; q < n; q++) {
+        while (z[k + 1] < q) k++;
+        d[q] = (q - v[k]) * (q - v[k]) + f[v[k]];
+        di[q] = fi[v[k]];
+    }
+}
+
+/**
+ * Like distanceTransform, and also the index of the nearest mask pixel (−1 with an empty mask), for
+ * spreading a feature's colour outwards (thicken, section 9.10).
+ */
+export function distanceTransformNearest(mask, width, height) {
+    let n = Math.max(width, height);
+    let f = new Float64Array(n);
+    let fi = new Int32Array(n);
+    let d = new Float64Array(n);
+    let di = new Int32Array(n);
+    let v = new Int32Array(n);
+    let z = new Float64Array(n + 1);
+    let grid = new Float64Array(width * height);
+    let near = new Int32Array(width * height).fill(-1);
+    for (let x = 0; x < width; x++) {
+        for (let y = 0; y < height; y++) {
+            let p = y * width + x;
+            f[y] = mask[p] ? 0 : FAR;
+            fi[y] = mask[p] ? p : -1;
+        }
+        edtLineNearest(f, fi, height, d, di, v, z);
+        for (let y = 0; y < height; y++) {
+            grid[y * width + x] = d[y];
+            near[y * width + x] = di[y];
+        }
+    }
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            f[x] = grid[y * width + x];
+            fi[x] = near[y * width + x];
+        }
+        edtLineNearest(f, fi, width, d, di, v, z);
+        for (let x = 0; x < width; x++) {
+            grid[y * width + x] = Math.sqrt(d[x]);
+            near[y * width + x] = d[x] >= FAR ? -1 : di[x];
+        }
+    }
+    return { distance: grid, nearest: near };
+}
+
 /** 4-connected flood fill from the seed pixels through pixels where ok is non-zero. */
 export function floodFill(ok, width, height, seeds) {
     let region = new Uint8Array(width * height);
