@@ -1,0 +1,69 @@
+{
+    "about": "A 40 × 40 FIRST avatar as the source: exact pixels (nearest), rotated 90° and flipped.",
+    "source": "pixel-avatar",
+    "project": {
+        "format": "ftc-avatar-project",
+        "version": 1,
+        "team": null,
+        "source": {
+            "name": "pixel-avatar.png",
+            "width": 40,
+            "height": 40,
+            "kind": "avatar"
+        },
+        "selected": "v1",
+        "variants": [
+            {
+                "id": "v1",
+                "name": "pixel-avatar-rotated",
+                "fit": {
+                    "scale": 1,
+                    "x": 0,
+                    "y": 0,
+                    "rotate": 90,
+                    "flip": true,
+                    "sampling": "auto",
+                    "anchor": "free"
+                },
+                "pieces": [],
+                "background": "#ffffff",
+                "frame": {
+                    "kind": "square",
+                    "radius": 4,
+                    "ring": null,
+                    "outside": null,
+                    "breakOut": false
+                },
+                "cutout": {
+                    "mode": "off",
+                    "color": "auto",
+                    "tolerance": 0.06,
+                    "softness": 2,
+                    "mainPart": false
+                },
+                "maskOps": [],
+                "paintOps": [],
+                "adjust": {
+                    "brightness": 0,
+                    "contrast": 0,
+                    "saturation": 0,
+                    "thicken": 0,
+                    "colors": 0
+                },
+                "shapes": [],
+                "texts": [],
+                "border": {
+                    "width": 1.1,
+                    "color": null
+                },
+                "transparent": "auto",
+                "resample": "box",
+                "alphaFloor": 20,
+                "pixels": {
+                    "opaque": [],
+                    "transparent": []
+                }
+            }
+        ]
+    }
+}

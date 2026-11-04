@@ -1,0 +1,72 @@
+{
+    "about": "Circle frame centred on the coin (diameter 39.5 px) with a 1.1 px ring; transparent version keeps the circle.",
+    "source": "coin",
+    "project": {
+        "format": "ftc-avatar-project",
+        "version": 1,
+        "team": null,
+        "source": {
+            "name": "coin.png",
+            "width": 400,
+            "height": 400,
+            "kind": "logo"
+        },
+        "selected": "v1",
+        "variants": [
+            {
+                "id": "v1",
+                "name": "coin-ring",
+                "fit": {
+                    "scale": 0.10394736842105264,
+                    "x": -0.7894736842105274,
+                    "y": -0.7894736842105274,
+                    "rotate": 0,
+                    "flip": false,
+                    "sampling": "auto",
+                    "anchor": "free"
+                },
+                "pieces": [],
+                "background": "#ffffff",
+                "frame": {
+                    "kind": "circle",
+                    "radius": 4,
+                    "ring": {
+                        "width": 1.1,
+                        "color": "#121216"
+                    },
+                    "outside": null,
+                    "breakOut": false
+                },
+                "cutout": {
+                    "mode": "off",
+                    "color": "auto",
+                    "tolerance": 0.06,
+                    "softness": 2,
+                    "mainPart": false
+                },
+                "maskOps": [],
+                "paintOps": [],
+                "adjust": {
+                    "brightness": 0,
+                    "contrast": 0,
+                    "saturation": 0,
+                    "thicken": 0,
+                    "colors": 0
+                },
+                "shapes": [],
+                "texts": [],
+                "border": {
+                    "width": 1.1,
+                    "color": null
+                },
+                "transparent": "auto",
+                "resample": "lanczos3",
+                "alphaFloor": 20,
+                "pixels": {
+                    "opaque": [],
+                    "transparent": []
+                }
+            }
+        ]
+    }
+}

@@ -1,0 +1,86 @@
+{
+    "about": "Tall subject filling the width, cut at the bottom; no border, alpha floor 40, pixel edits on both outputs.",
+    "source": "tall-figure",
+    "project": {
+        "format": "ftc-avatar-project",
+        "version": 1,
+        "team": null,
+        "source": {
+            "name": "tall-figure.png",
+            "width": 200,
+            "height": 500,
+            "kind": "logo"
+        },
+        "selected": "v1",
+        "variants": [
+            {
+                "id": "v1",
+                "name": "tall-cut-bottom",
+                "fit": {
+                    "scale": 0.31666666666666665,
+                    "x": -11.666666666666664,
+                    "y": -2.1666666666666665,
+                    "rotate": 0,
+                    "flip": false,
+                    "sampling": "auto",
+                    "anchor": "top"
+                },
+                "pieces": [],
+                "background": "#f5ecd6",
+                "frame": {
+                    "kind": "square",
+                    "radius": 4,
+                    "ring": null,
+                    "outside": null,
+                    "breakOut": false
+                },
+                "cutout": {
+                    "mode": "off",
+                    "color": "auto",
+                    "tolerance": 0.06,
+                    "softness": 2,
+                    "mainPart": false
+                },
+                "maskOps": [],
+                "paintOps": [],
+                "adjust": {
+                    "brightness": 0,
+                    "contrast": 0,
+                    "saturation": 0,
+                    "thicken": 0,
+                    "colors": 0
+                },
+                "shapes": [],
+                "texts": [],
+                "border": {
+                    "width": 0,
+                    "color": null
+                },
+                "transparent": "auto",
+                "resample": "lanczos3",
+                "alphaFloor": 40,
+                "pixels": {
+                    "opaque": [
+                        [
+                            20,
+                            20,
+                            "#ff5a1fff"
+                        ]
+                    ],
+                    "transparent": [
+                        [
+                            0,
+                            0,
+                            "#ff5a1fff"
+                        ],
+                        [
+                            21,
+                            20,
+                            "#00000000"
+                        ]
+                    ]
+                }
+            }
+        ]
+    }
+}

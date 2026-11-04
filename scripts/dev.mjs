@@ -10,7 +10,11 @@ const root = resolve(import.meta.dirname, "..");
 const ROOTS = [resolve(root, "site"), resolve(root, "dist/site")];
 // Paths served from somewhere else in production.
 const ALIASES = { "/stats": resolve(root, "deploy/stats/stats.html") };
-const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".mjs": "text/javascript; charset=utf-8", ".json": "application/json", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".ico": "image/x-icon" };
+const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".mjs": "text/javascript; charset=utf-8", ".json": "application/json", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".ico": "image/x-icon", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp", ".gif": "image/gif", ".avif": "image/avif", ".bmp": "image/bmp" };
+// The avatar maker's sources, unbundled, for a fast edit-and-reload loop (development only). Its page
+// script then loads main.js directly, and main.js finds its worker next to itself.
+const SOURCE_DIRS = { "/__avatar/": resolve(root, "avatar"), "/src/": resolve(root, "src"), "/demo/": resolve(root, "demo"), "/test-corpus/": resolve(root, "test-corpus") };
+const AVATAR_ENTRY = 'import "/__avatar/app/main.js";\n';
 const PORT = +process.env.PORT || 8080;
 const HOST = process.env.HOST || "0.0.0.0";
 
@@ -23,6 +27,11 @@ const isFile = (p) => existsSync(p) && statSync(p).isFile();
 
 function find(path) {
     if (ALIASES[path]) return ALIASES[path];
+    for (const [prefix, dir] of Object.entries(SOURCE_DIRS)) {
+        if (!path.startsWith(prefix)) continue;
+        const p = normalize(join(dir, path.slice(prefix.length)));
+        return p.startsWith(dir) && isFile(p) ? p : null;
+    }
     for (const base of ROOTS) {
         const p = normalize(join(base, path));
         if (!p.startsWith(base)) return null;
@@ -34,8 +43,13 @@ function find(path) {
 
 createServer((req, res) => {
     const path = decodeURIComponent(new URL(req.url, "http://x").pathname);
-    const file = find(path);
     const log = (status) => console.log(`${status} ${req.method} ${req.url}`);
+    if (path === "/avatar.js") {
+        log(200);
+        res.writeHead(200, { "content-type": TYPES[".js"], "cache-control": "no-store" }).end(AVATAR_ENTRY);
+        return;
+    }
+    const file = find(path);
     if (!file) {
         log(404);
         res.writeHead(404, { "content-type": "text/plain" }).end("Not found");

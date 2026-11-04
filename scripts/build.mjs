@@ -56,6 +56,9 @@ function bundle(file, seen = new Set()) {
     return out;
 }
 
+// Minified copies keep the license banner (/*! ... */). Shared by the widgets and the avatar maker.
+const minify = (code, format) => transformSync(code, { minify: true, format, target: "es2020", legalComments: "inline" }).code;
+
 mkdirSync(resolve(root, "dist"), { recursive: true });
 
 for (const { name, global } of WIDGETS) {
@@ -85,8 +88,6 @@ return { ${exported.join(", ")}${defaultExport ? `, default: ${defaultExport}` :
 `;
     writeFileSync(resolve(root, `dist/${name}.umd.js`), umd);
 
-    // Minified copies; the license banner (/*! ... */) is kept.
-    const minify = (code, format) => transformSync(code, { minify: true, format, target: "es2020", legalComments: "inline" }).code;
     writeFileSync(resolve(root, `dist/${name}.min.mjs`), minify(esm, "esm"));
     writeFileSync(resolve(root, `dist/${name}.umd.min.js`), minify(umd, undefined));
 
@@ -126,6 +127,22 @@ writeFileSync(resolve(site, "examples/events.js"), readFileSync(resolve(examples
 for (const file of readdirSync(examples).filter((f) => f.endsWith("_pitmap.json"))) {
     writeFileSync(resolve(site, `examples/${file.replace("_pitmap", "")}`), readFileSync(resolve(examples, file)));
 }
+// The avatar maker (ftc-embeds.com/avatar): the page script and its worker, each one bundle with the
+// core (avatar/core/) and everything else it imports inlined. Deployed with the site only: they live
+// in dist/site/, never in the npm package. The page finds the worker by a hashed URL, for the same
+// reason as below.
+{
+    const worker = minify(bundle(resolve(root, "avatar/app/worker.js")), "esm");
+    writeFileSync(resolve(site, "avatar-worker.js"), worker);
+    const workerHash = createHash("sha256").update(worker).digest("hex").slice(0, 8);
+    let page = minify(bundle(resolve(root, "avatar/app/main.js")), "esm");
+    if (!page.includes("__AVATAR_WORKER__")) throw new Error("build: avatar.js lost its __AVATAR_WORKER__ placeholder");
+    page = page.replaceAll("__AVATAR_WORKER__", `avatar-worker.js?v=${workerHash}`);
+    writeFileSync(resolve(site, "avatar.js"), page);
+    const kb = (s) => (Buffer.byteLength(s) / 1024).toFixed(1) + " KB";
+    console.log(`built avatar maker: avatar.js ${kb(page)}, avatar-worker.js ${kb(worker)}`);
+}
+
 // Give the pages' own scripts a content hash (dashboard.js?v=1a2b3c4d), so a deploy never pairs a
 // new page with an old script that the browser or Cloudflare still has cached.
 const pages = readdirSync(site, { recursive: true }).filter((f) => f.endsWith(".html"));
