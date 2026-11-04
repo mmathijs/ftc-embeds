@@ -33,7 +33,7 @@ if ! sudo docker exec ftc-embeds-web caddy reload --config /etc/caddy/Caddyfile;
     exit 1
 fi
 REMOTE
-    echo "Avatar service installed on $HOST: https://ftc-embeds.com/avatar"
+    echo "Avatar service installed on $HOST: https://ftc-embeds.com/avatars"
     ;;
 logs)
     ssh -t "$HOST" "sudo docker logs -f --tail 100 ftc-embeds-avatars"
