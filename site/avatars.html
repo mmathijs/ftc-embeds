@@ -133,6 +133,15 @@
     .saved-item b { font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .saved-item small { display: block; font: 11px var(--mono); color: var(--ink-2); }
     .saved-item .dl { grid-column: 1 / -1; }
+    .sheet-dialog { border: 2px solid var(--ink); background: var(--paper); color: var(--ink); padding: 20px 22px; width: min(1100px, calc(100% - 32px)); max-height: calc(100vh - 40px); }
+    .sheet-dialog::backdrop { background: rgba(0, 0, 0, 0.35); }
+    .sheet-dialog h2 { margin: 0 0 6px; font-size: 18px; }
+    .sheet-dialog .f { margin: 12px 0; }
+    .sheet-body { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 16px; align-items: start; margin-bottom: 14px; }
+    .sheet-list { display: grid; gap: 6px; }
+    .sheet-list img { image-rendering: pixelated; flex: none; }
+    .sheet-pv img { width: 100%; height: auto; border: 1px solid var(--rule); display: block; }
+    @media (max-width: 700px) { .sheet-body { grid-template-columns: minmax(0, 1fr); } }
     .steps { border-top: 1px solid var(--rule); padding-top: 16px; max-width: 70ch; }
     .steps h3 { margin: 0 0 8px; font-size: 15px; }
     .steps ol { margin: 0; padding-left: 20px; display: grid; gap: 4px; font-size: 14px; }
@@ -243,7 +252,10 @@
                     <h2 id="res-title"></h2>
                     <p id="res-sub"></p>
                 </div>
-                <a class="btn go" id="zip" href="#">Download all (.zip)</a>
+                <div class="dl">
+                    <button class="btn" id="sheet-open" type="button" title="Zoomed in, opaque and transparent, and at actual size on white, dark, blue and red">Comparison sheet</button>
+                    <a class="btn go" id="zip" href="#">Download all (.zip)</a>
+                </div>
             </div>
             <div class="grid" id="grid"></div>
             <div class="steps">
@@ -480,6 +492,8 @@
             $("res-title").textContent = "Your edit"; $("res-sub").textContent = "Download it, or keep editing.";
             $("grid").textContent = ""; $("zip").hidden = true; $("intro").hidden = true; $("results").hidden = false;
         }
+        if (!sheet.base) { sheet.base = base; sheet.title = `${label} 40×40 avatar: opaque and transparent`; }
+        sheet.items.delete(mine.id); sheet.items = new Map([[mine.id, mine], ...sheet.items]); sheet.picked.add(mine.id);   // edits first, ticked
         let grid = $("grid"), old = grid.querySelector(`[data-id="${mine.id}"]`), box = card(mine);
         box.dataset.id = mine.id;
         if (old) old.replaceWith(box);
@@ -538,6 +552,53 @@
     }
     renderSaved();
 
+    // --- comparison sheet: the options you pick, zoomed in and at actual size, as one PNG ---------------
+    const sheet = { items: new Map(), picked: new Set(), title: "", base: "" };
+    async function sheetLogo() {
+        if (!session || !session.blob) return null;
+        let u = URL.createObjectURL(session.blob), i = new Image(); i.src = u;
+        try { await i.decode(); return i; } catch { return null; } finally { URL.revokeObjectURL(u); }
+    }
+    let sheetDialog = null;
+    function openSheet() {
+        if (!window.AvatarEditor) return;
+        if (!sheet.seeded) {      // the first time for these results: your edits, then options up to three
+            for (let id of sheet.items.keys()) { if (sheet.picked.size >= 3) break; sheet.picked.add(id); }
+            sheet.seeded = true;
+        }
+        let d = sheetDialog || (sheetDialog = document.body.appendChild(el("dialog", { className: "sheet-dialog", ariaLabel: "Comparison sheet" })));
+        let title = el("input", { type: "text", value: sheet.title, ariaLabel: "Title" });
+        let list = el("div", { className: "sheet-list" }), pv = el("img", { alt: "Preview of the comparison sheet" }), msg = el("p", { className: "hint" });
+        let canvasNow = null, seq = 0;
+        let draw = async () => {
+            let mine = ++seq, rows = [...sheet.items.values()].filter((o) => sheet.picked.has(o.id))
+                .map((o) => ({ label: o.label, files: o.files, opaque: o.opaque, transparent: o.transparent }));
+            if (!rows.length) { msg.textContent = "Tick at least one option."; pv.hidden = true; canvasNow = null; return; }
+            msg.textContent = "";
+            let c = await window.AvatarEditor.compareSheet({ title: title.value, logo: await sheetLogo(), rows });
+            if (mine !== seq) return;
+            canvasNow = c; pv.src = c.toDataURL("image/png"); pv.hidden = false;
+        };
+        for (let o of sheet.items.values()) {
+            let cb = el("input", { type: "checkbox", checked: sheet.picked.has(o.id) });
+            cb.addEventListener("change", () => { cb.checked ? sheet.picked.add(o.id) : sheet.picked.delete(o.id); draw(); });
+            list.append(el("label", { className: "check" }, cb, el("img", { src: o.opaque, width: 20, height: 20, alt: "" }), el("span", {}, o.label)));
+        }
+        title.addEventListener("input", () => { sheet.title = title.value; clearTimeout(title.t); title.t = setTimeout(draw, 250); });
+        d.textContent = "";
+        d.append(el("h2", {}, "Comparison sheet"),
+            el("p", { className: "hint" }, "Every avatar you tick, zoomed in with and without background, and at actual size on white, dark, blue and red. Handy to compare options or to send around."),
+            el("label", { className: "f" }, "Title", title), el("div", { className: "sheet-body" }, list, el("div", { className: "sheet-pv" }, pv, msg)),
+            el("div", { className: "dl" },
+                el("button", { className: "btn go", type: "button", onclick: async () => {
+                    await draw(); if (!canvasNow) return;
+                    canvasNow.toBlob((b) => { let a = el("a", { href: URL.createObjectURL(b), download: `${sheet.base || "avatar"}-comparison.png` }); document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }, "image/png");
+                } }, "Download PNG"),
+                el("form", { method: "dialog" }, el("button", { className: "btn" }, "Close"))));
+        d.showModal(); draw();
+    }
+    $("sheet-open").addEventListener("click", openSheet);
+
     function render(d) {
         urls.forEach((u) => URL.revokeObjectURL(u));
         urls = [];
@@ -547,7 +608,8 @@
         let grid = $("grid");
         grid.textContent = "";
         if (d.current) grid.append(card({ label: "Your current avatar", note: "What FIRST and FTCScout show now.", opaque: d.current, transparent: d.current }, true));
-        d.options.forEach((o) => grid.append(card(o)));
+        sheet.items.clear(); sheet.picked.clear(); sheet.seeded = false; sheet.title = `${who} 40×40 avatars: opaque and transparent`; sheet.base = d.base;
+        d.options.forEach((o) => { grid.append(card(o)); sheet.items.set(o.id, o); });
         let zip = $("zip");
         zip.href = blobUrl(d.zip);
         zip.download = `${d.base}-avatars.zip`;

@@ -1840,9 +1840,19 @@
                         catch { note.textContent = "This browser didn't allow copying the image. Use Download instead."; }
                     } }, "Copy image"),
                     el("button", { className: "b", type: "button", title: "40 px PNGs, 512 px, pixel art, SVG, ICO and the project file", onclick: () => this.exportAll(note) }, "Everything (.zip)"),
+                    el("button", { className: "b", type: "button", title: "Zoomed in, opaque and transparent, and at actual size on white, dark, blue and red", onclick: () => this.downloadSheet(note) }, "Comparison sheet"),
                     el("button", { className: "b", type: "button", onclick: () => this.downloadProject() }, "Project file (.ftcavatar)"),
                     el("form", { method: "dialog", style: "margin-left:auto" }, el("button", { className: "b" }, "Close"))));
             box.showModal(); draw();
+        }
+        async sheetCanvas() {
+            let r = this.updatePreview(), b = this.o.fileBase || "avatar";
+            return compareSheet({ title: `${this.label}: 40×40 avatar, opaque and transparent`, logo: this.src.logo,
+                rows: [{ label: this.label, files: [`${b}-avatar-40.png`, `${b}-avatar-40-transparent.png`], opaque: r.op, transparent: r.tr }] });
+        }
+        async downloadSheet(note) {
+            saveBlob(await blobOf(await this.sheetCanvas(), "image/png"), `${this.o.fileBase || "avatar"}-comparison.png`);
+            if (note) note.textContent = "Comparison sheet downloaded.";
         }
         async exportAll(note) {
             note.textContent = "Making the zip…";
@@ -1854,6 +1864,7 @@
             await add(`${b}-pixel-400-transparent.png`, await this.exportBlob("png", 400, true, "pixel"));
             await add(`${b}-pixel-transparent.svg`, await this.exportBlob("svg", 40, true));
             await add(`${b}.ico`, await this.exportBlob("ico", 40, true));
+            await add(`${b}-comparison.png`, await blobOf(await this.sheetCanvas(), "image/png"));
             await add(`${b}.ftcavatar`, new Blob([serialize(this.projectData())]));
             await add("README.txt", new Blob([`${this.label}
 
@@ -1862,6 +1873,7 @@ ${b}-avatar-40.png, ${b}-avatar-40-transparent.png
 ${b}-512*.png        smooth, for websites and social media
 ${b}-pixel-400-transparent.png, ${b}-pixel-transparent.svg
                      the 40 px avatar as pixel art; the SVG stays sharp at any size
+${b}-comparison.png  every version zoomed in and at actual size, to compare or share
 ${b}.ico             a website icon (favicon)
 ${b}.ftcavatar       the project: open it in the editor at ftc-embeds.com/avatars to keep editing
 `]));
@@ -1888,6 +1900,54 @@ ${b}.ftcavatar       the project: open it in the editor at ftc-embeds.com/avatar
         }
     }
 
+    // --- comparison sheet: every avatar zoomed in, opaque and transparent, and at actual size -----------
+    const SHEET_BG = [["White", "#ffffff", "#1c1b19"], ["Dark", "#1c1b19", "#ffffff"], ["Blue", "#0066b3", "#ffffff"], ["Red", "#ed1c24", "#ffffff"]];
+    async function compareSheet({ title, logo, rows, scale = 2 }) {
+        // rows: [{label, files: [opaque, transparent], opaque, transparent}] (images as data URIs or canvases);
+        // logo: an image or canvas, shown under the first row's name. Returns a canvas.
+        let img = async (x) => (typeof x === "string" ? loadImage(x) : x);
+        let R = await Promise.all(rows.map(async (r) => Object.assign({}, r, { op: await img(r.opaque), tr: await img(r.transparent) })));
+        let lg = logo ? await img(logo) : null;
+        let pad = 28, colL = 210, gap = 26, cell = 240, actW = 196, rowH = 284, top = 104;
+        let xO = pad + colL + gap, xT = xO + cell + gap, xA = xT + cell + gap, W = xA + actW + pad, H = top + R.length * rowH + 6;
+        let c = canvas(W * scale, H * scale), x = ctx2d(c);
+        x.scale(scale, scale);
+        let font = (w, size, mono) => `${w} ${size}px ${mono ? '"IBM Plex Mono", ui-monospace, Menlo, monospace' : '"IBM Plex Sans", system-ui, sans-serif'}`;
+        x.fillStyle = "#f5f6f8"; x.fillRect(0, 0, W, H);
+        x.fillStyle = "#1c1b19"; x.font = font(600, 19); x.textBaseline = "alphabetic"; x.fillText(title, pad, 42);
+        x.font = font(600, 14);
+        x.fillText("Opaque (6× zoom)", xO, 80); x.fillText("Transparent (6× zoom)", xT, 80); x.fillText("Actual size", xA, 80);
+        let checker = (X, Y, w, h, sq) => { x.fillStyle = "#ffffff"; x.fillRect(X, Y, w, h); x.fillStyle = "#d9d9d9"; for (let j = 0; j < h / sq; j++) for (let i = 0; i < w / sq; i++) if ((i + j) % 2) x.fillRect(X + i * sq, Y + j * sq, Math.min(sq, w - i * sq), Math.min(sq, h - j * sq)); };
+        let frame = (X, Y, w, h) => { x.strokeStyle = "#cdd0d6"; x.lineWidth = 1; x.strokeRect(X + 0.5, Y + 0.5, w - 1, h - 1); };
+        let clipText = (t, X, Y, w) => { x.save(); x.beginPath(); x.rect(X, Y - 14, w, 20); x.clip(); x.fillText(t, X, Y); x.restore(); };
+        R.forEach((r, i) => {
+            let y = top + i * rowH;
+            x.fillStyle = "#1c1b19"; x.font = font(600, 14.5); clipText(r.label, pad, y + 14, colL);
+            x.fillStyle = "#6b6f78"; x.font = font(400, 11, true);
+            (r.files || []).forEach((f, k) => clipText(f, pad, y + 34 + k * 15, colL));
+            if (i === 0 && lg) {      // the original logo, fitted in a white box
+                let bw = 190, bh = 150, by = y + 72, k = Math.min((bw - 12) / lg.width, (bh - 12) / lg.height);
+                x.fillStyle = "#ffffff"; x.fillRect(pad, by, bw, bh); frame(pad, by, bw, bh);
+                x.imageSmoothingEnabled = true; x.imageSmoothingQuality = "high";
+                x.drawImage(lg, pad + (bw - lg.width * k) / 2, by + (bh - lg.height * k) / 2, lg.width * k, lg.height * k);
+                x.fillStyle = "#6b6f78"; x.font = font(400, 11.5); x.fillText("Original logo", pad, by + bh + 18);
+            }
+            x.imageSmoothingEnabled = false;
+            x.drawImage(r.op, xO, y, cell, cell); frame(xO, y, cell, cell);
+            checker(xT, y, cell, cell, 12); x.drawImage(r.tr, xT, y, cell, cell); frame(xT, y, cell, cell);
+            SHEET_BG.forEach(([name, bg, ink], k) => {
+                let sy = y + k * 61, sw = 52;
+                x.fillStyle = bg; x.fillRect(xA, sy, actW, sw); if (bg === "#ffffff") frame(xA, sy, actW, sw);
+                x.fillStyle = "#ffffff"; x.fillRect(xA + 8, sy + 6, 40, 40);      // the opaque one, as it is
+                x.drawImage(r.op, xA + 8, sy + 6, 40, 40);
+                x.drawImage(r.tr, xA + 62, sy + 6, 40, 40);                       // the transparent one, on this colour
+                x.fillStyle = ink; x.font = font(400, 13); x.fillText(name, xA + 116, sy + 31);
+            });
+            x.fillStyle = "#6b6f78"; x.font = font(400, 11.5); x.fillText("left: opaque · right: transparent", xA, y + 4 * 61 + 12);
+        });
+        return c;
+    }
+
     async function readProject(file) {   // a .ftcavatar file -> {label, team, base, preset, layers, doc, active}
         let p;
         try { p = JSON.parse(await file.text()); } catch { throw new Error("This isn't a project file from the avatar editor."); }
@@ -1902,7 +1962,7 @@ ${b}.ftcavatar       the project: open it in the editor at ftc-embeds.com/avatar
     window.AvatarEditor = {
         /** open({label, preset, layers: () => Promise<{w, h, layers}>, saved, fileBase, project: {id, layersId, team, base}, onDone, onClose, onSaved}) */
         open(o) { let ed = new Editor(o); this.current = ed; ed.ready = ed.start(); return ed; },
-        readProject, openProject, store,
+        readProject, openProject, store, compareSheet,
         onImport: null,     // the page sets this: open a project file chosen inside the editor
         _internal: { reduce, maxFilter, medianCut, shapeNodes, zip, ico, crc32 },
     };

@@ -298,7 +298,10 @@ with sync_playwright() as p:
     with page.expect_download() as dl: page.locator('dialog.ae-ex button', has_text='Everything').click()
     import zipfile
     z = zipfile.ZipFile(dl.value.path()); names = z.namelist()
-    check(len(names) == 9 and any(n.endswith('.ftcavatar') for n in names) and z.testzip() is None, f'everything as a zip: {names}')
+    check(len(names) == 10 and any(n.endswith('.ftcavatar') for n in names) and any(n.endswith('-comparison.png') for n in names) and z.testzip() is None, f'everything as a zip: {names}')
+    with page.expect_download() as dl: page.locator('dialog.ae-ex button', has_text='Comparison sheet').click()
+    im = Image.open(dl.value.path()); check(im.size == (2040, 2 * (104 + 284 + 6)) and dl.value.suggested_filename.endswith('-comparison.png'), f'comparison sheet from the editor: {dl.value.suggested_filename} {im.size}')
+    if shots: im.save(os.path.join(shots, 'sheet-editor.png'))
     Image.open(io.BytesIO(z.read(next(n for n in names if n.endswith('-avatar-40-transparent.png'))))).verify()
     with page.expect_download() as dl: page.locator('dialog.ae-ex button', has_text='Project file').click()
     project_path = os.path.join(tmp, 'saved.ftcavatar'); dl.value.save_as(project_path)
@@ -318,6 +321,15 @@ with sync_playwright() as p:
     im = Image.open(dl.value.path()); check(im.size == (40, 40) and im.mode == 'RGBA' and dl.value.suggested_filename.endswith('-edited-avatar-40-transparent.png'), f'transparent download {dl.value.suggested_filename}')
     px = [im.getpixel((x, y)) for y in range(40) for x in range(40)]; check(all(p == (0, 0, 0, 0) for p in px if p[3] == 0), 'no hidden colour under transparent pixels')
     check(all(p[3] in (0, 255) for p in px), 'crisp edges: no half-transparent pixels in the transparent PNG')
+    # the comparison sheet on the page: the edit (ticked first) and two options
+    page.click('#sheet-open'); page.wait_for_selector('dialog.sheet-dialog[open] .sheet-pv img:not([hidden])')
+    ticked = page.locator('dialog.sheet-dialog .sheet-list input:checked').count()
+    check(ticked == 3 and 'Your edit' in page.locator('dialog.sheet-dialog .sheet-list label').first.text_content(), f'the sheet dialog: the edit first, {ticked} ticked')
+    with page.expect_download() as dl: page.locator('dialog.sheet-dialog button', has_text='Download PNG').click()
+    im = Image.open(dl.value.path()); check(im.size == (2040, 2 * (104 + 3 * 284 + 6)) and dl.value.suggested_filename.endswith('-comparison.png'), f'comparison sheet from the page, 3 rows: {im.size}')
+    if shots: im.save(os.path.join(shots, 'sheet-page.png'))
+    page.locator('dialog.sheet-dialog button', has_text='Close').click()
+
     # edit again resumes, with the history
     page.locator('.opt[data-id^="edit-"] .dl button').click()
     page.wait_for_function(f'{ed} && {ed}.last', timeout=30000)

@@ -121,6 +121,9 @@ backgrounds, and the canvas with the background or transparent (border included)
   listed on the page under *Saved in this browser*; nothing leaves the browser. **Project files**
   (`.ftcavatar`, JSON with the layers as PNG data URIs) open with *Open a saved avatar* on the page
   (also `/avatars#open`, the logo chooser, or a drop anywhere on the page) or *Open…* in the editor.
+- **Comparison sheets:** every avatar zoomed in with and without background and at actual size on
+  white, dark, blue and red, as one PNG: *Comparison sheet* on the page (pick the options) or in
+  the editor's Export.
 - **Export:** 40 × 40 (FIRST), 80, 160, 320, 512 or 1024 px, smooth (drawn at that size) or pixel art;
   PNG, WebP, JPEG, SVG (pixel art) or ICO (16 to 128 px); copy to the clipboard; or everything as a zip.
 
