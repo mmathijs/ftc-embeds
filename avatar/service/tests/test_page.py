@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Browser test of the upload page against a running service (Playwright + Chromium).
 
-    DEV_PAGE=../../site/avatar.html RATE=1000 python3 service.py &      (from avatar/service)
+    DEV_PAGE=../../site/avatar-upload.html RATE=1000 python3 service.py &      (from avatar/service)
     python3 tests/test_page.py http://127.0.0.1:8080 tests/logos/*.png [--shots <dir>]
 
 Checks: the form's own errors (no team, no logo, no consent, a file that isn't an image), an

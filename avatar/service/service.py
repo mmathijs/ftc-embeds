@@ -2,7 +2,10 @@
 """Avatar options service for ftc-embeds.com, phase 1: one team at a time, the team uploads its logo.
 
   POST /api/avatar/options?team=<number>    body: the logo file (PNG, JPEG, WebP or GIF, at most 10 MB)
-       -> 200 {team, name, current, options: [...], zip}    (images and the zip as data URIs)
+       -> 200 {team, name, current, kind, info, options: [...], zip}    (images and the zip as data URIs;
+          each option has an `edit` preset: the layer, transform and settings the editor starts from)
+  POST /api/avatar/options?team=<number>&layers=only    the same body
+       -> 200 {w, h, kind, bg, layers: {logo, cut, all?, main, notext?}}    (the editor's layers, PNG data URIs)
   GET  /api/avatar/health                   -> {"ok": true}
 
 Nothing is stored: the upload is processed in memory and dropped when the answer is sent.
@@ -23,6 +26,7 @@ from scipy import ndimage
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import campaign as c  # noqa: E402  (the ftc-avatar-campaign toolkit)
+import subject  # noqa: E402  (background, gaps and text detection)
 
 MAX_PIXELS = 25_000_000                      # checked before decoding, after JPEG draft: refuses decompression bombs
 Image.MAX_IMAGE_PIXELS = 4 * MAX_PIXELS      # Pillow's own guard (it raises above twice this, before the draft)
@@ -118,87 +122,149 @@ def checks(op, tr, op_png, tr_png, content):
         elif max(margins) >= 5: w.append(f"There's an empty band of {max(margins)} px on the {['left', 'top', 'right', 'bottom'][int(np.argmax(margins))]}.")
     return w
 
+def hexc(rgb): return '#%02x%02x%02x' % tuple(int(v) for v in rgb[:3])
+
+def tbox(img):
+    """Box of the visible pixels (alpha > 8), as campaign.trim uses."""
+    return img.getchannel('A').point(lambda v: 255 if v > 8 else 0).getbbox() or (0, 0, img.width, img.height)
+
+def fit_t(bb, area=(c.S, c.S, c.N - c.S, c.N - c.S)):
+    """The transform (scale s, offset x, y) that fits box bb of a source image into `area` of the
+    320 px canvas, centred: canvas = source * s + (x, y). The editor uses the same numbers."""
+    x0, y0, x1, y1 = bb; ax0, ay0, ax1, ay1 = area
+    aw, ah, bw, bh = ax1 - ax0, ay1 - ay0, max(1, x1 - x0), max(1, y1 - y0)
+    k = min(aw / bw, ah / bh)
+    return dict(s=k, x=ax0 + (aw - bw * k) / 2 - x0 * k, y=ay0 + (ah - bh * k) / 2 - y0 * k)
+
+def place(img, t, size=c.N):
+    """Draw a source image on a size x size canvas with transform t, in one premultiplied Lanczos step."""
+    k, x, y = t['s'], t['x'], t['y']
+    bx0, by0 = -x / k, -y / k; bx1, by1 = bx0 + size / k, by0 + size / k
+    px = int(max(0, -bx0, bx1 - img.width)) + 2; py = int(max(0, -by0, by1 - img.height)) + 2
+    big = Image.new('RGBa', (img.width + 2 * px, img.height + 2 * py), (0, 0, 0, 0)); big.paste(img.convert('RGBa'), (px, py))
+    return big.resize((size, size), Image.LANCZOS, box=(bx0 + px, by0 + py, bx1 + px, by1 + py)).convert('RGBA')
+
+def sources(logo):
+    """The layers an option is made from (and the editor starts from), all at the logo's size:
+    logo (as uploaded), cut (background and letter gaps removed), all (every enclosed gap removed),
+    main (the largest part and what overlaps it), notext (without separate rows of text)."""
+    r = subject.analyse(logo)
+    src = {'logo': logo}
+    if r['cut'] is not None:
+        src['cut'] = r['cut']
+        if r['all'] is not None: src['all'] = r['all']
+        src['main'] = c.cut_bg(r['cut'], None, main=True)
+        if r['notext'] is not None: src['notext'] = r['notext']
+    return src, r
+
 def build_options(logo, name, number):
-    """Up to 8 options from one logo, each {id, label, opaque, transparent, ...}, and whether its background was flat."""
-    had_alpha = np.asarray(logo)[..., 3].min() < 250
-    bg0 = None if had_alpha else c.border_colour_of(np.asarray(logo).astype(float))
-    flat = had_alpha or flat_background(logo, bg0)
-    cut = c.cut_bg(logo, bg0) if flat else None                             # one full cut-out ...
-    main_cut = c.cut_bg(cut, None, main=True) if flat else None             # ... and the main part from it
-    art, main = (c.trim(cut), c.trim(main_cut)) if flat else (None, None)
-    if had_alpha:   # an already transparent logo has no colour of its own: use the one with the most contrast
-        px0 = edge_band(c.fit(art, area=(1, 1, 39, 39)))
-        bg0 = min(TRY_BGS, key=lambda t: similar_share(px0, t[1]))[1]
-    big = lambda a, area=(1, 1, 39, 39): c.fit(a, area=tuple(v * c.S for v in area), size=c.N)
+    """Up to 9 options from one logo, each {id, label, opaque, transparent, edit, ...}, and the analysis."""
+    src, r = sources(logo)
+    kind, info = r['kind'], r['info']
+    bg0 = r['bg']
     down = lambda im: im.resize((40, 40), Image.LANCZOS)
     opts = []
 
-    def add(oid, label, lay, bg, border=None, note=''):
+    def add(oid, label, lay, bg, edit, border=1.1, note=''):
         """lay: 320 x 320 RGBA layer; opaque = lay on bg; transparent = lay with a thin border."""
         op = c.on(bg, down(lay)).convert('RGB')
-        tr = c.add_border(lay, bg if border is None else border, 1.1) if border != 'none' else c.clean(down(lay))
-        opts.append(dict(id=oid, label=label, note=note, bg='#%02x%02x%02x' % tuple(bg), _op=op, _tr=tr, _content=down(lay)))
+        tr = c.add_border(lay, bg, border) if border else c.clean(down(lay))
+        edit = dict(edit, bg=hexc(bg), border=border)
+        opts.append(dict(id=oid, label=label, note=note, bg=hexc(bg), edit=edit, _op=op, _tr=tr, _content=down(lay)))
 
-    # 1. the whole logo on its own background
-    if art is not None and had_alpha:
-        add('whole', 'Whole logo on ' + next(nm for nm, rgb in TRY_BGS if rgb == bg0), big(art), bg0, note='Your logo was already transparent; shown on the colour with the most contrast')
-    elif art is not None:
-        add('whole', 'Whole logo', big(art), bg0, note='Background removed in the transparent version, kept as a thin border')
-    else:
-        lay = c.fit(logo, area=(0, 0, c.N, c.N), size=c.N)
-        op = c.on(bg0, down(lay)).convert('RGB'); tr = op.convert('RGBA'); tr.putalpha(c.mask('rounded'))
-        opts.append(dict(id='whole', label='Whole logo', note='The logo has no flat background, so it is kept as it is', bg='#%02x%02x%02x' % bg0, _op=op, _tr=tr, _content=c.on(bg0, down(lay))))
-    if art is None:
-        return opts, False
-    # 2-3. the cut-out on the two best-contrast colours
-    px = edge_band(c.fit(art, area=(1, 1, 39, 39)))
+    if 'cut' not in src:      # no background found: keep the logo as it is, in a rounded square
+        t = fit_t((0, 0, logo.width, logo.height), area=(0, 0, c.N, c.N))
+        lay = place(logo, t); op = c.on(bg0, down(lay)).convert('RGB'); tr = op.convert('RGBA'); tr.putalpha(c.mask('rounded'))
+        opts.append(dict(id='whole', label='Whole logo', note="The logo has no plain background, so it is kept as it is. Use Edit to erase the background.",
+                         bg=hexc(bg0), edit=dict(src='logo', **t, bg=hexc(bg0), border=0, frame=dict(type='rounded')),
+                         _op=op, _tr=tr, _content=c.on(bg0, down(lay))))
+        return opts, r
+    cut, main = src['cut'], src['main']
+    whole_t = fit_t(tbox(cut))
+    art40 = c.fit(c.trim(cut), area=(1, 1, 39, 39))
+    px = edge_band(art40)
     ranked = sorted([(similar_share(px, rgb), i, nm, rgb) for i, (nm, rgb) in enumerate(TRY_BGS)])
-    pool = [(nm, rgb, s) for s, _, nm, rgb in ranked if tuple(rgb) != tuple(bg0)]   # `whole` already shows bg0
-    best = [(nm, rgb, s) for nm, rgb, s in pool if s < 0.35][:2] or pool[:1]
-    for nm, rgb, s in best:
-        add(f'on-{nm}', f'On {nm}', big(art), rgb, note='Good contrast' if s < 0.15 else 'Fair contrast')
     top_nm, top_rgb = ranked[0][2], ranked[0][3]                                    # the most contrast of all
-    # 4. main part only (drops a separate name line)
-    A = (np.asarray(cut)[..., 3] > 127).sum(); M = (np.asarray(main_cut)[..., 3] > 127).sum()
+    gaps = info['gaps_removed']
+    gap_note = f", and {gaps} gap{'s' if gaps != 1 else ''} inside letters" if gaps else ''
+    # 1. the whole logo on its own background
+    if kind == 'alpha':
+        bg0 = top_rgb
+        add('whole', f'Whole logo on {top_nm}', place(cut, whole_t), bg0, dict(src='cut', **whole_t), note='Your logo was already transparent; shown on the colour with the most contrast')
+    else:
+        found = {'flat': 'Background', 'palette': 'The two-colour background', 'gradient': 'The gradient background'}[kind]
+        add('whole', 'Whole logo', place(cut, whole_t), bg0, dict(src='cut', **whole_t), note=f'{found} removed{gap_note}; kept as a thin border in the transparent version')
+    # 2-3. the cut-out on the two best-contrast colours
+    pool = [(nm, rgb, sh) for sh, _, nm, rgb in ranked if tuple(rgb) != tuple(bg0)]   # `whole` already shows bg0
+    best = [(nm, rgb, sh) for nm, rgb, sh in pool if sh < 0.35][:2] or pool[:1]
+    for nm, rgb, sh in best:
+        add(f'on-{nm}', f'On {nm}', place(cut, whole_t), rgb, dict(src='cut', **whole_t), note='Good contrast' if sh < 0.15 else 'Fair contrast')
+    # 4. every enclosed gap cut out (when some were kept: eyes, a white face, a screen)
+    if 'all' in src:
+        t = fit_t(tbox(src['all']))         # on a colour far from the old background, so the cut-out areas show
+        far = [(nm, rgb) for _, _, nm, rgb in ranked if np.linalg.norm(np.subtract(rgb, bg0)) >= 150] or [(top_nm, top_rgb)]
+        add('all-gaps', f'All gaps cut out, on {far[0][0]}', place(src['all'], t), far[0][1], dict(src='all', **t),
+            note='Also cuts out the enclosed white areas that were kept (' + ', '.join(info['kept']) + '). Check the eyes.')
+    # 5. without separate text rows, and the main part only
+    if 'notext' in src:
+        t = fit_t(tbox(src['notext']))
+        add('notext', f'Without the text, on {top_nm}', place(src['notext'], t), top_rgb, dict(src='notext', **t), note='The name line is left out: text is hard to read at 40 px')
+    A = (np.asarray(cut)[..., 3] > 127).sum(); M = (np.asarray(main)[..., 3] > 127).sum()
     if A and (A - M) / A >= 0.03:
-        add('main', f'Main part on {top_nm}', big(main), top_rgb, note='Separate text left out')
-    # 5. top part, cut at the bottom (tall mascots, heads)
-    if main.height >= 1.15 * main.width:
-        part = main.crop((0, 0, main.width, int(main.width * 39 / 38)))      # the top square: fills 38 x 39 px
-        sc = min(38 * c.S / part.width, 39 * c.S / part.height)
-        hh = part.resize((max(1, int(part.width * sc)), max(1, int(part.height * sc))), Image.LANCZOS)
-        lay = Image.new('RGBA', (c.N, c.N), (0, 0, 0, 0)); lay.alpha_composite(hh, ((c.N - hh.width) // 2, c.N - hh.height))
-        add('top', f'Top part on {top_nm}', lay, top_rgb, note='Cut off at the bottom edge')
-    # 6. a coin with a complete ring, for round badges
+        t = fit_t(tbox(main))
+        add('main', f'Main part on {top_nm}', place(main, t), top_rgb, dict(src='main', **t), note='Separate parts left out')
+    # 6. top part, cut at the bottom (tall mascots, heads)
+    body_k = 'notext' if 'notext' in src else 'main'; body = src[body_k]; bb = tbox(body)
+    bw, bh = bb[2] - bb[0], bb[3] - bb[1]
+    if bh >= 1.15 * bw:
+        ph = min(bh, int(bw * 39 / 38)); k = min(38 * c.S / bw, 39 * c.S / ph)
+        t = dict(s=k, x=(c.N - int(bw * k)) // 2 - bb[0] * k, y=c.N - int(ph * k) - bb[1] * k)
+        add('top', f'Top part on {top_nm}', place(body, t), top_rgb, dict(src=body_k, **t), note='Cut off at the bottom edge')
+    # 7. a coin with a complete ring, for round badges
+    ab = tbox(cut); art = cut.crop(ab)
     m = np.asarray(art)[..., 3] > 127; h, w = m.shape
     if abs(h - w) / max(h, w) < 0.08 and m.sum() / (np.pi * (max(h, w) / 2) ** 2) > 0.8:
-        r = max(h, w) / 2; rw = round(1.1 * c.S); d = c.N - 2 * rw - 4
-        crop = art.crop((int(w / 2 - r * 0.92), int(h / 2 - r * 0.92), int(w / 2 + r * 0.92), int(h / 2 + r * 0.92))).resize((d, d), Image.LANCZOS)
-        disc = Image.new('L', (d, d), 0); from PIL import ImageDraw, ImageFilter
-        ImageDraw.Draw(disc).ellipse([0, 0, d - 1, d - 1], fill=255)
-        full = Image.new('L', (c.N, c.N), 0); full.paste(disc, ((c.N - d) // 2, (c.N - d) // 2))
+        from PIL import ImageDraw, ImageFilter
+        rr = max(h, w) / 2; rw = round(1.1 * c.S); d = c.N - 2 * rw - 4
+        cx0, cy0 = int(w / 2 - rr * 0.92), int(h / 2 - rr * 0.92); cw = int(w / 2 + rr * 0.92) - cx0
+        k = d / cw; o = (c.N - d) // 2
+        t = dict(s=k, x=o - (ab[0] + cx0) * k, y=o - (ab[1] + cy0) * k)
+        crop = place(cut, t)
+        disc = Image.new('L', (c.N, c.N), 0); ImageDraw.Draw(disc).ellipse([o, o, o + d - 1, o + d - 1], fill=255)
         lay = Image.new('RGBA', (c.N, c.N), (0, 0, 0, 0)); ring = (18, 18, 22)
-        lay.paste(ring + (255,), (0, 0), full.filter(ImageFilter.MaxFilter(rw * 2 + 1)))
-        inner = Image.new('RGBA', (c.N, c.N), (0, 0, 0, 0)); inner.paste(bg0 + (255,), (0, 0), full); lay.alpha_composite(inner)
-        coin = Image.new('RGBA', (d, d), (0, 0, 0, 0)); coin.paste(crop, (0, 0), Image.fromarray(np.minimum(np.asarray(disc), np.asarray(crop.getchannel('A')))))
-        lay.alpha_composite(coin, ((c.N - d) // 2, (c.N - d) // 2))
-        add('coin', 'Coin with a full ring', lay, ring, border='none', note='Zoomed in a little, ring kept inside the square')
-    # 7. crisp colours (photo-like or soft artwork)
-    small = c.fit(main, area=(1, 1, 39, 39)); cols = len(np.unique(np.asarray(small)[np.asarray(small)[..., 3] > 127][:, :3], axis=0))
+        lay.paste(ring + (255,), (0, 0), disc.filter(ImageFilter.MaxFilter(rw * 2 + 1)))
+        inner = Image.new('RGBA', (c.N, c.N), (0, 0, 0, 0)); inner.paste(tuple(bg0) + (255,), (0, 0), disc); lay.alpha_composite(inner)
+        crop.putalpha(Image.fromarray(np.minimum(np.asarray(disc), np.asarray(crop.getchannel('A'))))); lay.alpha_composite(crop)
+        add('coin', 'Coin with a full ring', lay, ring, dict(src='cut', **t, frame=dict(type='circle', r=d / 2, ring=hexc(ring), ringWidth=rw / c.S, fill=hexc(bg0))),
+            border=0, note='Zoomed in a little, ring kept inside the square')
+    # 8. crisp colours (photo-like or soft artwork)
+    small = c.fit(c.trim(main), area=(1, 1, 39, 39)); cols = len(np.unique(np.asarray(small)[np.asarray(small)[..., 3] > 127][:, :3], axis=0))
     if cols >= 40:
+        t = fit_t(tbox(main))
         crisp = ImageEnhance.Color(ImageEnhance.Contrast(main.convert('RGB')).enhance(1.25)).enhance(1.25).convert('RGBA'); crisp.putalpha(main.getchannel('A'))
-        lay = big(crisp); q = lay.convert('RGB').quantize(14, method=Image.Quantize.MEDIANCUT).convert('RGBA'); q.putalpha(lay.getchannel('A'))
-        add('crisp', f'Crisp colours on {top_nm}', q, top_rgb, note='More contrast, 14 colours')
+        lay = place(crisp, t); q = lay.convert('RGB').quantize(14, method=Image.Quantize.MEDIANCUT).convert('RGBA'); q.putalpha(lay.getchannel('A'))
+        add('crisp', f'Crisp colours on {top_nm}', q, top_rgb, dict(src='main', **t, adjust=dict(contrast=1.25, saturate=1.25, colours=14)), note='More contrast, 14 colours')
     # drop near-duplicates
     out = []
     for o in opts:
         if all(np.abs(np.asarray(o['_op']).astype(int) - np.asarray(p['_op']).astype(int)).mean() > 2 for p in out): out.append(o)
-    return out[:8], True
+    return out[:9], r
+
+def make_layers(raw):
+    """The editor's layers: every source at the working size, as PNG data URIs."""
+    logo = read_logo(raw)
+    src, r = sources(logo)
+    enc = {}
+    for k, im in src.items():
+        b = io.BytesIO(); (im if k == 'logo' else c.clean(im, 1)).save(b, 'PNG', compress_level=6)
+        enc[k] = 'data:image/png;base64,' + base64.b64encode(b.getvalue()).decode()
+    return {'w': logo.width, 'h': logo.height, 'kind': r['kind'], 'bg': hexc(r['bg']) if r['bg'] else None, 'layers': enc}
 
 def make_answer(number, raw):
     name, current = team_info(number)
     logo = read_logo(raw)
-    opts, flat = build_options(logo, name, number)
+    opts, r = build_options(logo, name, number)
+    flat = r['kind'] != 'none'
     base = f"{number}-{slug(name)}" if name else str(number)
     zbuf = io.BytesIO()
     with tempfile.TemporaryDirectory() as tmp, zipfile.ZipFile(zbuf, 'w', zipfile.ZIP_DEFLATED) as zf:
@@ -217,7 +283,7 @@ def make_answer(number, raw):
         zf.write(sheet, f'{base}-options.png'); zf.writestr('HOW-TO-UPLOAD.txt', UPLOAD_STEPS)
     for o in opts:
         for k in ('_op', '_tr', '_content'): o.pop(k)
-    return {'team': number, 'name': name, 'current': current, 'base': base, 'flat': flat, 'options': opts,
+    return {'team': number, 'name': name, 'current': current, 'base': base, 'flat': flat, 'kind': r['kind'], 'info': r['info'], 'options': opts,
             'zip': 'data:application/zip;base64,' + base64.b64encode(zbuf.getvalue()).decode()}
 
 
@@ -239,6 +305,9 @@ class Handler(BaseHTTPRequestHandler):
         if path == '/api/avatar/health': return self.send(200, {'ok': True})
         if os.environ.get('DEV_PAGE') and path in ('/', '/avatar', '/avatar-upload'):
             return self.send(200, open(os.environ['DEV_PAGE'], 'rb').read(), 'text/html; charset=utf-8')
+        if os.environ.get('DEV_PAGE') and re.fullmatch(r'/[a-z0-9-]+\.js', path):       # the page's own scripts, next to it
+            f = os.path.join(os.path.dirname(os.path.abspath(os.environ['DEV_PAGE'])), path[1:])
+            if os.path.isfile(f): return self.send(200, open(f, 'rb').read(), 'text/javascript; charset=utf-8')
         self.send(404, {'error': 'Not found'})
 
     def do_POST(self):
@@ -259,8 +328,12 @@ class Handler(BaseHTTPRequestHandler):
             self.connection.settimeout(20); raw = self.rfile.read(size)
             if not JOBS.acquire(timeout=20): raise UserError(503, 'The server is busy. Try again in a minute.')
             try:
-                t0 = time.time(); answer = make_answer(int(team), raw); answer['ms'] = int((time.time() - t0) * 1000)
-                self.note = f" {','.join(o['id'] for o in answer['options'])} {answer['ms']} ms" + ('' if answer['flat'] else ' no-flat')
+                t0 = time.time()
+                if (parse_qs(u.query).get('layers') or [''])[0] == 'only':
+                    answer = make_layers(raw); answer['ms'] = int((time.time() - t0) * 1000); self.note = f" layers {answer['ms']} ms"
+                else:
+                    answer = make_answer(int(team), raw); answer['ms'] = int((time.time() - t0) * 1000)
+                    self.note = f" {','.join(o['id'] for o in answer['options'])} {answer['ms']} ms {answer['kind']}"
             finally:
                 JOBS.release()
             self.send(200, answer)

@@ -1,10 +1,12 @@
 # Avatar options service
 
-Turns one uploaded team logo into up to eight 40 × 40 FIRST avatar options. The page is
-`site/avatar.html` (https://ftc-embeds.com/avatar); this folder is the server part behind
-`/api/avatar/`. No AI and no API tokens: the image steps are `campaign.py` from the
-ftc-avatar-campaign skill (the 2026 Benelux campaign), unchanged except for how the main part is
-chosen. Nothing is stored: the upload is processed in memory and dropped once the answer is sent.
+Turns one uploaded team logo into up to nine 40 × 40 FIRST avatar options, and gives the page's
+editor the layers to start from. The page is `site/avatar-upload.html` with `site/avatar-editor.js`
+(https://ftc-embeds.com/avatar-upload); this folder is the server part behind `/api/avatar/`. No AI
+and no API tokens: `subject.py` finds the background and judges every enclosed gap (see below), and
+the image steps are `campaign.py` from the ftc-avatar-campaign skill (the 2026 Benelux campaign),
+unchanged except for how the main part is chosen. Nothing is stored: the upload is processed in
+memory and dropped once the answer is sent.
 
 None of this is part of the npm package (`files` in package.json lists `src`, `dist/*.mjs`,
 `dist/*.js`, `docs`, `README.md` and `LICENSE`), so people who install ftc-embeds download none of it.
@@ -21,9 +23,11 @@ decode (a JPEG is decoded at 1/2, 1/4 or 1/8 size first, so bigger photos are fi
   "name": "TieWraps",                    // from FTCScout, null if it couldn't be reached
   "current": "data:image/png;base64,…",  // the team's current FIRST avatar, or null
   "base": "23452-tiewraps",              // file name prefix
-  "flat": true,                          // false: no flat background, so only the whole logo
+  "flat": true,                          // false: no background found, so only the whole logo
+  "kind": "flat",                        // the background: alpha, flat, palette (2-3 colours), gradient, none
+  "info": {"gaps_removed": 6, "gaps_kept": 2, "text_rows": 1, "kept": ["eyes"]},
   "options": [{
-    "id": "whole",                       // whole, on-<colour>, main, top, coin, crisp
+    "id": "whole",                       // whole, on-<colour>, all-gaps, notext, main, top, coin, crisp
     "label": "Whole logo",
     "note": "Background removed in the transparent version, kept as a thin border",
     "bg": "#000000",                     // background of the opaque version
@@ -31,7 +35,10 @@ decode (a JPEG is decoded at 1/2, 1/4 or 1/8 size first, so bigger photos are fi
     "transparent": "data:image/png;base64,…",
     "bytes": [2741, 3466],
     "warnings": ["There's an empty band of 7 px on the left."],
-    "files": ["23452-tiewraps-whole-avatar-40.png", "23452-tiewraps-whole-avatar-40-transparent.png"]
+    "files": ["23452-tiewraps-whole-avatar-40.png", "23452-tiewraps-whole-avatar-40-transparent.png"],
+    "edit": {"src": "cut", "s": 0.41, "x": 12.5, "y": 8, "bg": "#000000", "border": 1.1}
+                                         // where the editor starts: the layer, its place on the 320 px
+                                         // canvas (canvas = layer * s + (x, y)), and frame / adjust if used
   }],
   "zip": "data:application/zip;base64,…",// every PNG, a comparison sheet, HOW-TO-UPLOAD.txt
   "ms": 640
@@ -43,7 +50,36 @@ under 16 px), 413 (over 10 MiB or 25 megapixels), 415 (not an image), 429 (more 
 from one visitor in 10 minutes), 503 (busy for 20 s) or 500 (a bug; details only in the log).
 Through Caddy, a body over 10 MiB gets Caddy's own 413 without JSON; the page handles both.
 
+`POST /api/avatar/options?team=<number>&layers=only`, with the same body, answers the editor's
+layers at the working size (at most 768 px), as PNG data URIs: `{"w", "h", "kind", "bg", "layers":
+{"logo", "cut", "all"?, "main", "notext"?}}`, about 1.5 MB. The page asks for it the first time
+someone opens the editor, and it counts towards `RATE` like an upload.
+
 `GET /api/avatar/health` answers `{"ok": true}`.
+
+## Background and gaps (`subject.py`)
+
+The skill's `cut_bg` removes one flat colour where it touches the border, so the gaps inside letters
+stay; in the campaign, those were fixed by hand. `subject.py` makes the same calls itself:
+
+- **The background** is fitted to the outer pixels: one colour, two or three colours (each on at
+  least 12% of the border), or a smooth gradient. The tolerance follows the border's own noise
+  (34 for clean art, up to 64 for a noisy JPEG). No fit: the logo is kept whole (`kind: none`).
+- **The flood** from the border goes through an opening first, so it doesn't leak into the logo
+  through a gap of a few pixels in an outline; specks of noise in the background are removed.
+- **Every enclosed gap** of background colour is judged. Cut out: the counter of a letter (inside a
+  part that belongs to a row of glyph-sized parts, or a joined word) and a small gap walled off by a
+  thin line from the real background. Kept: letters written in the background colour (a row of gaps),
+  eyes (two similar gaps side by side), large areas (4% of the logo or more: a face, a screen), gaps
+  whose average colour isn't the background's (cream inside a white badge), and anything else.
+  The option **All gaps cut out** removes the kept ones too, on a colour far from the old background.
+- **Rows of text** are found the same way; **Without the text** leaves out the rows outside the main
+  part (a name line under a mascot), if enough of the logo is left.
+- Edge pixels are un-blended from the local background colour (colour to alpha), so no halo is left.
+
+`tests/test_subject.py` checks these on made-up logos (counters of O, 8, 0 and 6 cut; eyes, white
+letters on a banner and a white face kept; gradient and two-tone backgrounds; a 3 px gap in an
+outline; JPEG noise).
 
 ## The options
 
@@ -53,10 +89,11 @@ Through Caddy, a body over 10 MiB gets Caddy's own 413 without JSON; the page ha
 2. **On a colour**: the cut-out on up to two of teal `#00626e`, navy `#16264a`, black `#121216`,
    white and cream: those with fewer than 35% of the cut-out's edge pixels within distance 70 of the
    colour, best first, or else the single best. The colour the whole logo already uses is skipped.
-3. **Main part**: separate text left out (parts are grouped by overlapping boxes; the biggest group stays).
-4. **Top part**: for tall logos, the top square, cut at the bottom edge with no gap under it.
-5. **Coin**: for round badges, zoomed in a little, with a complete 1.1 px ring inside the square.
-6. **Crisp colours**: for soft or photo-like logos, more contrast and 14 colours.
+3. **All gaps cut out** and **Without the text**: see above.
+4. **Main part**: separate parts left out (parts are grouped by overlapping boxes; the biggest group stays).
+5. **Top part**: for tall logos, the top square, cut at the bottom edge with no gap under it.
+6. **Coin**: for round badges, zoomed in a little, with a complete 1.1 px ring inside the square.
+7. **Crisp colours**: for soft or photo-like logos, more contrast and 14 colours.
 
 Near-duplicates are dropped. Every option is checked: 40 × 40, at most 20 kB, static PNG, opaque
 version without alpha, no colour hidden under transparent pixels, pixels near lime `#00FF00` or
@@ -73,17 +110,19 @@ and checks the lime and empty-band notes on two made-up logos.
 | `MAX_JOBS` | 2 | images processed at once; more wait up to 20 s, then 503 |
 | `RATE` | 10 | uploads per visitor per 10 minutes |
 | `CLIENT_IP_HEADER` | X-Client-IP | set by Caddy (`avatars.caddy`); `X-Forwarded-For` is never read, visitors can send their own |
-| `DEV_PAGE` | | an HTML file served at `/` and `/avatar`, for testing without Caddy |
+| `DEV_PAGE` | | an HTML file served at `/`, `/avatar` and `/avatar-upload`, with the `.js` files next to it, for testing without Caddy |
 
 ## Run and test locally
 
 ```bash
 pip install -r requirements.txt playwright   # Python 3.10 or newer
 python3 -m playwright install chromium       # the browser for test_page.py
-DEV_PAGE=../../site/avatar.html RATE=5 python3 service.py &
+python3 tests/test_subject.py                # no service needed
+DEV_PAGE=../../site/avatar-upload.html RATE=5 python3 service.py &
 python3 tests/test_service.py http://127.0.0.1:8080 tests/logos --rate 5
-# restart the service with RATE=1000 for the page test, which uploads every logo it is given
+# restart the service with RATE=1000 for the page tests, which upload many times
 python3 tests/test_page.py http://127.0.0.1:8080 tests/logos/*.png --shots /tmp/shots
+python3 tests/test_editor.py http://127.0.0.1:8080 --shots /tmp/shots   # every editor tool, undo, export
 ```
 
 `tests/logos/` holds the test logos (not committed: they are other teams' artwork). Collect at least

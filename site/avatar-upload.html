@@ -207,6 +207,7 @@
                 <li>a coin with a complete ring, for round badges;</li>
                 <li>crisper colours, for soft or photo-like logos.</li>
             </ul>
+            <p>Not quite right? Every option has an <b>Edit</b> button: an editor with an eraser, a restore brush, a magic wand for leftover gaps, a brush, a pen for curves and shapes, with the 40 px result shown live.</p>
             <p>Each option is checked against FIRST's rules (40 × 40 px, at most 20 kB, no colours near lime or magenta, which video overlays key out) and shown at actual size on FIRST's backgrounds. FTCScout shows avatars at 40 and 20 px.</p>
         </div>
 
@@ -237,6 +238,7 @@
     <span>Not affiliated with <i>FIRST</i>®. Data from FTCScout and <i>FIRST</i>.</span>
 </footer>
 <script src="config.js"></script>
+<script src="avatar-editor.js"></script>
 <script>
 (() => {
     const $ = (id) => document.getElementById(id);
@@ -248,6 +250,7 @@
     let reading = Promise.resolve();             // the file being read; Make waits for it
     let readError = "";                          // why the last file couldn't be used
     let urls = [];                               // object URLs of the current results
+    let session = null;                          // {team, blob, base, layers, saved}: the results shown, for the editor
 
     const status = (text, bad) => { $("status").textContent = text; $("status").classList.toggle("bad", !!bad); };
     const fail = (text, field) => { status(text, true); if (field) field.focus(); };
@@ -346,7 +349,8 @@
         $("make").disabled = true;
         status("Making your options… this takes a few seconds.");
         try {
-            let r = await fetch(`${API}?team=${n}`, { method: "POST", body: logo.blob, headers: { "Content-Type": "image/png" }, signal: AbortSignal.timeout(90000) });
+            let sent = logo.blob;
+            let r = await fetch(`${API}?team=${n}`, { method: "POST", body: sent, headers: { "Content-Type": "image/png" }, signal: AbortSignal.timeout(90000) });
             let data = null;
             try { data = await r.json(); } catch { /* not JSON: a proxy error page */ }
             if (!r.ok || !data || !Array.isArray(data.options)) {
@@ -355,6 +359,7 @@
                     : [404, 405, 502, 503, 504].includes(r.status) ? "The avatar maker is offline right now. Try again later."
                     : "Something went wrong making the options.");
             }
+            session = { team: n, blob: sent, base: data.base, layers: null, saved: {} };
             render(data);
             status("");
             if (matchMedia("(max-width: 920px)").matches) $("results").scrollIntoView({ behavior: "smooth" });
@@ -395,9 +400,44 @@
             box.append(el("div", { className: "dl" },
                 el("a", { className: "btn", href: blobUrl(o.opaque), download: o.files[0] }, "PNG"),
                 el("a", { className: "btn", href: blobUrl(o.transparent), download: o.files[1] }, "Transparent PNG"),
+                o.edit && window.AvatarEditor ? el("button", { className: "btn go", type: "button", title: "Erase, cut out gaps, draw with a pen and brush, change the colours", onclick: () => openEditor(o.source || o) }, o.source ? "Edit again" : "Edit") : "",
                 el("span", { className: "size" }, `${kb(o.bytes[0])} · ${kb(o.bytes[1])}`)));
         }
         return box;
+    }
+
+    // --- the editor: the layers come from the server once per upload, the first time it opens ---
+    function layers() {
+        let s = session;
+        if (!s.layers) {
+            s.layers = (async () => {
+                let r = await fetch(`${API}?team=${s.team}&layers=only`, { method: "POST", body: s.blob, headers: { "Content-Type": "image/png" }, signal: AbortSignal.timeout(90000) });
+                let d = null;
+                try { d = await r.json(); } catch { /* a proxy error page */ }
+                if (!r.ok || !d || !d.layers) throw new Error((d && d.error) || "The avatar maker couldn't open the editor right now.");
+                return d;
+            })();
+            s.layers.catch(() => { if (session === s) s.layers = null; });   // try again next time
+        }
+        return s.layers;
+    }
+    const bytesOf = (uri) => Math.floor(((uri.length - uri.indexOf(",") - 1) * 3) / 4);
+    function openEditor(o) {
+        let s = session;
+        window.AvatarEditor.open({
+            label: o.label, preset: o.edit, layers, saved: s.saved[o.id], fileBase: `${s.base}-${o.id}-edited`,
+            onClose: (saved) => { if (saved) s.saved[o.id] = saved; },
+            onDone: ({ opaque, transparent, warnings }) => {
+                if (session !== s) return;
+                let mine = { id: `edit-${o.id}`, label: `Your edit of “${o.label}”`, note: "Made in the editor. Edit again to keep working on it.", opaque, transparent, warnings,
+                    bytes: [bytesOf(opaque), bytesOf(transparent)], files: [`${s.base}-${o.id}-edited-avatar-40.png`, `${s.base}-${o.id}-edited-avatar-40-transparent.png`], edit: o.edit, source: o };
+                let grid = $("grid"), old = grid.querySelector(`[data-id="${mine.id}"]`), box = card(mine);
+                box.dataset.id = mine.id;
+                if (old) old.replaceWith(box);
+                else grid.insertBefore(box, grid.querySelector(".opt:not(.current)"));
+                box.scrollIntoView({ behavior: "smooth", block: "center" });
+            },
+        });
     }
 
     function render(d) {
