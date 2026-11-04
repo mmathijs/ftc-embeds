@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Browser test of the avatar editor (Playwright + Chromium), against a running service:
 
-    DEV_PAGE=../../site/avatar-upload.html RATE=1000 python3 service.py &      (from avatar/service)
+    DEV_PAGE=../../site/avatars.html RATE=1000 python3 service.py &      (from avatar/service)
     python3 tests/test_editor.py http://127.0.0.1:8080 [--shots <dir>]
 
 Makes a logo with text (letter gaps), opens Edit on the first option and uses every tool with real
@@ -45,7 +45,7 @@ with sync_playwright() as p:
     page = browser.new_page(viewport={'width': 1440, 'height': 900})
     page.on('console', lambda m: m.type == 'error' and errors.append(m.text))
     page.on('pageerror', lambda e: errors.append(str(e)))
-    page.goto(base + '/avatar-upload')
+    page.goto(base + '/avatars')
     page.fill('#team', '23452'); page.set_input_files('#file', logo)
     page.wait_for_function("document.querySelector('#drop-text').textContent.startsWith('robo')")
     page.check('#own'); page.click('#make')
@@ -291,7 +291,7 @@ with sync_playwright() as p:
     # phone width
     ph = browser.new_context(**p.devices['iPhone 13']).new_page()
     ph.on('pageerror', lambda e: errors.append(str(e)))
-    ph.goto(base + '/avatar-upload'); ph.fill('#team', '23452'); ph.set_input_files('#file', logo)
+    ph.goto(base + '/avatars'); ph.fill('#team', '23452'); ph.set_input_files('#file', logo)
     ph.wait_for_function("document.querySelector('#drop-text').textContent.startsWith('robo')"); ph.check('#own'); ph.click('#make')
     ph.wait_for_selector('#results:not([hidden]) .opt', timeout=60000)
     ph.locator('.opt .dl button', has_text='Edit').first.click()

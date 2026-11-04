@@ -303,7 +303,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         path = urlparse(self.path).path
         if path == '/api/avatar/health': return self.send(200, {'ok': True})
-        if os.environ.get('DEV_PAGE') and path in ('/', '/avatar', '/avatar-upload'):
+        if os.environ.get('DEV_PAGE') and path in ('/', '/avatar', '/avatars'):
             return self.send(200, open(os.environ['DEV_PAGE'], 'rb').read(), 'text/html; charset=utf-8')
         if os.environ.get('DEV_PAGE') and re.fullmatch(r'/[a-z0-9-]+\.js', path):       # the page's own scripts, next to it
             f = os.path.join(os.path.dirname(os.path.abspath(os.environ['DEV_PAGE'])), path[1:])

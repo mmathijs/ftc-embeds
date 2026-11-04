@@ -1,8 +1,8 @@
 # Avatar options service
 
 Turns one uploaded team logo into up to nine 40 × 40 FIRST avatar options, and gives the page's
-editor the layers to start from. The page is `site/avatar-upload.html` with `site/avatar-editor.js`
-(https://ftc-embeds.com/avatar-upload); this folder is the server part behind `/api/avatar/`. No AI
+editor the layers to start from. The page is `site/avatars.html` with `site/avatar-editor.js`
+(https://ftc-embeds.com/avatars); this folder is the server part behind `/api/avatar/`. No AI
 and no API tokens: `subject.py` finds the background and judges every enclosed gap (see below), and
 the image steps are `campaign.py` from the ftc-avatar-campaign skill (the 2026 Benelux campaign),
 unchanged except for how the main part is chosen. Nothing is stored: the upload is processed in
@@ -125,7 +125,7 @@ backgrounds, and the canvas with the background or transparent (border included)
 | `MAX_JOBS` | 2 | images processed at once; more wait up to 20 s, then 503 |
 | `RATE` | 10 | uploads per visitor per 10 minutes |
 | `CLIENT_IP_HEADER` | X-Client-IP | set by Caddy (`avatars.caddy`); `X-Forwarded-For` is never read, visitors can send their own |
-| `DEV_PAGE` | | an HTML file served at `/`, `/avatar` and `/avatar-upload`, with the `.js` files next to it, for testing without Caddy |
+| `DEV_PAGE` | | an HTML file served at `/`, `/avatar` and `/avatars`, with the `.js` files next to it, for testing without Caddy |
 
 ## Run and test locally
 
@@ -133,7 +133,7 @@ backgrounds, and the canvas with the background or transparent (border included)
 pip install -r requirements.txt playwright   # Python 3.10 or newer
 python3 -m playwright install chromium       # the browser for test_page.py
 python3 tests/test_subject.py                # no service needed
-DEV_PAGE=../../site/avatar-upload.html RATE=5 python3 service.py &
+DEV_PAGE=../../site/avatars.html RATE=5 python3 service.py &
 python3 tests/test_service.py http://127.0.0.1:8080 tests/logos --rate 5
 # restart the service with RATE=1000 for the page tests, which upload many times
 python3 tests/test_page.py http://127.0.0.1:8080 tests/logos/*.png --shots /tmp/shots

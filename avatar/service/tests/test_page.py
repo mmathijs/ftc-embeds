@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Browser test of the upload page against a running service (Playwright + Chromium).
 
-    DEV_PAGE=../../site/avatar-upload.html RATE=1000 python3 service.py &      (from avatar/service)
+    DEV_PAGE=../../site/avatars.html RATE=1000 python3 service.py &      (from avatar/service)
     python3 tests/test_page.py http://127.0.0.1:8080 tests/logos/*.png [--shots <dir>]
 
 Checks: the form's own errors (no team, no logo, no consent, a file that isn't an image), an
@@ -40,7 +40,7 @@ with sync_playwright() as p:
     page = browser.new_page(viewport={'width': 1280, 'height': 900})
     page.on('console', lambda m: m.type == 'error' and errors.append(m.text))
     page.on('pageerror', lambda e: errors.append(str(e)))
-    page.goto(base + '/avatar-upload')
+    page.goto(base + '/avatars')
 
     # the form's own checks, before anything is sent
     page.click('#make'); check('team number' in page.text_content('#status'), 'asks for a team number')
@@ -98,7 +98,7 @@ with sync_playwright() as p:
     # phone width
     phone = browser.new_context(**p.devices['iPhone 13']).new_page()
     phone.on('pageerror', lambda e: errors.append(str(e)))
-    phone.goto(base + '/avatar-upload')
+    phone.goto(base + '/avatars')
     make(phone, 23452, logos[0] if logos else svg)
     phone.wait_for_selector('#results:not([hidden]) .opt', timeout=60000)
     wide = phone.evaluate('document.documentElement.scrollWidth > window.innerWidth')

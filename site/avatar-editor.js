@@ -1,4 +1,4 @@
-/* Avatar editor for /avatar-upload: AvatarEditor.open({...}) opens a full-screen editor on one option.
+/* Avatar editor for /avatars: AvatarEditor.open({...}) opens a full-screen editor on one option.
  *
  * The avatar is drawn on a 320 x 320 canvas (8 x the 40 px result) and reduced to 40 x 40 once, with
  * a premultiplied Lanczos-3 filter, as the server does. The document is a plain object:
@@ -1713,7 +1713,7 @@ ${b}-512*.png        smooth, for websites and social media
 ${b}-pixel-400-transparent.png, ${b}-pixel-transparent.svg
                      the 40 px avatar as pixel art; the SVG stays sharp at any size
 ${b}.ico             a website icon (favicon)
-${b}.ftcavatar       the project: open it in the editor at ftc-embeds.com/avatar-upload to keep editing
+${b}.ftcavatar       the project: open it in the editor at ftc-embeds.com/avatars to keep editing
 `]));
             saveBlob(zip(files), `${b}-avatar-export.zip`);
             note.textContent = `Downloaded ${files.length} files as a zip.`;
