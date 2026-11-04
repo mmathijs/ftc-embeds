@@ -3,10 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<!-- Milestone 1 of the avatar maker: not linked from the site yet. The full page replaces this. -->
-<meta name="robots" content="noindex">
 <title>Team avatar · ftc-embeds</title>
-<meta name="description" content="Turn your team's logo into the 40×40 PNG avatar FIRST shows at events. It all happens in your browser.">
+<meta name="description" content="Turn your team's logo into the 40×40 PNG avatar FIRST shows at events. Automatic starting points, checks against FIRST's rules, and it all happens in your browser.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%231c1b19'/%3E%3Crect x='3' y='3' width='4' height='4' fill='%23ff5a1f'/%3E%3Crect x='9' y='3' width='4' height='4' fill='%23f4f1ea'/%3E%3Crect x='3' y='9' width='4' height='4' fill='%23f4f1ea'/%3E%3Crect x='9' y='9' width='4' height='4' fill='%23f4f1ea'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -17,6 +15,7 @@
         --ink: #1c1b19;
         --ink-2: #5d5a53;
         --rule: #cfc8b8;
+        --grid: rgba(28, 27, 25, 0.016);
         --accent: #ff5a1f;
         --accent-ink: #1c1b19;
         --field: #fbf9f4;
@@ -33,6 +32,7 @@
             --ink: #ece7dc;
             --ink-2: #a39d90;
             --rule: #3a3731;
+            --grid: rgba(236, 231, 220, 0.018);
             --field: #1b1a17;
             --check-a: #2a2925;
             --check-b: #1f1e1a;
@@ -42,73 +42,428 @@
     * { box-sizing: border-box; }
     [hidden] { display: none !important; }
     html { background: var(--paper); }
-    body { margin: 0; color: var(--ink); font: 15px/1.5 var(--sans); background: var(--paper); }
+    body {
+        margin: 0;
+        color: var(--ink);
+        font: 15px/1.5 var(--sans);
+        background-color: var(--paper);
+        background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+        background-size: 32px 32px;
+    }
     a { color: inherit; text-underline-offset: 3px; }
-    .top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 14px 28px; border-bottom: 2px solid var(--ink); }
+    a:hover { color: var(--accent); }
+
+    .top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 14px 28px; border-bottom: 2px solid var(--ink); position: sticky; top: 0; z-index: 30; background: var(--paper); }
+    /* The header stays at the top: --header (its height, set below) keeps other sticky parts and scrolled-to places under it. */
+    html { scroll-padding-top: var(--header, 56px); }
     .wordmark { font: 500 17px var(--mono); text-decoration: none; letter-spacing: -0.02em; }
     .wordmark b { font-weight: 500; color: var(--accent); }
-    main { max-width: 980px; margin: 0 auto; padding: 32px 28px 48px; }
-    h1 { margin: 0 0 6px; font-size: 32px; letter-spacing: -0.02em; }
-    .lede { margin: 0 0 24px; color: var(--ink-2); max-width: 60ch; }
-    .drop { display: grid; place-items: center; gap: 10px; min-height: 160px; padding: 24px; border: 2px dashed var(--ink-2); background: var(--field); text-align: center; }
-    .drop.over { border-color: var(--accent); }
-    .hint { margin: 0; font-size: 13px; color: var(--ink-2); }
-    .error { color: var(--accent); min-height: 1.5em; margin: 8px 0 0; }
-    .btn { font: 500 14px var(--sans); border: 1px solid var(--ink); border-radius: 2px; background: none; color: var(--ink); padding: 7px 14px; cursor: pointer; }
-    .btn.go { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+    .top nav { display: flex; gap: 20px; font: 13px var(--mono); }
+    .top nav a { text-decoration: none; color: var(--ink-2); }
+    .top nav a:hover, .top nav a[aria-current] { color: var(--ink); }
+
+    .lede { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: end; padding: 36px 28px 26px; border-bottom: 1px solid var(--rule); }
+    .lede h1 { margin: 0; font-size: 34px; line-height: 1.1; font-weight: 600; letter-spacing: -0.025em; max-width: 18ch; }
+    .lede p { margin: 12px 0 0; color: var(--ink-2); max-width: 58ch; }
+    .lede .note { font: 12px/1.6 var(--mono); color: var(--ink-2); text-align: right; }
+    .banner { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 28px; border-bottom: 1px solid var(--rule); background: var(--paper-2); font-size: 14px; }
+
+    .app { display: grid; grid-template-columns: 330px minmax(0, 1fr); }
+    form { border-right: 1px solid var(--rule); }
+    fieldset { margin: 0; padding: 20px 28px 22px; border: 0; border-bottom: 1px solid var(--rule); display: grid; gap: 12px; min-width: 0; }
+    legend { float: left; width: 100%; padding: 0; margin-bottom: 4px; font-weight: 600; font-size: 15px; }
+    legend span { font: 12px var(--mono); color: var(--accent); margin-right: 8px; }
+    label.f { display: grid; gap: 5px; font-size: 13px; color: var(--ink-2); }
+    label.f output { font: 12px var(--mono); color: var(--ink); }
+    .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .row > * { min-width: 0; }
+    input[type="text"], input[type="number"], input[type="url"], select {
+        width: 100%; font: 14px var(--sans); color: var(--ink); background: var(--field);
+        border: 1px solid var(--rule); border-radius: 2px; padding: 7px 9px; outline: none;
+    }
+    input::placeholder { color: var(--ink-2); opacity: 0.7; }
+    input:focus-visible, select:focus-visible, button:focus-visible, summary:focus-visible, a:focus-visible, canvas:focus-visible, label.drop:focus-within { outline: 2px solid var(--accent); outline-offset: 1px; }
+    input[type="color"] { width: 36px; height: 32px; padding: 2px; border: 1px solid var(--rule); border-radius: 2px; background: var(--field); cursor: pointer; flex: none; }
+    input[type="range"] { width: 100%; accent-color: var(--ink); }
+    input[type="checkbox"] { accent-color: var(--ink); width: 15px; height: 15px; margin: 0; }
+    .check { display: flex; align-items: center; gap: 9px; font-size: 14px; cursor: pointer; }
+    .hint { margin: 0; font-size: 12.5px; color: var(--ink-2); }
+    .seg { display: flex; border: 1px solid var(--ink); }
+    .seg button { flex: 1; border: 0; background: none; color: var(--ink); font: 13px var(--sans); padding: 6px 6px; cursor: pointer; }
+    .seg button + button { border-left: 1px solid var(--ink); }
+    .seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+    .btn { font: 13px var(--sans); border: 1px solid var(--ink); border-radius: 2px; background: none; color: var(--ink); padding: 6px 11px; cursor: pointer; text-decoration: none; display: inline-block; }
+    .btn:hover { background: var(--paper-2); color: var(--ink); }
+    .btn.go { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 500; }
+    .btn.go:hover { filter: brightness(1.05); }
     .btn:disabled { opacity: .45; cursor: not-allowed; }
-    button:focus-visible, input:focus-visible, label:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .btn.sm { font-size: 12px; padding: 3px 8px; }
+    .link-btn { justify-self: start; border: 0; background: none; padding: 0; font: 13px var(--sans); color: var(--ink-2); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+    .link-btn:hover { color: var(--accent); }
     .file input { position: absolute; opacity: 0; width: 1px; height: 1px; }
-    h2 { margin: 32px 0 10px; font-size: 18px; }
-    .strip .row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
-    .strip .row > span:first-child { width: 96px; font: 12px var(--mono); color: var(--ink-2); }
-    .bg { display: grid; place-items: center; width: 56px; height: 56px; border: 1px solid var(--rule); }
-    .bg img { display: block; width: 40px; height: 40px; }
-    .zoom { width: 240px; height: 240px; image-rendering: pixelated; border: 1px solid var(--rule); margin-left: 12px; }
+
+    details.group { border-top: 1px solid var(--rule); padding-top: 8px; }
+    details.group > summary { cursor: pointer; font-size: 14px; font-weight: 500; list-style: none; display: flex; justify-content: space-between; }
+    details.group > summary::after { content: "+"; font-family: var(--mono); color: var(--ink-2); }
+    details.group[open] > summary::after { content: "−"; }
+    details.group > div { display: grid; gap: 10px; padding: 10px 0 6px; }
+    .nudge { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+    .swatches { display: flex; flex-wrap: wrap; gap: 6px; }
+    .swatch { display: grid; justify-items: center; gap: 2px; border: 1px solid var(--rule); background: var(--field); padding: 4px; border-radius: 2px; cursor: pointer; font: 10.5px var(--mono); color: var(--ink-2); min-width: 54px; }
+    .swatch i { width: 40px; height: 22px; border: 1px solid var(--rule); }
+    .swatch[aria-pressed="true"] { border-color: var(--ink); color: var(--ink); }
+
+    .team-found { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+    .team-found img { width: 40px; height: 40px; image-rendering: pixelated; border: 1px solid var(--rule); }
+    .logo-info { display: grid; gap: 4px; font-size: 13px; }
+    .bg-chip { display: inline-block; width: 14px; height: 14px; border: 1px solid var(--rule); vertical-align: -2px; margin-right: 4px; }
+
+    .variants { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+    .variants li { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto auto; gap: 8px; align-items: center; padding: 4px; border: 1px solid transparent; border-radius: 2px; }
+    .variants li[aria-current="true"] { border-color: var(--ink); background: var(--field); }
+    .variants img { width: 40px; height: 40px; display: block; cursor: pointer; }
+    .variants input { padding: 4px 6px; font-size: 13px; }
+    .variants .count { font: 11px var(--mono); color: var(--ink-2); }
+    .variants .count.warn { color: var(--accent); }
+
+    .work { padding: 24px 28px 32px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; align-content: start; min-width: 0; }
+    .empty { display: grid; place-items: center; gap: 12px; min-height: 380px; padding: 28px; border: 2px dashed var(--ink-2); background: var(--field); text-align: center; }
+    .empty.over, .logo-drop.over { border-color: var(--accent); }
+    .empty b { font-size: 18px; }
+    .logo-drop { display: grid; gap: 8px; justify-items: start; padding: 12px; border: 1px dashed var(--ink-2); background: var(--field); }
+
+    .strip { display: grid; grid-template-columns: auto repeat(5, auto); gap: 6px 10px; align-items: center; justify-content: start; }
+    .strip .lab { font: 11px var(--mono); color: var(--ink-2); text-transform: uppercase; letter-spacing: .05em; }
+    .strip .bg { display: grid; place-items: center; width: 52px; height: 52px; }
+    .strip .bg img { width: 40px; height: 40px; display: block; }
+    .strip .head { font: 10.5px var(--mono); color: var(--ink-2); text-align: center; }
+
+    .tabs { display: flex; gap: 22px; border-bottom: 1px solid var(--rule); }
+    .tabs button { border: 0; background: none; padding: 0 0 9px; margin-bottom: -1px; font: 14px var(--sans); color: var(--ink-2); border-bottom: 2px solid transparent; cursor: pointer; }
+    .tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+    .pane { display: grid; gap: 14px; }
+
+    .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+    .tile { display: grid; gap: 6px; text-align: left; border: 1px solid var(--rule); background: var(--field); padding: 10px; border-radius: 2px; cursor: pointer; color: var(--ink); font: inherit; }
+    .tile:hover { border-color: var(--ink); }
+    .tile .pair { display: flex; gap: 6px; }
+    .tile img { width: 80px; height: 80px; image-rendering: pixelated; display: block; }
+    .tile b { font-size: 13.5px; font-weight: 500; }
+    .tile span { font: 11px var(--mono); color: var(--ink-2); }
+    .tile span.warn { color: var(--accent); }
+    .tile.skeleton { cursor: default; min-height: 140px; animation: pulse 1.4s ease-in-out infinite; }
+    @keyframes pulse { 50% { opacity: .5; } }
+    @media (prefers-reduced-motion: reduce) { .tile.skeleton { animation: none; } }
+
     .checker { background: repeating-conic-gradient(var(--check-a) 0 25%, var(--check-b) 0 50%) 0 0 / 16px 16px; }
-    .checks { list-style: none; margin: 0; padding: 0; }
-    .checks li { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 0; border-top: 1px solid var(--rule); }
-    .checks b { font: 500 11px var(--mono); text-transform: uppercase; letter-spacing: .05em; min-width: 110px; }
-    .checks .error b { color: var(--accent); }
-    .downloads { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-    .size { font: 12px var(--mono); color: var(--ink-2); margin-right: 12px; }
+    .editor-bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .canvas-wrap { display: grid; place-items: center; border: 2px solid var(--ink); padding: 12px; overflow: auto; }
+    #canvas { image-rendering: pixelated; width: min(640px, 100%); aspect-ratio: 1; display: block; }
+    .status { font: 12px var(--mono); color: var(--ink-2); }
+
+    .grid { display: grid; grid-template-columns: minmax(70px, auto) repeat(5, minmax(48px, 1fr)); gap: 8px; align-items: center; }
+    .grid .lab { font-size: 13px; }
+    .grid .cell { display: grid; place-items: center; gap: 6px; padding: 8px 4px; }
+    .grid .cell img, .grid .cell canvas { display: block; }
+    .grid .px20 { width: 20px; height: 20px; image-rendering: pixelated; }
+    .zooms { display: flex; gap: 14px; flex-wrap: wrap; }
+    .zooms figure { margin: 0; display: grid; gap: 4px; font: 11px var(--mono); color: var(--ink-2); }
+    .zooms img { width: 240px; height: 240px; image-rendering: pixelated; border: 1px solid var(--rule); }
+    .card-host { max-width: 520px; }
+
+    .checks { list-style: none; margin: 0; padding: 0; border-top: 2px solid var(--ink); }
+    .checks li { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 0; border-bottom: 1px solid var(--rule); font-size: 14px; }
+    .checks .tag { font: 500 11px var(--mono); text-transform: uppercase; letter-spacing: .05em; min-width: 76px; }
+    .checks .error .tag, .checks .warning .tag { color: var(--accent); }
+    .checks li span { flex: 1 1 200px; }
+
+    .downloads { display: grid; gap: 8px; }
+    .steps { margin: 0; padding-left: 18px; font-size: 13px; color: var(--ink-2); display: grid; gap: 4px; }
+    footer { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 18px 28px 28px; border-top: 2px solid var(--ink); font: 12px/1.6 var(--mono); color: var(--ink-2); }
+
+    @media (max-width: 1099px) { #canvas { width: min(480px, 100%); } }
+    @media (max-width: 920px) {
+        .top, .lede, fieldset, .work, footer, .banner { padding-left: 16px; padding-right: 16px; }
+        .lede { grid-template-columns: 1fr; padding-top: 24px; }
+        .lede h1 { font-size: 27px; }
+        .lede .note { text-align: left; }
+        .app { grid-template-columns: minmax(0, 1fr); }
+        form { border-right: 0; }
+        .work { order: -1; padding-top: 16px; }
+        .top nav { gap: 14px; }
+        #canvas { width: min(640px, 100%); }
+        .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .tile img { width: 100%; height: auto; aspect-ratio: 1; }
+        .tile .pair > * { flex: 1; }
+        .strip { gap: 4px 6px; }
+        .strip .bg { width: 46px; height: 46px; }
+        .strip .lab { font-size: 9.5px; }
+        .grid { grid-template-columns: minmax(52px, auto) repeat(5, 46px); gap: 4px; }
+        .grid .lab { font-size: 10.5px; }
+        .grid .cell { padding: 3px 0; }
+    }
     @media (max-width: 560px) {
-        .top, main { padding-left: 16px; padding-right: 16px; }
-        .zoom { margin-left: 0; width: 200px; height: 200px; }
+        .top { flex-wrap: wrap; row-gap: 8px; }
+        .top nav { flex-wrap: wrap; gap: 6px 16px; width: 100%; }
+        .wordmark { white-space: nowrap; }
+        .zooms img { width: 160px; height: 160px; }
     }
 </style>
 </head>
 <body>
 <header class="top">
     <a class="wordmark" href="/">ftc<b>-</b>embeds</a>
+    <nav>
+        <a href="/setup">setup</a>
+        <a href="/pit-map">pit map</a>
+        <a href="/team">widgets</a>
+        <a href="/avatar" aria-current="page">avatar</a>
+        <a href="https://github.com/mmathijs/ftc-embeds#readme">docs</a>
+        <a href="https://www.npmjs.com/package/ftc-embeds">npm</a>
+        <a href="https://github.com/mmathijs/ftc-embeds">source</a>
+        <a href="/stats">stats</a>
+    </nav>
 </header>
-<main>
-    <h1>Make your team's avatar</h1>
-    <p class="lede">Turn your logo into the 40×40 PNG FIRST shows at events. It all happens in your browser; your logo is never uploaded.</p>
+<script>
+    (() => {
+        let head = document.querySelector("header.top");
+        let sync = () => document.documentElement.style.setProperty("--header", head.offsetHeight + "px");
+        sync();
+        if (window.ResizeObserver) new ResizeObserver(sync).observe(head);
+    })();
+</script>
 
-    <label class="drop" id="drop">
-        <span id="drop-text"></span>
-        <span class="btn go file">Choose file<input type="file" id="file" accept="image/*,.svg"></span>
-        <span class="hint" id="private"></span>
-    </label>
-    <p class="hint" id="status" aria-live="polite"></p>
-    <p class="error" id="error" role="alert"></p>
+<section class="lede">
+    <div>
+        <h1>Make your team's avatar</h1>
+        <p>Turn your logo into the 40×40 PNG FIRST shows at events. It all happens in your browser; your logo is never uploaded.</p>
+    </div>
+    <div class="note">40×40 · PNG · ≤ 20 kB</div>
+</section>
 
-    <section id="result" hidden>
-        <h2>Your avatar</h2>
-        <div class="strip" id="strip"></div>
+<div class="banner" id="restore" hidden>
+    <span id="restore-text"></span>
+    <button type="button" class="btn go sm" id="restore-yes"></button>
+    <button type="button" class="btn sm" id="restore-no"></button>
+</div>
 
-        <h2>Checks</h2>
-        <ul class="checks" id="checks" aria-live="polite"></ul>
+<div class="app">
+    <form onsubmit="return false" aria-label="Avatar settings">
+        <fieldset>
+            <legend><span>01</span><span data-t="legendTeam"></span></legend>
+            <label class="f"><span data-t="teamLabel"></span> <input type="text" inputmode="numeric" id="team" autocomplete="off" placeholder="e.g. 23452"></label>
+            <p class="hint" id="team-status" aria-live="polite"></p>
+            <div class="team-found" id="team-current" hidden>
+                <img id="team-avatar" alt="">
+                <button type="button" class="link-btn" id="edit-current"></button>
+            </div>
+        </fieldset>
 
-        <h2>Download</h2>
-        <div class="downloads">
-            <button type="button" class="btn go" id="dl-opaque"></button><span class="size" id="size-opaque"></span>
-            <button type="button" class="btn" id="dl-transparent"></button><span class="size" id="size-transparent"></span>
-        </div>
-    </section>
-    <p class="hint" id="worker" style="margin-top:32px"></p>
-</main>
+        <fieldset>
+            <legend><span>02</span><span data-t="legendLogo"></span></legend>
+            <label class="logo-drop drop" id="logo-drop">
+                <span class="hint" data-t="dropShort"></span>
+                <span class="btn go file"><span data-t="chooseFile"></span><input type="file" id="file" accept="image/*,.svg,.json"></span>
+            </label>
+            <div class="row">
+                <input type="url" id="logo-url" placeholder="…or paste an image link" aria-label="Image link">
+                <button type="button" class="btn" id="logo-url-go" data-t="load"></button>
+            </div>
+            <div class="logo-info" id="logo-info" hidden>
+                <span id="logo-name"></span>
+                <span id="logo-bg"></span>
+            </div>
+            <p class="hint" id="logo-note"></p>
+            <p class="hint" data-t="staysHere"></p>
+        </fieldset>
+
+        <fieldset id="fs-variants" hidden>
+            <legend><span>03</span><span data-t="legendVariants"></span></legend>
+            <ul class="variants" id="variants"></ul>
+            <p class="hint" data-t="variantsHint"></p>
+        </fieldset>
+
+        <!-- 04 Tool options: the editor's tools come in the next milestone. -->
+
+        <fieldset id="fs-settings" hidden>
+            <legend><span>05</span><span data-t="legendSettings"></span></legend>
+            <details class="group" open>
+                <summary data-t="groupFit"></summary>
+                <div>
+                    <div class="seg" id="fit-modes">
+                        <button type="button" data-fit="fit" data-t="fitFit"></button>
+                        <button type="button" data-fit="fillWidth" data-t="fitFill"></button>
+                        <button type="button" data-fit="cutBottom" data-t="fitCut"></button>
+                        <button type="button" data-fit="centre" data-t="fitCentre"></button>
+                    </div>
+                    <p class="hint" id="fit-hint" aria-live="polite"></p>
+                    <label class="f"><span><span data-t="zoom"></span> <output id="zoom-out"></output></span><input type="range" id="zoom" min="-1" max="0.903" step="0.005" value="0"></label>
+                    <div class="nudge" role="group" aria-label="Move">
+                        <button type="button" class="btn sm" data-nudge="-1,0" aria-label="Move left">←</button>
+                        <button type="button" class="btn sm" data-nudge="1,0" aria-label="Move right">→</button>
+                        <button type="button" class="btn sm" data-nudge="0,-1" aria-label="Move up">↑</button>
+                        <button type="button" class="btn sm" data-nudge="0,1" aria-label="Move down">↓</button>
+                    </div>
+                    <p class="hint" data-t="nudgeHint"></p>
+                    <div class="row">
+                        <button type="button" class="btn sm" id="rotate-left" data-t="rotateLeft"></button>
+                        <button type="button" class="btn sm" id="rotate-right" data-t="rotateRight"></button>
+                        <button type="button" class="btn sm" id="flip" data-t="flip"></button>
+                    </div>
+                </div>
+            </details>
+            <details class="group" open>
+                <summary data-t="groupBackground"></summary>
+                <div>
+                    <div class="swatches" id="swatches"></div>
+                    <div class="row">
+                        <input type="color" id="bg-picker" aria-label="Background colour">
+                        <input type="text" id="bg-hex" maxlength="7" style="flex:1" aria-label="Background colour as hex">
+                        <button type="button" class="btn sm" id="bg-none" data-t="none"></button>
+                    </div>
+                </div>
+            </details>
+            <details class="group">
+                <summary data-t="groupFrame"></summary>
+                <div>
+                    <div class="seg" id="frame-kinds">
+                        <button type="button" data-frame="square" data-t="square"></button>
+                        <button type="button" data-frame="rounded" data-t="rounded"></button>
+                        <button type="button" data-frame="circle" data-t="circle"></button>
+                    </div>
+                    <label class="f" id="radius-row"><span><span data-t="radius"></span> <output id="radius-out"></output></span><input type="range" id="frame-radius" min="0" max="20" step="1"></label>
+                    <div class="row"><label class="check"><input type="checkbox" id="ring-on"> <span data-t="ring"></span></label><input type="color" id="ring-color" aria-label="Ring colour"></div>
+                    <label class="f"><span><span data-t="ringWidth"></span> <output id="ring-width-out"></output></span><input type="range" id="ring-width" min="0.5" max="3" step="0.1"></label>
+                    <div class="row"><label class="check"><input type="checkbox" id="outside-on"> <span data-t="outside"></span></label><input type="color" id="outside-color" aria-label="Outside colour"></div>
+                    <label class="check"><input type="checkbox" id="break-out"> <span data-t="breakOut"></span></label>
+                </div>
+            </details>
+            <details class="group" open>
+                <summary data-t="groupCutout"></summary>
+                <div>
+                    <div class="seg" id="cut-modes">
+                        <button type="button" data-cut="off" data-t="off"></button>
+                        <button type="button" data-cut="edge" data-t="cutEdge"></button>
+                        <button type="button" data-cut="all" data-t="cutAll"></button>
+                    </div>
+                    <p class="hint" id="cut-hint" aria-live="polite"></p>
+                    <label class="f"><span><span data-t="tolerance"></span> <output id="cut-tol-out"></output></span><input type="range" id="cut-tol" min="0" max="0.3" step="0.005"></label>
+                    <label class="f"><span><span data-t="softness"></span> <output id="cut-soft-out"></output></span><input type="range" id="cut-soft" min="0" max="4" step="0.25"></label>
+                    <label class="check"><input type="checkbox" id="cut-main"> <span data-t="mainPart"></span></label>
+                </div>
+            </details>
+            <details class="group">
+                <summary data-t="groupAdjust"></summary>
+                <div>
+                    <label class="f"><span><span data-t="brightness"></span> <output id="adj-brightness-out"></output></span><input type="range" id="adj-brightness" min="-100" max="100" step="1"></label>
+                    <label class="f"><span><span data-t="contrast"></span> <output id="adj-contrast-out"></output></span><input type="range" id="adj-contrast" min="-100" max="100" step="1"></label>
+                    <label class="f"><span><span data-t="saturation"></span> <output id="adj-saturation-out"></output></span><input type="range" id="adj-saturation" min="-100" max="100" step="1"></label>
+                    <label class="f"><span><span data-t="thicken"></span> <output id="adj-thicken-out"></output></span><input type="range" id="adj-thicken" min="0" max="1" step="0.125"></label>
+                    <label class="f"><span data-t="crisp"></span>
+                        <select id="adj-colors"></select>
+                    </label>
+                </div>
+            </details>
+            <details class="group">
+                <summary data-t="groupBorder"></summary>
+                <div>
+                    <label class="f"><span><span data-t="borderWidth"></span> <output id="border-w-out"></output></span><input type="range" id="border-w" min="0" max="2" step="0.1"></label>
+                    <div class="row"><label class="check"><input type="checkbox" id="border-same"> <span data-t="borderSame"></span></label><input type="color" id="border-color" aria-label="Border colour"></div>
+                </div>
+            </details>
+            <details class="group">
+                <summary data-t="groupResample"></summary>
+                <div>
+                    <div class="seg" id="resample">
+                        <button type="button" data-resample="lanczos3" data-t="sharp"></button>
+                        <button type="button" data-resample="box" data-t="soft"></button>
+                    </div>
+                </div>
+            </details>
+        </fieldset>
+
+        <fieldset id="fs-download" hidden>
+            <legend><span>06</span><span data-t="legendDownload"></span></legend>
+            <div class="downloads">
+                <button type="button" class="btn go" id="dl-png"></button>
+                <button type="button" class="btn" id="dl-transparent"></button>
+                <button type="button" class="btn" id="copy-png" hidden></button>
+                <button type="button" class="btn" id="dl-sheet"></button>
+                <button type="button" class="btn" id="dl-zip"></button>
+                <button type="button" class="btn" id="save-project"></button>
+            </div>
+            <p class="hint" id="dl-blocked" aria-live="polite"></p>
+            <ol class="steps" id="upload-steps"></ol>
+            <p class="hint" id="content-note"></p>
+        </fieldset>
+    </form>
+
+    <main class="work">
+        <label class="empty drop" id="empty">
+            <b data-t="dropHint"></b>
+            <span class="hint" data-t="types"></span>
+            <span class="row" style="justify-content:center">
+                <span class="btn go file"><span data-t="chooseFile"></span><input type="file" id="file-2" accept="image/*,.svg,.json"></span>
+                <button type="button" class="btn" id="example" data-t="example"></button>
+            </span>
+            <span class="hint" data-t="staysHere"></span>
+        </label>
+        <p class="hint" id="error" role="alert"></p>
+
+        <section id="workspace" hidden>
+            <div class="strip" id="strip" aria-label="Live preview"></div>
+
+            <div class="tabs" role="tablist">
+                <button role="tab" id="tab-start" aria-controls="pane-start" aria-selected="true" data-tab="start"></button>
+                <button role="tab" id="tab-edit" aria-controls="pane-edit" aria-selected="false" data-tab="edit"></button>
+                <button role="tab" id="tab-compare" aria-controls="pane-compare" aria-selected="false" data-tab="compare"></button>
+            </div>
+
+            <div class="pane" id="pane-start" role="tabpanel" aria-labelledby="tab-start">
+                <div class="row">
+                    <p class="hint" id="start-status" aria-live="polite" style="flex:1"></p>
+                    <button type="button" class="btn sm" id="add-all" hidden></button>
+                </div>
+                <div class="tiles" id="tiles"></div>
+                <button type="button" class="link-btn" id="show-more" hidden></button>
+            </div>
+
+            <div class="pane" id="pane-edit" role="tabpanel" aria-labelledby="tab-edit" hidden>
+                <div class="editor-bar">
+                    <div class="seg" id="show"><button type="button" data-show="opaque"></button><button type="button" data-show="transparent"></button></div>
+                    <div class="seg" id="view"><button type="button" data-view="detail"></button><button type="button" data-view="pixels"></button></div>
+                    <button type="button" class="btn sm" id="compare-original"></button>
+                </div>
+                <div class="canvas-wrap" id="canvas-wrap"><canvas id="canvas" width="320" height="320" tabindex="0" role="img"></canvas></div>
+                <p class="hint" id="edit-note"></p>
+            </div>
+
+            <div class="pane" id="pane-compare" role="tabpanel" aria-labelledby="tab-compare" hidden>
+                <div class="grid" id="compare-grid"></div>
+                <div class="zooms" id="zooms"></div>
+                <div id="current-vs" hidden>
+                    <p class="hint" id="current-label"></p>
+                    <div class="grid" id="current-grid"></div>
+                </div>
+                <div class="row">
+                    <div class="seg" id="card-theme"><button type="button" data-card-theme="light"></button><button type="button" data-card-theme="dark"></button></div>
+                    <div class="seg" id="card-layout"><button type="button" data-card-layout="list"></button><button type="button" data-card-layout="compact"></button></div>
+                </div>
+                <div class="card-host" id="card-host"></div>
+            </div>
+
+            <ul class="checks" id="checks" aria-live="polite" aria-label="Checks"></ul>
+        </section>
+        <p class="hint" id="announce" aria-live="polite" style="position:absolute;left:-9999px"></p>
+    </main>
+</div>
+
+<footer>
+    <span>Made for the FTC community by <a href="https://github.com/mmathijs">mmathijs</a>. Open source, MIT license.</span>
+    <span>Not affiliated with <i>FIRST</i>®. Avatars are reviewed and approved by <i>FIRST</i>.</span>
+    <span>Your logo is processed in your browser and never uploaded.</span>
+</footer>
+<script src="config.js"></script>
 <script type="module" src="avatar.js"></script>
 </body>
 </html>

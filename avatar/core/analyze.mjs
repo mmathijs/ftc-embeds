@@ -4,7 +4,7 @@
 // be sent to the page. Values marked *calibrate* are tuned on the test corpus.
 
 import { srgbToOklab, oklabToSrgb, oklabToOklch, oklchToOklab, deltaE, formatHex, parseHex, chromaKeyOf } from "./color.mjs";
-import { resampleRows, rowsFromRGBA8, rasterToImage8, floodFill, labelComponents, mulberry32 } from "./raster.mjs";
+import { resampleRows, rowsFromRGBA8, rasterToImage8, floodFill, labelComponents, distanceTransform, mulberry32 } from "./raster.mjs";
 
 export const PROXY_SIZE = 1024;
 
@@ -403,25 +403,23 @@ export function analyze(source) {
             .filter((d) => (d.box[2] - d.box[0]) / (d.box[3] - d.box[1]) >= 3 && d.area >= 0.05 * base.keptArea)
             .sort((a, b) => b.area - a.area)[0];
         if (line) {
-            // The darkest of three colours is the banner's outline; the segment colours are two
-            // colours (k = 2) of the rest, ordered left to right, or one when they aren't distinct.
-            // (A plain k = 2 on a banner with an outline takes the outline as one of the two.)
-            let px = samplePixels(analysis, line.pixels, 8000);
-            let three = kmeansLab(px.points, px.weights, 3);
-            let darkest = [...three].sort((a, b) => a.lab[0] - b.lab[0])[0];
-            let rest = { points: [], weights: [], at: [] };
-            px.points.forEach((pt, j) => {
-                if (darkest.members.includes(j) && three.length > 1) return;
-                rest.points.push(pt);
-                rest.weights.push(px.weights[j]);
-                rest.at.push(px.at[j]);
-            });
-            let two = kmeansLab(rest.points, rest.weights, 2);
-            let meanX = (c) => c.members.reduce((t, j) => t + (rest.at[j] % w), 0) / c.members.length;
-            let colors =
-                two.length === 2 && two[1].share >= 0.25 && deltaE(two[0].lab, two[1].lab) >= 0.15
-                    ? [...two].sort((a, b) => meanX(a) - meanX(b)).map((c) => hexOfLab(c.lab))
-                    : [hexOfLab((two[0] ?? darkest).lab)];
+            // The outline is the darkest colour along the banner's edge (a band 8% of its height
+            // wide); the segment colours are the two biggest distinct colours of its inside, ordered
+            // left to right, or one. (The letters are a smaller cluster and lose to the fill.)
+            let inLine = new Uint8Array(w * h);
+            for (let p of line.pixels) inLine[p] = 1;
+            let outside = inLine.map((v) => (v ? 0 : 1));
+            let depth = distanceTransform(outside, w, h);
+            let band = Math.max(1.5, 0.08 * (line.box[3] - line.box[1]));
+            let edgePx = line.pixels.filter((p) => depth[p] <= band);
+            let innerPx = line.pixels.filter((p) => depth[p] > band);
+            let edge = samplePixels(analysis, edgePx, 6000);
+            let darkest = [...kmeansLab(edge.points, edge.weights, 2)].sort((a, b) => a.lab[0] - b.lab[0])[0];
+            let inner = samplePixels(analysis, innerPx.length ? innerPx : line.pixels, 8000);
+            let parts = kmeansLab(inner.points, inner.weights, 3);
+            let meanX = (c) => c.members.reduce((t, j) => t + (inner.at[j] % w), 0) / c.members.length;
+            let second = parts.slice(1).find((c) => c.share >= 0.2 && deltaE(c.lab, parts[0].lab) >= 0.15);
+            let colors = second ? [parts[0], second].sort((a, b) => meanX(a) - meanX(b)).map((c) => hexOfLab(c.lab)) : [hexOfLab(parts[0].lab)];
             analysis.nameLine = { colors, outline: hexOfLab(darkest.lab), box: line.box };
         }
     }

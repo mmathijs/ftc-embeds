@@ -648,7 +648,7 @@ test("analyze: main part only drops a name line under a mascot, and reads its ba
     let r = cutoutRegion(a, { mode: "edge", color: "auto", tolerance: 0.06, mainPart: true });
     assert.equal(r.removed[440 * a.proxy.width + 200], 1, "the banner is gone");
     assert.equal(r.removed[190 * a.proxy.width + 300], 0, "the mascot stays");
-    assert.deepEqual(a.nameLine.colors, ["#1e5aaa", "#86c4ed"], "two colours, left to right");
+    assert.deepEqual(a.nameLine.colors, ["#1e5aaa", "#78beeb"], "two colours, left to right");
     assert.equal(a.nameLine.outline, "#141e3c", "the darkest colour is the outline");
 });
 
@@ -733,6 +733,7 @@ test("render: pixel text is drawn exactly, and a bold name bar with pad 2 is 13 
     let r = A.render(A.validateProject(fx.project), "v1", assetsOf("mascot-banner"));
     assert.deepEqual(pixel(r.opaque, 20, 39).slice(0, 3), [0x14, 0x1e, 0x3c], "the outline runs along the bottom row");
     assert.equal(pixel(r.transparent, 20, 39)[3], 255, "and is opaque in the transparent version");
+    assert.ok(!ids(A.runChecks(r, A.validateProject(fx.project), "v1")).includes("C6"), "the name bar counts as content: no empty bottom rows");
 });
 
 // ------------------------------------------------------------ checks (M2)
@@ -781,6 +782,10 @@ test("checks: C5 (contrast), C7 (cut in the wrong place), C8 (circle cut off), C
     assert.deepEqual([c9?.params.backgrounds, c9?.fix.action], [["red"], "addBorder"]);
     let bordered = A.applyFix(rp, "v1", c9, { result: rr, source: src });
     assert.ok(!ids(A.runChecks(A.render(bordered, "v1", { source: src }), bordered, "v1")).includes("C9"));
+    // A white border vanishes on FIRST's white, but the blue logo inside it doesn't: no warning.
+    let blueOnWhite = cutProject("disc-on-white");
+    assert.equal(blueOnWhite.variants[0].border.width, 1.1);
+    assert.ok(!ids(A.runChecks(renderCut(blueOnWhite, "disc-on-white"), blueOnWhite, "v1")).includes("C9"));
 });
 
 // ------------------------------------------------------------ candidates (M2)

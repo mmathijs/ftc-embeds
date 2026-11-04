@@ -215,9 +215,22 @@
             $("preview").replaceChildren();
             widget = new lib[w.cls]($("preview"), o);
             shown = state.widget;
+            $("avatar-hint").hidden = true;
+            // A team card that loads a team without a FIRST avatar links to the avatar maker (no extra request).
+            if (state.widget === "team-card") widget.on("load", ({ data }) => avatarHint(data?.card));
         } else widget.update(o);
         let dark = /-auto$|^auto$/.test(state.theme) ? matchMedia("(prefers-color-scheme: dark)").matches : state.theme == "dark" || state.theme == "trophy" || state.theme.endsWith("-dark");
         $("preview").classList.toggle("on-dark", dark);
+    }
+
+    function avatarHint(card) {
+        let hint = $("avatar-hint");
+        hint.hidden = !card || !!card.avatar;
+        if (hint.hidden) return;
+        let a = document.createElement("a");
+        a.href = `/avatar#${encodeURIComponent(JSON.stringify({ team: card.number }))}`;
+        a.textContent = "Make one →";
+        hint.replaceChildren("This team has no FIRST avatar yet. ", a);
     }
 
     // ------------------------------------------------------------ controls

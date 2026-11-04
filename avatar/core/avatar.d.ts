@@ -270,7 +270,7 @@ export declare function projectToFile(project: Project, sourcePngDataUrl: string
 /** Throws an Error with a readable message; migrates old versions. */
 export declare function validateProject(json: unknown): Project;
 
-export declare function encodePNG(image: Image8, opts: { alpha: boolean }, deflate: (data: Uint8Array) => Promise<Uint8Array>): Promise<Uint8Array>;
+export declare function encodePNG(image: Image8, opts: { alpha: boolean; check?: boolean }, deflate: (data: Uint8Array) => Promise<Uint8Array>): Promise<Uint8Array>;
 export declare function decodePNG(bytes: Uint8Array, inflate: (data: Uint8Array) => Uint8Array | Promise<Uint8Array>): Promise<Image8>;
 export declare function deflateStored(data: Uint8Array): Promise<Uint8Array>;
 export declare function crc32(bytes: Uint8Array, crc?: number): number;

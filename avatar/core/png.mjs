@@ -93,11 +93,12 @@ function filterRow(t, row, prev, bpp, out) {
  * Encode a { width, height, data } 8-bit RGBA image as PNG: colour type 6 with alpha, 2 without.
  * Each row gets the filter with the smallest sum of absolute filtered bytes (as signed bytes; ties
  * to the lowest type). Asserts the export rules first: opaque means alpha 255 everywhere, and a
- * transparent pixel has RGB 0. deflate(bytes) must return a zlib stream.
+ * transparent pixel has RGB 0 (check: false skips that, for storing a source exactly as it is).
+ * deflate(bytes) must return a zlib stream.
  */
-export async function encodePNG(image, { alpha }, deflate) {
+export async function encodePNG(image, { alpha, check = true }, deflate) {
     let { width, height, data } = image;
-    for (let i = 0; i < data.length; i += 4) {
+    for (let i = 0; check && i < data.length; i += 4) {
         if (!alpha && data[i + 3] !== 255) throw new Error("encodePNG: an opaque image has a pixel with alpha below 255");
         if (alpha && data[i + 3] === 0 && (data[i] || data[i + 1] || data[i + 2])) throw new Error("encodePNG: a fully transparent pixel has colour");
     }

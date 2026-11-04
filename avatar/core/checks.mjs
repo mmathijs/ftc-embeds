@@ -8,6 +8,7 @@ import { srgbToOklab, deltaE, rgbToHsv, hsvToRgb, parseHex, formatHex, chromaKey
 import { fitFor, orientPoint, AVATAR_SIZE } from "./render.mjs";
 import { LIMITS } from "./project.mjs";
 import { edgeSamples, backgroundScore, suggestBackgrounds } from "./analyze.mjs";
+import { textPixels } from "./font.mjs";
 
 /** FIRST's file size limit in bytes. */
 export const MAX_BYTES = 20000;
@@ -25,14 +26,17 @@ export const FIRST_BACKGROUNDS = { white: "#ffffff", red: "#ed1c24", blue: "#006
 
 /**
  * The content box (C6, C11) in output px [x0, y0, x1, y1), or null when empty: with a transparent
- * cut-out, the subject (alpha ≥ 0.5); otherwise pixels that differ from the background.
+ * cut-out, the subject (alpha ≥ 0.5) and any pixel text (a name bar is content too); otherwise pixels
+ * that differ from the background.
  */
 export function contentBox(result, variant) {
     let N = AVATAR_SIZE;
     let counts;
     if (result.info.transparentMode === "cutout") {
         let a = result.info.subjectAlpha;
-        counts = (x, y) => a[y * N + x] >= 0.5;
+        let text = new Uint8Array(N * N);
+        for (let t of variant.texts) for (let [x, y] of textPixels(t, N)) if (x >= 0 && y >= 0 && x < N && y < N) text[y * N + x] = 1;
+        counts = (x, y) => a[y * N + x] >= 0.5 || text[y * N + x] === 1;
     } else {
         let bg = srgbToOklab(parseHex(variant.background ?? "#ffffff"));
         let d = result.opaque.data;
@@ -160,28 +164,30 @@ export function runChecks(result, project, variantId, bytes = null, analysis = n
         }
     }
 
-    // C9: on one of FIRST's backgrounds, the transparent version's outer edge disappears.
+    // C9: on one of FIRST's backgrounds, the transparent version's outer edge disappears. A border
+    // that matches a background may vanish on it while the logo inside still shows (a white border on
+    // FIRST's white is the logo on white again): then it only counts if the logo's own edge vanishes too.
     {
-        let t = result.transparent;
-        let N = AVATAR_SIZE;
-        let solid = (x, y) => x >= 0 && y >= 0 && x < N && y < N && t.data[(y * N + x) * 4 + 3] >= 128;
-        let edge = [];
-        for (let y = 0; y < N; y++) {
-            for (let x = 0; x < N; x++) {
-                if (!solid(x, y)) continue;
-                let border = x === 0 || y === 0 || x === N - 1 || y === N - 1;
-                if (border || !solid(x - 1, y) || !solid(x + 1, y) || !solid(x, y - 1) || !solid(x, y + 1)) {
+        let vanishes = (img, hex) => {
+            let N = AVATAR_SIZE;
+            let solid = (x, y) => x >= 0 && y >= 0 && x < N && y < N && img.data[(y * N + x) * 4 + 3] >= 128;
+            let lab = srgbToOklab(parseHex(hex));
+            let total = 0, near = 0;
+            for (let y = 0; y < N; y++) {
+                for (let x = 0; x < N; x++) {
+                    if (!solid(x, y)) continue;
+                    let border = x === 0 || y === 0 || x === N - 1 || y === N - 1;
+                    if (!border && solid(x - 1, y) && solid(x + 1, y) && solid(x, y - 1) && solid(x, y + 1)) continue;
                     let i = (y * N + x) * 4;
-                    edge.push({ lab: srgbToOklab([t.data[i] / 255, t.data[i + 1] / 255, t.data[i + 2] / 255]), w: t.data[i + 3] / 255 });
+                    let w = img.data[i + 3] / 255;
+                    total += w;
+                    if (deltaE(srgbToOklab([img.data[i] / 255, img.data[i + 1] / 255, img.data[i + 2] / 255]), lab) <= VANISH_DELTA) near += w;
                 }
             }
-        }
-        let total = edge.reduce((n, e) => n + e.w, 0);
-        let lost = Object.entries(FIRST_BACKGROUNDS).filter(([, hex]) => {
-            let lab = srgbToOklab(parseHex(hex));
-            let near = edge.reduce((n, e) => n + (deltaE(e.lab, lab) <= VANISH_DELTA ? e.w : 0), 0);
             return total > 0 && near >= total / 2;
-        });
+        };
+        let bordered = result.info.transparentMode === "cutout" && v.border.width > 0;
+        let lost = Object.entries(FIRST_BACKGROUNDS).filter(([, hex]) => vanishes(result.transparent, hex) && (!bordered || vanishes(result.info.subject40, hex)));
         if (lost.length) {
             out.push({ id: "C9", level: "warning", output: "transparent", params: { backgrounds: lost.map(([name]) => name) }, fix: { action: v.border.width > 0 ? "darkerBorder" : "addBorder" } });
         }
