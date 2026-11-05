@@ -19,13 +19,13 @@
         "next-match": { global: "FtcNextMatch", cls: "NextMatch", tag: "ftc-next-match", label: "Next match", text: "While you compete: your next match, the alliances and a countdown. Updates by itself.", badge: "During events", layouts: { list: "Full", compact: "Two lines" }, height: 230 },
         "team-season": { global: "FtcTeamSeason", cls: "TeamSeason", tag: "ftc-team-season", label: "Season + next match", text: "Season results, with the live next match on top while you compete.", layouts: { list: "List", strip: "Scrolling tiles" }, height: 520 },
         countdown: { global: "FtcCountdown", cls: "Countdown", tag: "ftc-countdown", label: "Countdown", text: "Days, hours and minutes to your next event, or to your next match while you compete.", layouts: { list: "Boxes", compact: "One line" }, height: 200 },
-        "event-rankings": { global: "FtcEventRankings", cls: "EventRankings", tag: "ftc-event-rankings", label: "Event rankings", text: "The rankings of the event you're at, or your latest one, with your team marked. Moves on by itself.", badge: "Live", layouts: {}, height: 560 },
+        "event-rankings": { global: "FtcEventRankings", cls: "EventRankings", tag: "ftc-event-rankings", label: "Event rankings", text: "The rankings of the event you're at, or your latest one, with your team marked. Moves on by itself.", badge: "Live", layouts: { list: "Table", cards: "Leaderboard", podium: "Podium + table", strip: "Scrolling tiles" }, height: 560 },
     };
     // Widgets about an event. The pit map has its own steps (and library); the rest work like the
     // team widgets, with an event code instead of a team.
     const EVENT_WIDGETS = {
         "pit-map": { label: "Pit map", text: "A map visitors can search, with walking routes to pits and fields.", badge: "Most used" },
-        "event-rankings": { global: "FtcEventRankings", cls: "EventRankings", tag: "ftc-event-rankings", label: "Rankings", text: "Rank, ranking points, record and OPR of every team. Updates itself during the event.", badge: "Live", layouts: {}, height: 560 },
+        "event-rankings": { global: "FtcEventRankings", cls: "EventRankings", tag: "ftc-event-rankings", label: "Rankings", text: "Rank, ranking points, record and OPR of every team. Updates itself during the event.", badge: "Live", layouts: { list: "Table", cards: "Leaderboard", podium: "Podium + table", strip: "Scrolling tiles" }, height: 560 },
         "event-matches": { global: "FtcEventMatches", cls: "EventMatches", tag: "ftc-event-matches", label: "Match schedule", text: "Every match with its time, alliances and score, the next one marked.", badge: "Live", layouts: {}, height: 600 },
         "event-advancement": { global: "FtcEventAdvancement", cls: "EventAdvancement", tag: "ftc-event-advancement", label: "Advancement", text: "How many teams advance and where to, each team's points, and who made it.", layouts: {}, height: 600 },
         "league-standings": { global: "FtcLeagueStandings", cls: "LeagueStandings", tag: "ftc-league-standings", label: "League standings", text: "A league's standings, from any of its meets. Stays current all season.", layouts: {}, height: 560 },
@@ -361,7 +361,7 @@
         return formatOptions(o);
     }
     const scrollHeight = () => (state.maxHeight ? parseInt(state.maxHeight) + 4 : null);
-    const eventHeight = () => (state.eventWidget == "countdown" ? (state.layout == "compact" ? 140 : 200) : scrollHeight() || EVENT_WIDGETS[state.eventWidget].height || 560);
+    const eventHeight = () => (state.eventWidget == "countdown" ? (state.layout == "compact" ? 140 : 200) : scrollHeight() || (state.layout == "strip" ? 260 : EVENT_WIDGETS[state.eventWidget].height || 560));
     /** Where the code may load a script: there the iframe sizes itself to the widget (embed/resize.js). */
     const autoHeight = () => !["wix", "google-sites"].includes(state.site) && !state.maxHeight;
     const teamHeight = () => (state.widget == "event-rankings" && scrollHeight() ? scrollHeight() : state.layout == "strip" ? 260 : state.layout == "compact" ? 140 : WIDGETS[state.widget].height);
