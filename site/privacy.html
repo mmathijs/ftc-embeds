@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy · ftc-embeds</title>
+<meta name="description" content="What ftc-embeds.com, its widgets and the avatar maker do with your data: no cookies, no tracking, uploads are never stored.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%231c1b19'/%3E%3Crect x='3' y='3' width='4' height='4' fill='%23ff5a1f'/%3E%3Crect x='9' y='3' width='4' height='4' fill='%23f4f1ea'/%3E%3Crect x='3' y='9' width='4' height='4' fill='%23f4f1ea'/%3E%3Crect x='9' y='9' width='4' height='4' fill='%23f4f1ea'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+    /* Same tokens, header and footer as the other pages (site/team.html). */
+    :root {
+        --paper: #f4f1ea;
+        --paper-2: #ebe6db;
+        --ink: #1c1b19;
+        --ink-2: #5d5a53;
+        --rule: #cfc8b8;
+        --grid: rgba(28, 27, 25, 0.016);
+        --accent: #ff5a1f;
+        --field: #fbf9f4;
+        --sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+        --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+        color-scheme: light;
+    }
+    @media (prefers-color-scheme: dark) {
+        :root {
+            --paper: #161512;
+            --paper-2: #1f1e1a;
+            --ink: #ece7dc;
+            --ink-2: #a39d90;
+            --rule: #3a3731;
+            --grid: rgba(236, 231, 220, 0.018);
+            --field: #1b1a17;
+            color-scheme: dark;
+        }
+    }
+    * { box-sizing: border-box; }
+    html { background: var(--paper); scroll-padding-top: var(--header, 56px); }
+    body {
+        margin: 0;
+        color: var(--ink);
+        font: 15px/1.6 var(--sans);
+        background-color: var(--paper);
+        background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+        background-size: 32px 32px;
+    }
+    a { color: inherit; text-underline-offset: 3px; }
+    a:hover { color: var(--accent); }
+
+    .top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding: 14px 28px; border-bottom: 2px solid var(--ink); position: sticky; top: 0; z-index: 30; background: var(--paper); }
+    .wordmark { font: 500 17px var(--mono); text-decoration: none; letter-spacing: -0.02em; }
+    .wordmark b { font-weight: 500; color: var(--accent); }
+    .top nav { display: flex; gap: 20px; font: 13px var(--mono); }
+    .top nav a { text-decoration: none; color: var(--ink-2); }
+    .top nav a:hover, .top nav a[aria-current] { color: var(--ink); }
+
+    .doc { max-width: 760px; margin: 0 auto; padding: 44px 28px 56px; }
+    .doc h1 { margin: 0; font-size: 34px; line-height: 1.1; font-weight: 600; letter-spacing: -0.025em; }
+    .doc .meta { margin: 10px 0 0; font: 12.5px var(--mono); color: var(--ink-2); }
+    .doc h2 { margin: 40px 0 10px; font-size: 20px; font-weight: 600; letter-spacing: -0.01em; display: flex; gap: 10px; align-items: baseline; }
+    .doc h2 span { font: 12px var(--mono); color: var(--accent); }
+    .doc h3 { margin: 22px 0 6px; font-size: 15.5px; font-weight: 600; }
+    .doc p, .doc ul { margin: 0 0 12px; }
+    .doc ul { padding-left: 20px; }
+    .doc li { margin: 4px 0; }
+    .summary { margin: 26px 0 0; padding: 18px 20px; border: 2px solid var(--ink); background: var(--field); }
+    .summary p { margin: 0 0 8px; font-weight: 600; }
+    .summary ul { margin: 0; }
+    .doc .toc { margin: 36px 0 0; padding: 0 0 22px; border-bottom: 1px solid var(--rule); list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 4px 18px; font: 13px var(--mono); }
+    .toc a { text-decoration: none; color: var(--ink-2); }
+    .toc a:hover { color: var(--accent); }
+    table { width: 100%; border-collapse: collapse; margin: 8px 0 16px; font-size: 14px; }
+    th, td { text-align: left; vertical-align: top; padding: 8px 10px 8px 0; border-top: 1px solid var(--rule); }
+    th { font: 500 12px var(--mono); color: var(--ink-2); border-top: 0; padding-top: 0; }
+    td:first-child { white-space: nowrap; font-weight: 500; }
+    .wide { overflow-x: auto; }
+    code { font: 13px var(--mono); background: var(--paper-2); padding: 1px 5px; border-radius: 2px; }
+
+    footer { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 18px 28px 28px; border-top: 2px solid var(--ink); font: 12px/1.6 var(--mono); color: var(--ink-2); }
+
+    @media (max-width: 920px) {
+        .top, .doc, footer { padding-left: 16px; padding-right: 16px; }
+        .top nav { gap: 14px; }
+        .doc h1 { font-size: 28px; }
+    }
+    @media (max-width: 560px) {
+        .top { flex-wrap: wrap; row-gap: 8px; }
+        .top nav { flex-wrap: wrap; gap: 6px 16px; width: 100%; }
+        td:first-child { white-space: normal; }
+    }
+</style>
+</head>
+<body>
+<header class="top">
+    <a class="wordmark" href="/">ftc<b>-</b>embeds</a>
+    <nav>
+        <a href="/setup">setup</a>
+        <a href="/pit-map">pit map</a>
+        <a href="/team">widgets</a>
+        <a href="/avatars">avatar</a>
+        <a href="https://github.com/mmathijs/ftc-embeds#readme">docs</a>
+        <a href="https://www.npmjs.com/package/ftc-embeds">npm</a>
+        <a href="https://github.com/mmathijs/ftc-embeds">source</a>
+        <a href="/stats">stats</a>
+    </nav>
+</header>
+
+<main class="doc">
+    <h1>Privacy policy</h1>
+    <p class="meta">Last updated: 5 November 2026 · applies to ftc-embeds.com, its widgets and the avatar maker</p>
+
+    <div class="summary">
+        <p>The short version</p>
+        <ul>
+            <li>No accounts, no cookies, no ads, no analytics or tracking scripts.</li>
+            <li>Logos you upload to the avatar maker are processed in memory and dropped as soon as your options are sent back. They are never stored.</li>
+            <li>What you make in the avatar editor or save in the setup wizard stays in your own browser.</li>
+            <li>The servers keep ordinary access logs, which include IP addresses, for security and to keep the site running. They are deleted after a while and never sold or shared.</li>
+            <li>Embed statistics count which websites use the widgets, without IP addresses.</li>
+        </ul>
+    </div>
+
+    <ul class="toc" aria-label="Contents">
+        <li><a href="#who">1 · Who we are</a></li>
+        <li><a href="#what">2 · What we collect, and why</a></li>
+        <li><a href="#basis">3 · Legal basis</a></li>
+        <li><a href="#others">4 · Who else is involved</a></li>
+        <li><a href="#retention">5 · How long we keep it</a></li>
+        <li><a href="#storage">6 · Cookies and browser storage</a></li>
+        <li><a href="#rights">7 · Your rights</a></li>
+        <li><a href="#children">8 · Children and teams</a></li>
+        <li><a href="#changes">9 · Changes</a></li>
+        <li><a href="#contact">10 · Contact</a></li>
+    </ul>
+
+    <h2 id="who"><span>01</span>Who we are</h2>
+    <p>ftc-embeds is a free, open-source project made for the <i>FIRST</i> Tech Challenge community by <a href="https://github.com/mmathijs">mmathijs</a>, who runs ftc-embeds.com and its servers and is responsible for the data described here (the "controller" under the GDPR). It is not affiliated with <i>FIRST</i>®.</p>
+    <p>This policy covers the website ftc-embeds.com, the widgets other websites embed from it (as an iframe, an HTML element or the <code>ftc-embeds</code> npm package), the embeds API those widgets use (<code>ftcscout-api.mmathijs.nl</code>), and the avatar maker at <a href="/avatars">/avatars</a>.</p>
+
+    <h2 id="what"><span>02</span>What we collect, and why</h2>
+
+    <h3>Visiting the website, or a page with a widget</h3>
+    <p>When your browser loads a page, a widget or the library from ftc-embeds.com, or a widget asks the embeds API for a team's or event's data, the servers receive the usual technical details of that request:</p>
+    <ul>
+        <li>your IP address, the date and time, the address requested, and the response;</li>
+        <li>the page you came from (the "referrer"), which for a widget is usually the website it is on;</li>
+        <li>your browser and system (the "user agent"), as your browser sends them.</li>
+    </ul>
+    <p>These go into the servers' access logs. We use them to deliver the site, to keep it secure (spotting abuse and attacks) and to fix problems. We don't use them to profile you, and we don't combine them with other data.</p>
+
+    <h3>Embed statistics</h3>
+    <p>To see which websites use the widgets, we keep a separate log of widget and library loads with only the time, the address requested and the website it was loaded on. IP addresses, browser details and other headers are left out. The totals per website are public on the <a href="/stats">statistics page</a>. Embeds API calls are counted per website the same way, from the API's access log, without IP addresses in the result.</p>
+
+    <h3>The avatar maker</h3>
+    <ul>
+        <li><b>Your logo:</b> the logo you upload is sent once to the avatar service, processed in memory to make your options, and dropped as soon as the answer is sent back. It is not saved to disk, not kept and not used for anything else. The same goes for the request the editor makes to get the logo's layers.</li>
+        <li><b>Your team number:</b> used to look up your team's name and current avatar on FTCScout, to name the files and show your current avatar. That is public team information.</li>
+        <li><b>The service's log:</b> one line per request: the time, which options were made and how long it took. No images, no IP addresses.</li>
+        <li><b>Your IP address</b> is held in the service's memory for at most 10 minutes, to limit how many logos one visitor can upload at a time (so the service stays available for everyone). It is not written down.</li>
+    </ul>
+    <p>Only upload a logo your team owns and may use. The page asks you to confirm that.</p>
+
+    <h3>What we don't collect</h3>
+    <p>No accounts, names, email addresses or payment details. No cookies, advertising, analytics or tracking scripts, and no fingerprinting.</p>
+
+    <h2 id="basis"><span>03</span>Legal basis</h2>
+    <p>Under the General Data Protection Regulation (GDPR), we process the data above because of our <b>legitimate interests</b> (Article 6(1)(f)): delivering the website and the widgets, keeping them secure and available, and knowing which websites use them. Making avatar options from your logo is done because you ask for it, to provide that service to you (Article 6(1)(b)). We keep the data to the minimum that needs, as described in this policy.</p>
+
+    <h2 id="others"><span>04</span>Who else is involved</h2>
+    <p>We don't sell or rent data, and we don't share it with anyone for their own purposes. A few services are involved in delivering the site:</p>
+    <div class="wide">
+        <table>
+            <thead><tr><th>Service</th><th>What for</th><th>What it receives</th></tr></thead>
+            <tbody>
+                <tr><td>Cloudflare</td><td>Delivers ftc-embeds.com (network, caching, protection against attacks)</td><td>The requests to ftc-embeds.com, including your IP address. See <a href="https://www.cloudflare.com/privacypolicy/">Cloudflare's privacy policy</a>.</td></tr>
+                <tr><td>Google Fonts</td><td>The site's fonts (IBM Plex), loaded by the site's own pages</td><td>Your IP address and browser details when a page loads the fonts. See <a href="https://policies.google.com/privacy">Google's privacy policy</a>. The widgets themselves don't load fonts from Google.</td></tr>
+                <tr><td>Our hosting provider</td><td>The servers the site, the embeds API and the avatar service run on</td><td>Stores the servers and their logs on our behalf.</td></tr>
+                <tr><td>FTCScout and <i>FIRST</i></td><td>The source of the team and event data the widgets show</td><td>The embeds API fetches public team and event data from them. Your requests and IP address are not passed on.</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <p>Links on the site and in the widgets lead to other websites (FTCScout, <i>FIRST</i>, GitHub, npm). Their own privacy policies apply there. A website that embeds a widget is responsible for its own page and its own privacy policy; the widget only loads data from us as described above.</p>
+    <p>Some of these services may process data outside the European Economic Area. Where they do, they rely on the safeguards the GDPR requires, such as the European Commission's standard contractual clauses or the EU–US Data Privacy Framework.</p>
+
+    <h2 id="retention"><span>05</span>How long we keep it</h2>
+    <ul>
+        <li><b>Access logs</b> (with IP addresses): rotated automatically and deleted after at most 90 days.</li>
+        <li><b>Embed statistics log</b> (without IP addresses): rotated by size; older entries are deleted as new ones come in. The public statistics only contain totals per website.</li>
+        <li><b>Uploaded logos:</b> not kept at all; dropped once your options are sent back.</li>
+        <li><b>The avatar service's upload limit:</b> your IP address stays in memory for at most 10 minutes.</li>
+    </ul>
+    <p>Logs may be kept longer only when needed to investigate a specific security problem.</p>
+
+    <h2 id="storage"><span>06</span>Cookies and browser storage</h2>
+    <p>ftc-embeds.com and the widgets don't set cookies. Two tools save things in your own browser, so you can come back to them. That data never leaves your device:</p>
+    <ul>
+        <li><b>The avatar editor</b> saves your projects and their versions in your browser (IndexedDB), listed on the avatar page under "Saved in this browser". Delete them there, or by clearing this site's data in your browser.</li>
+        <li><b>The setup wizard</b> saves the setups you keep as templates in your browser (localStorage). Clearing this site's data removes them.</li>
+    </ul>
+    <p>Project files you download from the editor (<code>.ftcavatar</code>) are files on your own computer; we never see them.</p>
+
+    <h2 id="rights"><span>07</span>Your rights</h2>
+    <p>Under the GDPR you can ask us for access to the personal data we hold about you, to correct or delete it, to restrict or object to how we use it, and for a copy of it. Because we keep so little (no accounts, logs without names), we may need details from you to find your data in the logs, such as your IP address and the time of your visit.</p>
+    <p>If you think we handle your data wrongly, please contact us first. You can also complain to a data protection authority; in the Netherlands that is the <a href="https://autoriteitpersoonsgegevens.nl/">Autoriteit Persoonsgegevens</a>, or the authority where you live.</p>
+
+    <h2 id="children"><span>08</span>Children and teams</h2>
+    <p>Many people in <i>FIRST</i> Tech Challenge are students under 18. We don't ask anyone for personal data, and the site works without it. The widgets show public team information (team numbers and names, results and awards) from FTCScout and <i>FIRST</i>, not information about individual students. Avatar logos should be the team's own artwork; please don't upload photos of people.</p>
+
+    <h2 id="changes"><span>09</span>Changes</h2>
+    <p>If we change what the site does with data, we update this page and the date at the top. The history of this page is public in the <a href="https://github.com/mmathijs/ftc-embeds/commits/main/site/privacy.html">project's source code</a>.</p>
+
+    <h2 id="contact"><span>10</span>Contact</h2>
+    <p>Questions about privacy, or a request about your data: open an issue on <a href="https://github.com/mmathijs/ftc-embeds/issues">GitHub</a> (public), or contact <a href="https://github.com/mmathijs">mmathijs</a> through GitHub for anything you'd rather not post in public.</p>
+</main>
+
+<footer>
+    <span>Made for the FTC community by <a href="https://github.com/mmathijs">mmathijs</a>. Open source, MIT license. <a href="/privacy">Privacy</a>.</span>
+    <span>Not affiliated with <i>FIRST</i>®. Data from FTCScout and <i>FIRST</i>.</span>
+</footer>
+</body>
+</html>
