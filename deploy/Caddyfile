@@ -4,6 +4,12 @@
 	root * /srv
 	encode zstd gzip
 
+	# Team pages: /teams/16382 is teams.html for every team. The template puts the number (digits
+	# only, from the regexp) in its title and links before the page is sent.
+	@team path_regexp team ^/teams/(\d{1,6})/?$
+	rewrite @team /teams.html
+	templates /teams.html
+
 	# Clean URLs: /embed/pit-map -> embed/pit-map.html
 	try_files {path} {path}.html {path}/index.html
 	file_server
