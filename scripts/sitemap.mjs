@@ -3,10 +3,11 @@
 //                                an event this season or last, with lastmod dates
 //   dist/site/_data/teams/NN.tsv what the team pages say about each team, by the last two digits of
 //                                the number (Caddy's template in teams.html reads one, ~25 KB, per page)
-// The team data comes from FTCScout (about a minute). If it can't be reached, the sitemap has the
-// pages only and the team pages fall back to the number; the script says so.
-//   node scripts/sitemap.mjs [--offline]
-import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+// The team data comes from FTCScout (about a minute).
+// If FTCScout can't be reached (three tries) it keeps the team pages of the live sitemap (--live <file>,
+// else downloaded) and writes no team data, so the server keeps its own.
+//   node scripts/sitemap.mjs [--offline] [--live <live sitemap.xml>]
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { resolve } from "node:path";
 
@@ -108,25 +109,55 @@ const lastCommit = (file) => {
     }
 };
 
+/** The team lines of the sitemap that's live now (from --live <file>, else downloaded), kept as they are. */
+async function liveTeamLines() {
+    let i = process.argv.indexOf("--live");
+    let text;
+    if (i > 0 && existsSync(process.argv[i + 1] || "")) text = readFileSync(process.argv[i + 1], "utf8");
+    else {
+        let r = await fetch(`${ORIGIN}/sitemap.xml`, { signal: AbortSignal.timeout(20000) });
+        if (!r.ok) throw new Error(`the live sitemap answered ${r.status}`);
+        text = await r.text();
+    }
+    return text.split("\n").filter((l) => /<loc>[^<]*\/teams\/\d+<\/loc>/.test(l));
+}
+
 let teams = new Map();
 let current = seasonOf();
+let kept = null; // the live sitemap's team lines, when FTCScout can't be reached
 if (!process.argv.includes("--offline")) {
-    try {
-        let [a, b] = await Promise.all([season(current), season(current - 1)]);
-        teams = collect({ [current]: a, [current - 1]: b });
-    } catch (e) {
-        console.warn(`sitemap: no team pages, FTCScout couldn't be reached (${e.message})`);
+    // FTCScout now and then doesn't answer: try three times, then keep the live sitemap's teams
+    // (and leave the team data on the server, see deploy.sh), so a deploy never empties them.
+    for (let attempt = 1; attempt <= 3 && !teams.size; attempt++) {
+        try {
+            let [a, b] = await Promise.all([season(current), season(current - 1)]);
+            teams = collect({ [current]: a, [current - 1]: b });
+        } catch (e) {
+            console.warn(`sitemap: FTCScout couldn't be reached (attempt ${attempt} of 3: ${e.message})`);
+            if (attempt < 3) await new Promise((r) => setTimeout(r, 3000 * attempt));
+        }
+    }
+    if (!teams.size) {
+        try {
+            kept = await liveTeamLines();
+            console.warn(`sitemap: kept the ${kept.length} team pages of the live sitemap, and no new team data`);
+        } catch (e) {
+            console.warn(`sitemap: no team pages (the live sitemap couldn't be read either: ${e.message})`);
+        }
     }
 }
 let numbers = [...teams.keys()].filter((n) => Number.isInteger(n) && n > 0).sort((x, y) => x - y);
 
-// The team pages' data, 100 files by the number's last two digits.
+// The team pages' data, 100 files by the number's last two digits. Without new data there's no
+// _data folder at all, and deploy.sh then leaves the one on the server as it is.
 const dataDir = resolve(site, "_data/teams");
-rmSync(dataDir, { recursive: true, force: true });
-mkdirSync(dataDir, { recursive: true });
-let shards = Array.from({ length: 100 }, () => []);
-for (let n of numbers) shards[n % 100].push([n, ...describe(teams.get(n), current).map(esc)].join("\t"));
-shards.forEach((rows, i) => writeFileSync(resolve(dataDir, `${String(i).padStart(2, "0")}.tsv`), rows.join("\n") + "\n"));
+rmSync(resolve(site, "_data"), { recursive: true, force: true });
+if (teams.size) {
+    mkdirSync(dataDir, { recursive: true });
+    let shards = Array.from({ length: 100 }, () => []);
+    for (let n of numbers) shards[n % 100].push([n, ...describe(teams.get(n), current).map(esc)].join("\t"));
+    shards.forEach((rows, i) => writeFileSync(resolve(dataDir, `${String(i).padStart(2, "0")}.tsv`), rows.join("\n") + "\n"));
+}
 
 const url = (path, lastmod, priority) => `  <url><loc>${ORIGIN}${path}</loc>${lastmod ? `<lastmod>${lastmod}</lastmod>` : ""}<priority>${priority}</priority></url>`;
 const teamsDate = lastCommit(PAGES["/teams"]);
@@ -135,9 +166,9 @@ const xml = [
     '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
     ...Object.entries(PAGES).map(([p, file]) => url(p, lastCommit(file), p == "/" ? "1.0" : "0.8")),
     // A team page changes when the team plays (its data) or when the page itself changes.
-    ...numbers.map((n) => url(`/teams/${n}`, [teams.get(n).last, teamsDate].filter(Boolean).sort().at(-1), "0.5")),
+    ...(kept || numbers.map((n) => url(`/teams/${n}`, [teams.get(n).last, teamsDate].filter(Boolean).sort().at(-1), "0.5"))),
     "</urlset>",
     "",
 ].join("\n");
 writeFileSync(resolve(site, "sitemap.xml"), xml);
-console.log(`built sitemap (dist/site/sitemap.xml): ${Object.keys(PAGES).length} pages, ${numbers.length} team pages, ${(xml.length / 1024).toFixed(0)} KB; team data in dist/site/_data/teams`);
+console.log(`built sitemap (dist/site/sitemap.xml): ${Object.keys(PAGES).length} pages, ${kept ? kept.length : numbers.length} team pages, ${(xml.length / 1024).toFixed(0)} KB${teams.size ? "; team data in dist/site/_data/teams" : ""}`);

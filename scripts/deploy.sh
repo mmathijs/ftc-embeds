@@ -9,13 +9,16 @@ DIR=/opt/ftc-embeds
 
 node scripts/build.mjs
 node --test scripts/test.mjs >/dev/null
-# After the tests: one of them packs the npm package, which builds again and empties dist/site.
-node scripts/sitemap.mjs
-
-# The live sitemap, to tell search engines afterwards which pages changed (scripts/indexnow.mjs).
+# The live sitemap: what sitemap.mjs keeps if FTCScout doesn't answer, and what indexnow.mjs
+# compares with afterwards to tell search engines which pages changed.
 ssh "$HOST" "cat $DIR/site/sitemap.xml" > dist/sitemap.before.xml 2>/dev/null || rm -f dist/sitemap.before.xml
+# After the tests: one of them packs the npm package, which builds again and empties dist/site.
+node scripts/sitemap.mjs --live dist/sitemap.before.xml
 
-rsync -az --delete --chmod=D755,F644 dist/site/ "$HOST:$DIR/site/"
+# Without new team data (FTCScout didn't answer) the server keeps the team data it has.
+KEEP=()
+[ -d dist/site/_data ] || KEEP=(--exclude=/_data/)
+rsync -az --delete "${KEEP[@]}" --chmod=D755,F644 dist/site/ "$HOST:$DIR/site/"
 # --inplace keeps the same file, which matters for single-file bind mounts like the Caddyfile:
 # a replaced file would stay invisible to the running container.
 rsync -az --inplace --chmod=F644 deploy/Caddyfile deploy/docker-compose.yml "$HOST:$DIR/"

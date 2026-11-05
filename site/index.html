@@ -168,6 +168,17 @@
     .wlist span { color: var(--ink-2); font-size: 14px; }
     .wlist i { font: normal 13px var(--mono); color: var(--ink-2); }
     .wlist a:hover b, .wlist a:hover i { color: var(--accent); }
+    .myteam { margin-top: 22px; padding: 16px 18px; border: 2px solid var(--ink); background: var(--field); display: grid; gap: 10px; }
+    .myteam label { display: grid; gap: 2px; }
+    .myteam label b { font-size: 16px; }
+    .myteam label span { color: var(--ink-2); font-size: 14px; }
+    .myteam-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .myteam input { flex: 1 1 140px; min-width: 0; font: 15px var(--sans); color: var(--ink); background: var(--paper); border: 1px solid var(--rule); border-radius: 2px; padding: 9px 11px; }
+    .myteam input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+    .myteam button { font: 500 15px var(--sans); padding: 9px 16px; border: 1px solid var(--accent); background: var(--accent); color: var(--accent-ink); border-radius: 2px; cursor: pointer; }
+    .myteam button:hover { filter: brightness(1.05); }
+    .myteam-msg { margin: 0; min-height: 0; font-size: 13px; color: var(--warn, #b3360f); }
+    .myteam-msg:empty { display: none; }
     .pm { height: 300px; border: 1px solid var(--rule); background: var(--field); position: relative; overflow: hidden; margin-bottom: 18px; }
     .go-link { font: 13px var(--mono); text-decoration: none; color: var(--ink); }
     .go-link:hover { color: var(--accent); }
@@ -381,6 +392,15 @@
         <h2>Your team, always current</h2>
         <p>Pick what to show, match your site's colors, and paste it on your team's website.</p>
         <ul class="wlist" id="team-widgets"></ul>
+        <form class="myteam" id="myteam" action="/teams" novalidate>
+            <label for="myteam-n"><b>See every widget with your own team</b><span>Your results, awards and next match, live, ready to set up.</span></label>
+            <div class="myteam-row">
+                <input id="myteam-n" inputmode="numeric" maxlength="6" placeholder="Team number" autocomplete="off" aria-describedby="myteam-msg">
+                <button type="submit">Show my team →</button>
+            </div>
+            <p class="myteam-msg" id="myteam-msg" aria-live="polite"></p>
+            <a class="go-link" href="/teams">Find your team's page →</a>
+        </form>
     </section>
     <section class="path">
         <span class="eyebrow">For events and leagues</span>

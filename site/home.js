@@ -82,6 +82,19 @@
         }
     };
     list("team-widgets", WIDGETS);
+
+    // "See every widget with your own team": the team's page, /teams/<number>
+    $("myteam").addEventListener("submit", (e) => {
+        e.preventDefault();
+        let n = $("myteam-n").value.trim().replace(/^#/, "");
+        if (!/^\d{1,6}$/.test(n)) {
+            $("myteam-msg").textContent = "A team number is digits only, like 16382.";
+            $("myteam-n").focus();
+            return;
+        }
+        location.href = `/teams/${+n}`;
+    });
+    $("myteam-n").addEventListener("input", () => ($("myteam-msg").textContent = ""));
     list("event-widgets", EVENT_WIDGETS);
 
     // The pit map: the example event, with the demo team's pit highlighted.
