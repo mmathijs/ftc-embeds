@@ -8,8 +8,9 @@ HOST="${1:-${DEPLOY_HOST:-ftc-embeds-server}}"
 DIR=/opt/ftc-embeds
 
 node scripts/build.mjs
-node scripts/sitemap.mjs
 node --test scripts/test.mjs >/dev/null
+# After the tests: one of them packs the npm package, which builds again and empties dist/site.
+node scripts/sitemap.mjs
 
 rsync -az --delete --chmod=D755,F644 dist/site/ "$HOST:$DIR/site/"
 # --inplace keeps the same file, which matters for single-file bind mounts like the Caddyfile:
