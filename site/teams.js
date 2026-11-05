@@ -91,13 +91,15 @@
 
     // The team widgets, each in its most visual layout; the link takes that layout into the setup.
     const WIDGETS = [
-        { id: "team-results", global: "FtcTeamResults", cls: "TeamResults", name: "Season results", line: "Every event this season: rank, record, awards and advancement.", layout: "strip", opts: { limit: 4 }, seasonal: true },
-        { id: "team-awards", global: "FtcTeamAwards", cls: "TeamAwards", name: "Awards", line: "Every award the team has won, from its first season on.", layout: "banners" },
+        { id: "team-results", global: "FtcTeamResults", cls: "TeamResults", name: "Season results", line: "Every event this season: rank, record, awards and advancement.", layout: "strip", seasonal: true },
+        { id: "team-awards", global: "FtcTeamAwards", cls: "TeamAwards", name: "Awards", line: "Every award the team has won, from its first season on.", layout: "banners", wide: true, maxHeight: "460px" },
         { id: "next-match", global: "FtcNextMatch", cls: "NextMatch", name: "Next match", line: "While you compete: the next match, the alliances and a countdown.", layout: "list" },
-        { id: "event-rankings", global: "FtcEventRankings", cls: "EventRankings", name: "Event rankings", line: "The rankings of the event you're at, or your latest, with you marked.", layout: "cards", opts: { limit: 6 }, seasonal: true },
-        { id: "team-season", global: "FtcTeamSeason", cls: "TeamSeason", name: "Season + next match", line: "Season results, with the live next match on top while you compete.", layout: "list", opts: { limit: 4 } },
+        { id: "event-rankings", global: "FtcEventRankings", cls: "EventRankings", name: "Event rankings", line: "The rankings of the event you're at, or your latest, with you marked.", layout: "cards", seasonal: true },
+        { id: "team-season", global: "FtcTeamSeason", cls: "TeamSeason", name: "Season + next match", line: "Season results, with the live next match on top while you compete.", layout: "list" },
         { id: "countdown", global: "FtcCountdown", cls: "Countdown", name: "Countdown", line: "Days, hours and minutes to your next event, or your next match.", layout: "list" },
     ];
+
+    const MAX_HEIGHT = "400px";
 
     function preview(w, box) {
         box.append(el("div", { className: "wait" }, "loading…"));
@@ -108,18 +110,14 @@
             box.append(host);
             try {
                 window[w.global].configure(api);
-                new window[w.global][w.cls](host, { theme: THEME, bare: true, team: +TEAM, layout: w.layout, ...w.opts, ...(last ? { season: last } : {}) });
+                // Every preview at most MAX_HEIGHT: a taller widget scrolls inside itself (like it
+                // would with the max-height option on a website), a short one keeps its own height.
+                new window[w.global][w.cls](host, { theme: THEME, bare: true, team: +TEAM, layout: w.layout, maxHeight: w.maxHeight || MAX_HEIGHT, ...w.opts, ...(last ? { season: last } : {}) });
                 if (last) box.closest(".tile").querySelector("p").textContent += " Shown here: last season, until this season's first event.";
             } catch {
                 box.textContent = "Preview unavailable.";
             }
         };
-        // The fade at the bottom only when the widget is taller than its box.
-        if (window.ResizeObserver) {
-            let check = () => box.classList.toggle("clip", box.scrollHeight > box.clientHeight + 2);
-            new ResizeObserver(check).observe(box);
-            new MutationObserver(() => requestAnimationFrame(check)).observe(box, { childList: true, subtree: true });
-        }
         if (!window.IntersectionObserver) return start();
         let io = new IntersectionObserver((es) => {
             if (es.some((e) => e.isIntersecting)) {
@@ -135,7 +133,15 @@
         let tile = el("a", { className: "tile", href: setupUrl({ widget: w.id, ...(w.layout != "list" ? { layout: w.layout } : {}) }, "look") },
             box,
             el("div", { className: "txt" }, el("h3", {}, w.name, el("i", {}, "Use this →")), el("p", {}, w.line)));
-        $("grid").append(tile);
+        // The preview can be scrolled, but a click anywhere on the tile goes to the setup, also
+        // one on a link inside the widget.
+        box.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            location.href = tile.href;
+        }, true);
+        if (w.wide) tile.classList.add("wide");
+        (w.wide ? $("wide") : $("grid")).append(tile);
         preview(w, box);
     }
 })();

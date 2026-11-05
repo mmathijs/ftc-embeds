@@ -99,13 +99,13 @@
     .gallery { border-top: 1px solid var(--rule); padding-top: 40px; padding-bottom: 64px; }
     .gallery h2 { margin: 0 0 8px; font-size: 26px; letter-spacing: -0.02em; }
     .gallery > p { margin: 0 0 30px; color: var(--ink-2); max-width: 62ch; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(520px, 1fr)); gap: 32px; }
-    .tile { display: flex; flex-direction: column; text-decoration: none; border: 1px solid var(--rule); background: var(--field); transition: border-color .15s, transform .15s; min-width: 0; }
-    .tile:hover { border-color: var(--ink); transform: translateY(-2px); color: inherit; }
-    .pv { position: relative; overflow: hidden; pointer-events: none; flex: 1; min-height: 200px; max-height: 380px; padding: 22px; border-bottom: 1px solid var(--rule); background: var(--paper-2); }
-    .pv::after { content: ""; position: absolute; inset: auto 0 0 0; height: 44px; background: linear-gradient(transparent, var(--paper-2)); }
-    .pv:not(.clip)::after { display: none; }
-    .pv .wait { position: absolute; inset: 0; display: grid; place-items: center; font: 12px var(--mono); color: var(--ink-2); }
+    /* Two columns that tiles of different heights stack in without gaps (the widgets cap their own
+       height with maxHeight, see teams.js, and scroll inside it). */
+    .grid { column-width: 480px; column-gap: 32px; }
+    .tile { display: flex; flex-direction: column; break-inside: avoid; margin-bottom: 32px; text-decoration: none; border: 1px solid var(--rule); background: var(--field); transition: border-color .15s; min-width: 0; }
+    .tile:hover { border-color: var(--ink); color: inherit; }
+    .pv { position: relative; padding: 22px; border-bottom: 1px solid var(--rule); background: var(--paper-2); cursor: pointer; min-width: 0; }
+    .pv .wait { padding: 48px 0; text-align: center; font: 12px var(--mono); color: var(--ink-2); }
     .tile .txt { padding: 18px 22px 20px; display: grid; gap: 8px; }
     .tile h3 { margin: 0; font-size: 20px; display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
     .tile h3 i { font: normal 13px var(--mono); color: var(--ink-2); white-space: nowrap; }
@@ -120,8 +120,8 @@
         .finder, .missing { padding-top: 44px; padding-bottom: 52px; }
     }
     @media (max-width: 620px) {
-        .grid { grid-template-columns: minmax(0, 1fr); gap: 24px; }
-        .pv { max-height: 320px; padding: 14px; }
+        .tile { margin-bottom: 24px; }
+        .pv { padding: 14px; }
     }
     @media (max-width: 560px) {
         .top { flex-wrap: wrap; row-gap: 8px; }
@@ -173,6 +173,7 @@
         <section class="wrap gallery" aria-labelledby="gallery-h">
             <h2 id="gallery-h">Widgets with your team's data</h2>
             <p>Live, as they'd look on your website. Pick one to set it up: the setup asks for the look and where your website is built, then gives you the code to paste.</p>
+            <div id="wide"></div>
             <div class="grid" id="grid"></div>
         </section>
     </div>
