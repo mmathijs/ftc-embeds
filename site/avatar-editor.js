@@ -5,7 +5,8 @@
  *   src        which server layer the logo comes from (cut, all, main, notext, logo)
  *   t          the logo's place: canvas = source * s + (x, y)
  *   logoOps    erase / restore strokes and magic-wand clicks, in source pixels
- *   draw       the drawing layer: brush strokes, eraser strokes and Bezier paths, in canvas units
+ *   draw       the drawing layers: brush strokes, eraser strokes, Bezier paths and lifted parts of
+ *              the logo (k: "image", moved or scaled with Select), in canvas units
  *   bg, border, borderColour, frame, adjust, vis
  * Every change makes a new document object, so undo and redo are a list of documents.
  */
@@ -28,7 +29,7 @@
         hand: "M8 13V5a1.5 1.5 0 0 1 3 0v6M11 11V4a1.5 1.5 0 0 1 3 0v7M14 11V5a1.5 1.5 0 0 1 3 0v8c0 5-3 8-7 8-3 0-5-2-6-5l-2-4a1.5 1.5 0 0 1 2.6-1.5L8 13",
     };
     const TOOLS = [
-        ["select", "v", "Select", "Drag over an area to select it: the shapes inside it on the selected layer are selected, and the eraser, brush and wand then only work inside it. Click a shape to select it (Shift adds more); drag a selected shape to move it. Delete removes what is selected."],
+        ["select", "v", "Select", "Drag over an area to select it: the shapes inside it on the selected layer are selected, and the eraser, brush and wand then only work inside it. Click a shape to select it (Shift adds more); drag a selected shape to move it. Drag inside a selected area to move what's in it (with the Logo layer chosen: that part of the logo too), or a corner of the box to scale it. Delete removes what is selected."],
         ["move", "m", "Move logo", "Drag to move the logo. Use the size slider above to make it bigger or smaller. Arrow keys nudge it by one avatar pixel."],
         ["erase", "e", "Eraser", "Drag to erase on the layer that is selected in Layers (right). Hold Alt to restore the logo instead."],
         ["restore", "r", "Restore", "Paint to bring back the original logo, including its background, where the cut-out removed too much."],
@@ -264,6 +265,7 @@
     }
     function pathOf(o) {
         let p = new Path2D(), n = o.nodes || o.pts;
+        if (o.k === "image") { p.rect(o.x, o.y, o.iw * o.s, o.ih * o.s); return p; }
         if (o.k === "stroke") {
             let q = o.pts;
             p.moveTo(q[0][0], q[0][1]);
@@ -282,6 +284,21 @@
     }
     const bez = (a, b, c, d, t) => { let u = 1 - t; return u * u * u * a + 3 * u * u * t * b + 3 * u * t * t * c + t * t * t * d; };
     const free = (o) => { if (!o.box) return o; let c = Object.assign({}, o); delete c.box; delete c.params; return c; };   // points edited by hand
+    // A drawing moved and scaled: f maps a canvas point, a is the scale (line widths, corners and
+    // pictures grow with it). Strokes, paths, erased areas, clips and lifted logo parts (images).
+    function xformObj(o, f, a) {
+        let c = Object.assign({}, o);
+        if (o.pts) c.pts = o.pts.map(f);
+        if (o.nodes) c.nodes = o.nodes.map((n) => { let [x, y] = f([n.x, n.y]), [ix, iy] = f([n.ix, n.iy]), [ox, oy] = f([n.ox, n.oy]); return Object.assign({}, n, { x, y, ix, iy, ox, oy }); });
+        if (o.poly) c.poly = o.poly.map(f);
+        if (o.clip) c.clip = o.clip.map(f);
+        if (o.w) c.w = o.w * a;
+        if (o.radius) c.radius = o.radius * a;
+        if (o.box) { let [ax, ay] = f([o.box.a.x, o.box.a.y]), [bx, by] = f([o.box.b.x, o.box.b.y]); c.box = Object.assign({}, o.box, { a: { x: ax, y: ay }, b: { x: bx, y: by } }); }
+        if (o.k === "image") { [c.x, c.y] = f([o.x, o.y]); c.s = o.s * a; }
+        return c;
+    }
+    const boxOf = (pts) => { let xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]); return pts.length ? [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)] : null; };
     const SHAPES = [["rect", "Rectangle"], ["ellipse", "Ellipse"], ["triangle", "Triangle"], ["polygon", "Polygon"], ["star", "Star"], ["heart", "Heart"], ["arrow", "Arrow"], ["line", "Line"]];
     const ROUNDABLE = ["rect", "triangle", "polygon", "star", "arrow"];
     function shapeNodes(kind, a, b, shift, opt = {}, centre = false) {
@@ -472,7 +489,7 @@
             this.o = o;
             this.label = o.label || "Avatar";
             this.tool = "erase";
-            this.opt = { eraseSize: 2, restoreSize: 2, wandTol: 40, wandContig: true, brushSize: 1.2, stroke: "#121216", fill: "#ffffff", strokeOn: true, fillOn: false, lineW: 1.2, shape: "rect", corners: 0, sides: 6, points: 5, inner: 0.5, pickInto: "stroke", grid: true, preview: "bg", backdrop: "checker", mode: "detail", selShape: "rect" };
+            this.opt = { eraseSize: 2, restoreSize: 2, wandTol: 40, wandContig: true, brushSize: 1.2, stroke: "#121216", fill: "#ffffff", strokeOn: true, fillOn: false, lineW: 1.2, shape: "rect", corners: 0, sides: 6, points: 5, inner: 0.5, pickInto: "stroke", grid: true, preview: "bg", backdrop: "checker", mode: "detail", selShape: "rect", drawFollow: true };
             this.view = { k: 1, px: 0, py: 0 };
             this.undo = []; this.redo = [];
             this.sel = { ids: [], node: -1 };   // selected shapes; node: the selected point when one path is selected
@@ -652,6 +669,7 @@
             s.append(sec("Logo",
                 el("label", { className: "col" }, "Start from", this.srcSel),
                 el("label", {}, el("span", { style: "width:78px" }, "Size"), this.sizeR, this.sizeOut),
+                this.followBox(),
                 el("div", { className: "row" },
                     el("button", { className: "b", type: "button", onclick: () => this.place("fit") }, "Fit"),
                     el("button", { className: "b", type: "button", onclick: () => this.place("fill") }, "Fill"),
@@ -1066,12 +1084,59 @@
                 // or, if it all fits, standing on the bottom edge (never a gap under it)
                 if (how === "bottom") t.y = (y1 - y0) * s > N - S ? S - y0 * s : N - y1 * s;
             }
-            this.set({ t: { s: t.s, x: t.x, y: t.y } }); this.commit();
+            this.logoT({ s: t.s, x: t.x, y: t.y }); this.commit();
         }
         setSize(k) {   // scale around the middle of the canvas
             let d = this.doc, fit = this.fitT(d.src, "fit").s, s = fit * k, c = N / 2;
             let x = c - ((c - d.t.x) / d.t.s) * s, y = c - ((c - d.t.y) / d.t.s) * s;
-            this.set({ t: { s, x, y } });
+            this.logoT({ s, x, y });
+        }
+        /** The logo to place t. With "Drawings move with the logo" on, every drawing (and the selected
+         *  area) gets the same move and scale, from `from` (the document a drag started with). */
+        logoT(t, from = this.doc, quiet = false, area = this.area) {
+            let patch = { t };
+            if (this.opt.drawFollow) {
+                let a = t.s / from.t.s, f = ([x, y]) => [t.x + (x - from.t.x) * a, t.y + (y - from.t.y) * a];
+                if (from.draw.length) patch.draw = from.draw.map((o) => xformObj(o, f, a));
+                if (area) this.area = area.map(f);
+            }
+            this.set(patch, quiet);
+        }
+        followBox() {   // the "Drawings move with the logo" checkbox (in the Logo section and the Move bar)
+            let box = el("input", { type: "checkbox", checked: this.opt.drawFollow, onchange: () => {
+                this.opt.drawFollow = box.checked;
+                for (let b of this.followBoxes) b.checked = box.checked;
+            } });
+            this.followBoxes = [...(this.followBoxes || []).filter((b) => b.isConnected), box];
+            return el("label", { title: "Moving or resizing the logo moves and resizes the drawings too, so they stay where they are on the logo" }, box, "Drawings move with the logo");
+        }
+
+        // ---------- lifted parts of the logo (move or scale part of it with Select) ----------
+        imageOf(o) {   // the decoded picture of an image object (null until it has loaded)
+            let c = (this.imgs ||= new Map()).get(o.src);
+            if (c) return c.img;
+            c = { img: null }; this.imgs.set(o.src, c);
+            loadImage(o.src).then((img) => { c.img = img; this.paint(); this.updatePreview(); }, () => {});
+            return null;
+        }
+        /** Cut the logo inside `poly` (canvas units) out of the logo and put it, as it looks now, on a new
+         *  layer right above the logo, where Select can move and scale it like a shape. */
+        liftLogo(poly) {
+            let d = this.doc, t = d.t, sp = poly.map(([x, y]) => [(x - t.x) / t.s, (y - t.y) / t.s]), b = boxOf(sp);
+            let x0 = clamp(Math.floor(b[0]), 0, this.w), y0 = clamp(Math.floor(b[1]), 0, this.h), x1 = clamp(Math.ceil(b[2]), 0, this.w), y1 = clamp(Math.ceil(b[3]), 0, this.h);
+            if (x1 - x0 < 1 || y1 - y0 < 1) return null;
+            let cv = canvas(x1 - x0, y1 - y0), c = ctx2d(cv, { willReadFrequently: true });
+            c.save(); c.translate(-x0, -y0); c.clip(polyPath(sp)); c.drawImage(this.adjusted(), 0, 0); c.restore();
+            let A = c.getImageData(0, 0, cv.width, cv.height).data, any = false;
+            for (let i = 3; i < A.length; i += 4) if (A[i] > 8) { any = true; break; }
+            if (!any) return null;
+            let L = d.layers, li = L.findIndex((l) => l.kind === "logo"), id = "part" + uid++;
+            let layer = { id, name: "Moved part", kind: "draw", vis: true, opacity: L[li].opacity };
+            let src = cv.toDataURL("image/png");
+            (this.imgs ||= new Map()).set(src, { img: cv });
+            let o = { id: uid++, k: "image", layer: id, src, iw: cv.width, ih: cv.height, s: t.s, x: t.x + x0 * t.s, y: t.y + y0 * t.s };
+            this.set({ layers: [...L.slice(0, li + 1), layer, ...L.slice(li + 1)], draw: [...d.draw, o], logoOps: [...d.logoOps, { k: "area", poly: sp, invert: false }] }, true);
+            return o;
         }
 
         // ---------- drawing the scene ----------
@@ -1119,6 +1184,10 @@
                 } else if (o.k === "stroke") {
                     x.globalCompositeOperation = o.mode === "erase" ? "destination-out" : "source-over";
                     x.strokeStyle = o.colour || "#000"; x.lineWidth = o.w; x.stroke(pathOf(o));
+                } else if (o.k === "image") {     // a part of the logo, lifted to move or scale it
+                    let im = this.imageOf(o);
+                    x.globalCompositeOperation = "source-over";
+                    if (im) { x.save(); x.imageSmoothingEnabled = true; x.imageSmoothingQuality = "high"; x.transform(o.s, 0, 0, o.s, o.x, o.y); x.drawImage(im, 0, 0); x.restore(); }
                 } else {
                     let p = pathOf(o);
                     x.globalCompositeOperation = "source-over";
@@ -1260,6 +1329,14 @@
             };
             if (this.area) ants(this.area);
             if (this.g && this.g.k === "marquee" && this.g.poly) ants(this.g.poly);
+            let sb = this.tool === "select" && !(this.g && this.g.k === "marquee") ? this.selBox() : null;
+            if (sb) {     // drag a corner to scale, inside to move
+                let [x0, y0] = toS(sb[0], sb[1]), [x1, y1] = toS(sb[2], sb[3]), r = 4.5 * dpr;
+                c.save(); c.setLineDash([]); c.strokeStyle = "#ff5a1f"; c.lineWidth = dpr; c.strokeRect(x0, y0, x1 - x0, y1 - y0);
+                c.fillStyle = "#fff"; c.strokeStyle = "#1c1b19";
+                for (let [x, y] of [[x0, y0], [x1, y0], [x1, y1], [x0, y1]]) { c.fillRect(x - r, y - r, 2 * r, 2 * r); c.strokeRect(x - r, y - r, 2 * r, 2 * r); }
+                c.restore();
+            }
             for (let so of this.selObjs()) if (so !== this.selObj()) {
                 c.save(); c.setTransform(M.k, 0, 0, M.k, M.ox, M.oy); c.strokeStyle = "#ff5a1f"; c.lineWidth = 1.5 / M.k * dpr; c.setLineDash([4 / M.k * dpr, 3 / M.k * dpr]);
                 c.stroke(pathOf(so)); c.restore();
@@ -1372,15 +1449,16 @@
             }
             if (["pen", "shape", "select"].includes(this.tool)) {
                 let ob = this.selObj(), many = this.sel.ids.length;
-                if (this.tool !== "select" || ob) b.append(el("span", {}, (ob ? "Selected: " : "New: ") + [o.strokeOn ? `line ${px(o.lineW)}` : "", o.fillOn ? "fill" : ""].filter(Boolean).join(" + ") + " (colours in the right panel)"));
-                if (many) b.append(el("button", { className: "b", type: "button", onclick: () => this.deleteSel() }, many > 1 ? `Delete ${many} shapes` : "Delete shape"));
+                if (ob && ob.k === "image") b.append(el("span", {}, "Selected: a part of the logo. Drag it to move it, a corner of the box to scale it."));
+                else if (this.tool !== "select" || ob) b.append(el("span", {}, (ob ? "Selected: " : "New: ") + [o.strokeOn ? `line ${px(o.lineW)}` : "", o.fillOn ? "fill" : ""].filter(Boolean).join(" + ") + " (colours in the right panel)"));
+                if (many) b.append(el("button", { className: "b", type: "button", onclick: () => this.deleteSel() }, many > 1 ? `Delete ${many} shapes` : ob && ob.k === "image" ? "Delete part" : "Delete shape"));
                 if (this.building) b.append(el("button", { className: "b", type: "button", onclick: () => this.finishPath() }, "Finish path (Enter)"));
             }
             if (this.tool === "picker") b.append(el("label", {}, "Pick into", seg("pickInto", [["stroke", "Line"], ["fill", "Fill"], ["bg", "Background"]])));
             if (this.tool === "move") {
                 b.append(el("button", { className: "b", type: "button", onclick: () => this.place("fit") }, "Fit"), el("button", { className: "b", type: "button", onclick: () => this.place("fill") }, "Fill"),
                     el("button", { className: "b", type: "button", onclick: () => this.place("center") }, "Centre"), el("button", { className: "b", type: "button", onclick: () => this.place("bottom") }, "Cut at bottom"),
-                    el("span", {}, "Size: slider under Logo, right"));
+                    el("span", {}, "Size: slider under Logo, right"), this.followBox());
             }
         }
         shapeParam(label, key, min, max, step, fmt, kinds) {
@@ -1428,7 +1506,7 @@
             this.dragging = true;
             if (tool === "brush" && e.altKey) return this.pick(p, "stroke");
             if (tool === "picker") return this.pick(p, this.opt.pickInto);
-            if (tool === "move") { this.g = { k: "move", p, t: this.doc.t }; return; }
+            if (tool === "move") { this.g = { k: "move", p, t: this.doc.t, from: this.doc, area: this.area }; return; }
             if (tool === "erase" || tool === "restore") {
                 let restore = (tool === "restore") !== e.altKey, a = this.layerOf(this.active);
                 if (tool === "erase" && !restore && a.kind === "draw") {
@@ -1473,12 +1551,20 @@
             }
             let p = this.pt(e); this.hover = p;
             let g = this.g;
-            if (!g) { if (this.tool === "pen" || ["erase", "restore", "brush"].includes(this.tool)) this.paint(); return; }
+            if (!g) {
+                if (this.tool === "select" && !this.keys.has(" ")) {
+                    let c = this.hitCorner(p);
+                    this.cv.style.cursor = c ? (c.i % 2 ? "nesw-resize" : "nwse-resize") : this.area && inPoly(this.area, p.x, p.y) ? "move" : "default";
+                }
+                if (this.tool === "pen" || ["erase", "restore", "brush"].includes(this.tool)) this.paint();
+                return;
+            }
+            if (g.k === "sxf") return this.selXform(g, p, e);
             if (g.k === "pan") { this.view = { k: g.view.k, px: g.view.px + e.offsetX - g.sx, py: g.view.py + e.offsetY - g.sy }; this.paint(); return; }
             if (g.k === "move") {
                 let dx = p.x - g.p.x, dy = p.y - g.p.y;
                 if (e.shiftKey) { if (Math.abs(dx) > Math.abs(dy)) dy = 0; else dx = 0; }
-                this.set({ t: { s: g.t.s, x: g.t.x + dx, y: g.t.y + dy } }, true); this.paint(); return;
+                this.logoT({ s: g.t.s, x: g.t.x + dx, y: g.t.y + dy }, g.from, true, g.area); this.paint(); return;
             }
             if (g.k === "lstroke") {
                 let q = this.toSrc(p), last = g.op.pts[g.op.pts.length - 1];
@@ -1509,6 +1595,7 @@
             let g = this.g; this.g = null; this.dragging = false;
             if (g && g.k === "pan") { this.setTool(this.tool); return; }
             if (g && g.k === "lstroke") this.layerOps = null;   // redraw from the list, as undo and redo will
+            if (g && g.k === "sxf" && g.lifted) this.flash("That part of the logo is now on its own layer, Moved part (see Layers), so it stays movable.");
             if (g && g.k === "shape") {
                 let o = this.objById(g.id), xs = o.nodes.map((n) => n.x), ys = o.nodes.map((n) => n.y);
                 if (Math.max(...xs) - Math.min(...xs) < 2 && Math.max(...ys) - Math.min(...ys) < 2) { this.set({ draw: this.doc.draw.filter((x) => x.id !== g.id) }); this.select([]); this.doc = this.base; this.paint(); return; }
@@ -1575,6 +1662,7 @@
                 for (let i = this.doc.draw.length - 1; i >= 0; i--) {
                     let o = this.doc.draw[i]; if (o.layer !== L[li].id || o.k === "area" || (o.k === "stroke" && o.mode === "erase")) continue;
                     let path = pathOf(o);
+                    if (o.k === "image") { if (x.isPointInPath(path, p.x, p.y)) return o; continue; }
                     x.lineWidth = Math.max(o.w || 1, 12 / this.view.k); x.lineCap = x.lineJoin = "round";
                     if ((o.fill && o.closed && x.isPointInPath(path, p.x, p.y)) || x.isPointInStroke(path, p.x, p.y)) return o;
                 }
@@ -1640,10 +1728,54 @@
             this.buildLayer();
             return this.lctx.getImageData(x, y, 1, 1).data[3];
         }
-        pointsOf(o) { return o.k === "stroke" ? o.pts : o.nodes ? o.nodes.map((n) => [n.x, n.y]) : []; }
+        selBox() {   // the box around the selected area, or else the selected shapes, a little outside them
+            let b = this.area ? boxOf(this.area) : boxOf(this.selObjs().flatMap((o) => this.pointsOf(o)));
+            if (!b) return null;
+            let m = 6 / this.view.k;
+            return [b[0] - m, b[1] - m, b[2] + m, b[3] + m];
+        }
+        hitCorner(p) {
+            if (this.tool !== "select" || this.building) return null;
+            let b = this.selBox(); if (!b) return null;
+            let r = 7 / this.view.k, C = [[b[0], b[1]], [b[2], b[1]], [b[2], b[3]], [b[0], b[3]]];
+            let i = C.findIndex(([x, y]) => Math.abs(x - p.x) <= r && Math.abs(y - p.y) <= r);
+            return i < 0 ? null : { i, c: C[i], anchor: C[(i + 2) % 4] };
+        }
+        selXform(g, p, e) {   // move (or, from a corner, scale) what is selected
+            if (!g.objs) {      // the first real move decides what moves
+                if (Math.hypot(p.x - g.p.x, p.y - g.p.y) < 2 / this.view.k) return;
+                let a = this.layerOf(this.active), logo = this.doc.layers.find((l) => l.kind === "logo");
+                if (this.area && a.kind === "logo" && logo && logo.vis) {
+                    let o = this.liftLogo(this.area);
+                    if (o) { this.select([...this.sel.ids, o.id]); this.active = o.layer; g.lifted = true; }
+                }
+                g.objs = this.selObjs(); g.area = this.area;
+            }
+            let f, k = 1;
+            if (g.scale) {      // about the opposite corner, keeping the proportions
+                let [ax, ay] = g.scale.anchor, [cx, cy] = g.scale.c;
+                let sx = Math.abs(cx - ax) > 1e-6 ? (p.x - ax) / (cx - ax) : 0, sy = Math.abs(cy - ay) > 1e-6 ? (p.y - ay) / (cy - ay) : 0;
+                k = Math.max(0.05, sx, sy);
+                f = ([x, y]) => [ax + (x - ax) * k, ay + (y - ay) * k];
+            } else {
+                let dx = p.x - g.p.x, dy = p.y - g.p.y;
+                if (e.shiftKey) { if (Math.abs(dx) > Math.abs(dy)) dy = 0; else dx = 0; }
+                f = ([x, y]) => [x + dx, y + dy];
+            }
+            let moved = new Map(g.objs.map((o) => [o.id, xformObj(o, f, k)]));
+            this.set({ draw: this.doc.draw.map((x) => moved.get(x.id) || x) }, true);
+            if (g.area) this.area = g.area.map(f);
+            this.paint();
+        }
+        pointsOf(o) { return o.k === "stroke" ? o.pts : o.nodes ? o.nodes.map((n) => [n.x, n.y]) : o.k === "image" ? [[o.x, o.y], [o.x + o.iw * o.s, o.y], [o.x + o.iw * o.s, o.y + o.ih * o.s], [o.x, o.y + o.ih * o.s]] : []; }
         selectDown(p, e) {
             let h = this.hitHandle(p);
             if (h) return this.startEdit(h, p, e);
+            // the box around the selection: a corner scales it, a drag inside the area moves it (with
+            // the logo layer chosen, the logo inside it too: see selXform)
+            let corner = this.hitCorner(p);
+            if (corner) { this.g = { k: "sxf", p, scale: corner }; return; }
+            if (this.area && inPoly(this.area, p.x, p.y)) { this.g = { k: "sxf", p }; return; }
             // a drawing layer selected: drags grab its own shapes only, so a marquee can start over other
             // layers' shapes; a plain click still picks the top shape there (see up)
             let a = this.layerOf(this.active), only = a.kind === "draw" ? a.id : null;
@@ -1691,9 +1823,7 @@
             if (g.k === "objs") {
                 let dx = p.x - g.p.x, dy = p.y - g.p.y;
                 if (e.shiftKey) { if (Math.abs(dx) > Math.abs(dy)) dy = 0; else dx = 0; }
-                let mv = (src) => src.k === "stroke" ? Object.assign({}, src, { pts: src.pts.map(([x, y]) => [x + dx, y + dy]) })
-                    : Object.assign({}, src, { nodes: src.nodes.map((n) => ({ x: n.x + dx, y: n.y + dy, ix: n.ix + dx, iy: n.iy + dy, ox: n.ox + dx, oy: n.oy + dy, smooth: n.smooth })) },
-                        src.box ? { box: Object.assign({}, src.box, { a: { x: src.box.a.x + dx, y: src.box.a.y + dy }, b: { x: src.box.b.x + dx, y: src.box.b.y + dy } }) } : {});
+                let mv = (src) => xformObj(src, ([x, y]) => [x + dx, y + dy], 1);
                 let moved = new Map(g.orig.map((o) => [o.id, mv(o)]));
                 this.set({ draw: this.doc.draw.map((x) => moved.get(x.id) || x) }, true); this.paint(); return;
             }
@@ -1756,7 +1886,7 @@
             if (this.tool === "move" && e.key.startsWith("Arrow")) {
                 e.preventDefault(); let st = (e.shiftKey ? 5 : 1) * S, t = this.doc.t;
                 let dx = e.key === "ArrowLeft" ? -st : e.key === "ArrowRight" ? st : 0, dy = e.key === "ArrowUp" ? -st : e.key === "ArrowDown" ? st : 0;
-                this.set({ t: { s: t.s, x: t.x + dx, y: t.y + dy } }); this.commit(); return;
+                this.logoT({ s: t.s, x: t.x + dx, y: t.y + dy }); this.commit(); return;
             }
             let tool = TOOLS.find((x) => x[1] === k);
             if (tool && !e.altKey) { e.preventDefault(); return this.setTool(tool[0]); }
