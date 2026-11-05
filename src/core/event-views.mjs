@@ -62,6 +62,8 @@ export function eventLine(w, ev) {
         w.shows("date") ? h("span", { part: "date" }, w.dates(ev.start, ev.end)) : null,
         w.shows("location") ? h("span", { part: "location" }, ev.remote ? w.t("remote") : place(ev.location)) : null,
         w.shows("type") ? h("span", { part: "type" }, eventType(ev.type, w)) : null,
+        // how many teams are at the event (the widgets whose data lists them: rankings)
+        Array.isArray(ev.teams) && ev.teams.length && w.shows("teams") ? h("span", { part: "teams" }, w.t("teamCount", { n: ev.teams.length })) : null,
     ].filter(Boolean);
     return h("div", { class: "evline", part: "event" },
         h("span", { class: "ev-name" }, w.eventLink(ev.season, ev.code, ev.name)),

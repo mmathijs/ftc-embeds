@@ -50,6 +50,7 @@ export const TEAM_TEXT = {
     noMatches: "no matches yet",
     needsRest: "needs the REST API",
     eventCount: ["{n} event", "{n} events"],
+    teamCount: ["{n} team", "{n} teams"],
     wonCount: "{n} won",
     winRateDetail: "{wins} of {games} matches",
     thisSeason: "this season",

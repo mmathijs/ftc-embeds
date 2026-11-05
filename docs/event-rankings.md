@@ -36,9 +36,9 @@ All the [event widgets' options](event-widgets.md#options) (event, season, highl
 | `limit` | `limit` | show the top N, plus the highlighted teams below them (with `podium`, the three on the podium count) |
 | `maxHeight` | `max-height` | scroll inside the widget; it scrolls to the highlighted team |
 
-**Parts for `hide`:** event, date, location, type, names, divisions.
+**Parts for `hide`:** event, date, location, type, teams (how many teams are at the event), names, divisions.
 
-**Style parts** (`ftc-event-rankings::part(…)` from the page): card, head, title, event, date, location, type, table, row, row-me, rank, team, name, col, col-rp, col-tb1, col-tb2, col-record, col-winrate, col-matches, col-opr, col-epa, col-dqs, divisions, division, events, event-tab, chip-live; with `cards`, `strip` and `podium` also stats, tile, tile-me, podium, step, step-me, strip, arrows, arrow.
+**Style parts** (`ftc-event-rankings::part(…)` from the page): card, head, title, event, date, location, type, teams, table, row, row-me, rank, team, name, col, col-rp, col-tb1, col-tb2, col-record, col-winrate, col-matches, col-opr, col-epa, col-dqs, divisions, division, events, event-tab, chip-live; with `cards`, `strip` and `podium` also stats, tile, tile-me, podium, step, step-me, strip, arrows, arrow.
 
 ```html
 <ftc-event-rankings event="NLHAQ" season="2025" layout="cards" highlight="19444" limit="8"></ftc-event-rankings>
