@@ -1,20 +1,33 @@
 <!doctype html>
 <html lang="en">
 <head>
+{{- /* team data */ -}}
 {{$n := placeholder "http.regexp.team.1"}}
+{{$row := ""}}{{$file := ""}}{{if $n}}{{$file = printf "/_data/teams/%02d.tsv" (mod (atoi $n) 100)}}{{end}}
+{{if $file}}{{if fileExists $file}}{{$row = include $file | regexFind (printf "(?m)^%s\t.*$" $n)}}{{end}}{{end}}
+{{$f := splitList "\t" (print $row "\t\t\t\t\t")}}
+{{$name := index $f 1}}{{$where := index $f 2}}{{$facts := index $f 3}}{{$desc := index $f 4}}
+{{$label := printf "Team %s" $n}}{{if $name}}{{$label = printf "%s %s" $n $name}}{{end}}
+{{- /* end team data */ -}}
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<!-- One page for every team: /teams/16382 is this file (Caddy rewrite). Caddy's templates put the
-     number in the title and links below before the page is sent, so search engines see it without
-     running the script; the script fills in the name and the live widgets. /teams on its own is the
-     team finder. -->
+<!-- One page for every team: /teams/16382 is this file (Caddy rewrite). Caddy's template above
+     looks the team up in _data/teams/NN.tsv (written by scripts/sitemap.mjs) and puts its name and
+     facts in the page before it is sent, so search engines and link previews see them without
+     running the script; the script adds the live widgets. /teams on its own is the team finder. -->
 <base href="/">
-<title>{{if $n}}Team {{$n}} · widgets for your team's website · ftc-embeds{{else}}Find your team · ftc-embeds{{end}}</title>
-<meta name="description" content="{{if $n}}FTC team {{$n}}'s results, awards, rankings and next match as free widgets for your team's website. They update by themselves and match your site's look.{{else}}Find your FTC team and put its results, awards and next match on your website, with free widgets that update by themselves.{{end}}">
+<title>{{if $n}}{{$label}} · FTC team widgets for your website · ftc-embeds{{else}}Find your team · ftc-embeds{{end}}</title>
+<meta name="description" content="{{if $desc}}{{$desc}}{{else}}{{if $n}}FTC team {{$n}}'s results, awards, rankings and next match as free widgets for your team's website. They update by themselves and match your site's look.{{else}}Find your FTC team and put its results, awards and next match on your website, with free widgets that update by themselves.{{end}}{{end}}">
 <link rel="canonical" href="https://ftc-embeds.com/teams{{if $n}}/{{$n}}{{end}}">
-<meta property="og:title" content="{{if $n}}Team {{$n}} · widgets for your team's website{{else}}Find your team · ftc-embeds{{end}}">
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{if $n}}{{$label}} · FTC team widgets{{else}}Find your team · ftc-embeds{{end}}">
+<meta property="og:description" content="{{if $facts}}{{$facts}}{{else}}Free widgets for FTC team websites: results, awards, rankings and the next match, always current.{{end}}">
 <meta property="og:url" content="https://ftc-embeds.com/teams{{if $n}}/{{$n}}{{end}}">
+<meta property="og:image" content="https://ftc-embeds.com/img/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta property="og:site_name" content="ftc-embeds">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%231c1b19'/%3E%3Crect x='3' y='3' width='4' height='4' fill='%23ff5a1f'/%3E%3Crect x='9' y='3' width='4' height='4' fill='%23f4f1ea'/%3E%3Crect x='3' y='9' width='4' height='4' fill='%23f4f1ea'/%3E%3Crect x='9' y='9' width='4' height='4' fill='%23f4f1ea'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="fonts/fonts.css">
 <style>
@@ -70,6 +83,8 @@
     .hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 500px); gap: 64px; align-items: center; padding-top: 56px; padding-bottom: 48px; }
     .hero h1 { font-size: clamp(32px, 4.6vw, 54px); line-height: 1.04; letter-spacing: -0.03em; margin: 10px 0 10px; overflow-wrap: anywhere; }
     .hero .where { margin: 0 0 18px; font: 13px var(--mono); color: var(--ink-2); min-height: 1.5em; }
+    .hero .about { margin: 0 0 18px; max-width: 54ch; font-size: 16px; line-height: 1.55; }
+    .hero .about:empty { display: none; }
     .hero p.lede { margin: 0; max-width: 46ch; font-size: 18px; color: var(--ink-2); }
     .cta { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 28px; }
     .cta a { text-decoration: none; font-weight: 500; padding: 11px 18px; border: 1px solid var(--ink); border-radius: 2px; }
@@ -156,12 +171,13 @@
 
 <main>
     <!-- /teams/<number> -->
-    <div id="team-page" hidden>
+    <div id="team-page"{{if $n}}{{else}} hidden{{end}}>
         <section class="wrap hero">
             <div>
                 <span class="eyebrow" id="eyebrow">FTC team {{$n}}</span>
-                <h1 id="name">Team {{$n}}</h1>
-                <p class="where" id="where"></p>
+                <h1 id="name">{{$label}}</h1>
+                <p class="where" id="where">{{$where}}</p>
+                <p class="about" id="about">{{$facts}}</p>
                 <p class="lede">Put your team's results, awards and next match on your website. Free widgets that update by themselves and match your site's look.</p>
                 <div class="cta">
                     <a class="go" id="setup-link" href="/setup">Set it up for your website</a>
@@ -172,7 +188,7 @@
         </section>
 
         <section class="wrap gallery" aria-labelledby="gallery-h">
-            <h2 id="gallery-h">Widgets with your team's data</h2>
+            <h2 id="gallery-h">Widgets with {{if $name}}{{$name}}{{else}}your team{{end}}'s data</h2>
             <p>Live, as they'd look on your website. Pick one to set it up: the setup asks for the look and where your website is built, then gives you the code to paste.</p>
             <div id="wide"></div>
             <div class="grid" id="grid"><div class="col" id="col1"></div><div class="col" id="col2"></div></div>
@@ -187,7 +203,7 @@
     </section>
 
     <!-- /teams -->
-    <section class="wrap finder" id="finder" hidden>
+    <section class="wrap finder" id="finder"{{if $n}} hidden{{end}}>
         <span class="eyebrow">For teams</span>
         <h1>Find your team</h1>
         <p>Type your team number to see your results, awards and next match as widgets for your website, with your own data.</p>
@@ -211,12 +227,13 @@
 
 <script src="config.js"></script>
 <script src="lib/team-card.umd.js"></script>
-<script src="lib/team-results.umd.js"></script>
-<script src="lib/team-awards.umd.js"></script>
-<script src="lib/next-match.umd.js"></script>
-<script src="lib/team-season.umd.js"></script>
-<script src="lib/countdown.umd.js"></script>
-<script src="lib/event-rankings.umd.js"></script>
+<!-- The other widgets: loaded by teams.js when their preview comes into view (the build gives these a ?v= hash too). -->
+<script type="text/plain" data-lib="team-results" data-src="lib/team-results.umd.js"></script>
+<script type="text/plain" data-lib="team-awards" data-src="lib/team-awards.umd.js"></script>
+<script type="text/plain" data-lib="next-match" data-src="lib/next-match.umd.js"></script>
+<script type="text/plain" data-lib="team-season" data-src="lib/team-season.umd.js"></script>
+<script type="text/plain" data-lib="countdown" data-src="lib/countdown.umd.js"></script>
+<script type="text/plain" data-lib="event-rankings" data-src="lib/event-rankings.umd.js"></script>
 <script src="teams.js"></script>
 </body>
 </html>

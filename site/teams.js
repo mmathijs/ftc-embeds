@@ -74,9 +74,9 @@
         let loc = c.location || {};
         let where = [loc.city, loc.state, loc.country].filter(Boolean).join(", ");
         $("where").textContent = [where, c.rookieYear ? `rookie year ${c.rookieYear}` : ""].filter(Boolean).join(" · ");
-        document.title = `${name} · widgets for your team's website · ftc-embeds`;
+        document.title = `${name} · FTC team widgets for your website · ftc-embeds`;
         let d = document.querySelector('meta[name="description"]');
-        if (d && c.name) d.content = `${c.name} (FTC team ${TEAM}${where ? `, ${where}` : ""}): results, awards, rankings and next match as free widgets for your team's website.`;
+        if (d && c.name) d.content = `FTC team ${TEAM} ${c.name}${where ? ` from ${where}` : ""}: results, awards, rankings and next match as free widgets for your team's website.`;
     });
     card?.on("error", ({ error }) => {
         if (!error?.notFound) return;
@@ -100,11 +100,24 @@
     ];
 
     const MAX_HEIGHT = "400px";
+    // A widget's library is loaded when its preview first comes into view (only the team card's
+    // is in the page), so the page itself loads fast.
+    const loading = {};
+    const lib = (w) => (loading[w.id] ||= window[w.global] ? Promise.resolve() : new Promise((ok, bad) => {
+        let src = document.querySelector(`script[data-lib="${w.id}"]`)?.dataset.src || `lib/${w.id}.umd.js`;
+        document.head.append(el("script", { src, onload: ok, onerror: bad }));
+    }));
 
     function preview(w, box) {
         box.append(el("div", { className: "wait" }, "loading…"));
         let start = async () => {
             let last = w.seasonal ? await lastSeason : null;
+            try {
+                await lib(w);
+            } catch {
+                box.textContent = "Preview unavailable.";
+                return;
+            }
             box.textContent = "";
             let host = el("div");
             box.append(host);

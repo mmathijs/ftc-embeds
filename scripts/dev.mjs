@@ -37,14 +37,26 @@ function find(path) {
 }
 
 /**
- * The few Caddy template actions teams.html uses, so the dev server shows what Caddy sends:
- * {{$n := placeholder "http.regexp.team.1"}}, {{if $n}}…{{else}}…{{end}} (not nested) and {{$n}}.
+ * The Caddy template in teams.html, done here the same way so the dev server shows what Caddy sends.
+ * The "team data" block at its top becomes these variables (from dist/site/_data/teams, written by
+ * scripts/sitemap.mjs); the rest of the page only uses {{$var}} and {{if $var}}…{{else}}…{{end}}.
  */
+function teamVars(team) {
+    let row = "";
+    if (team) {
+        let shard = resolve(root, `dist/site/_data/teams/${String(+team % 100).padStart(2, "0")}.tsv`);
+        if (isFile(shard)) row = readFileSync(shard, "utf8").split("\n").find((l) => l.startsWith(team + "\t")) || "";
+    }
+    let [, name = "", where = "", facts = "", desc = ""] = row.split("\t");
+    return { n: team, name, where, facts, desc, label: name ? `${team} ${name}` : `Team ${team}` };
+}
 function renderTemplate(html, team) {
-    return html
-        .replace(/\{\{\$n := placeholder "[^"]*"\}\}\n?/g, "")
-        .replace(/\{\{if \$n\}\}([\s\S]*?)(?:\{\{else\}\}([\s\S]*?))?\{\{end\}\}/g, (_, yes, no = "") => (team ? yes : no))
-        .replace(/\{\{\$n\}\}/g, team);
+    let vars = teamVars(team);
+    html = html.replace(/\{\{- \/\* team data \*\/ -\}\}[\s\S]*?\{\{- \/\* end team data \*\/ -\}\}\s*/, "");
+    // {{if $x}} … {{else}} … {{end}}, nested: resolve the innermost first.
+    let inner = /\{\{if \$(\w+)\}\}((?:(?!\{\{if )[\s\S])*?)(?:\{\{else\}\}((?:(?!\{\{if )[\s\S])*?))?\{\{end\}\}/;
+    for (let m; (m = inner.exec(html)); ) html = html.slice(0, m.index) + (vars[m[1]] ? m[2] : m[3] || "") + html.slice(m.index + m[0].length);
+    return html.replace(/\{\{\$(\w+)\}\}/g, (_, k) => vars[k] ?? "");
 }
 
 function proxyAvatar(req, res) {
@@ -65,7 +77,7 @@ createServer((req, res) => {
     if (path.startsWith("/api/avatar/")) return proxyAvatar(req, res);
     // Team pages, like the Caddyfile: /teams/16382 -> teams.html with the number.
     const team = /^\/teams\/(\d{1,6})\/?$/.exec(path)?.[1] ?? "";
-    const file = team ? find("/teams.html") : find(path);
+    const file = path.startsWith("/_data/") ? null : team ? find("/teams.html") : find(path);
     const log = (status) => console.log(`${status} ${req.method} ${req.url}`);
     if (!file) {
         log(404);

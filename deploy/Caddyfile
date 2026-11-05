@@ -9,6 +9,8 @@
 	@team path_regexp team ^/teams/(\d{1,6})/?$
 	rewrite @team /teams.html
 	templates /teams.html
+	# The team data the template reads (scripts/sitemap.mjs) is for the template only.
+	respond /_data/* 404
 
 	# Clean URLs: /embed/pit-map -> embed/pit-map.html
 	try_files {path} {path}.html {path}/index.html
