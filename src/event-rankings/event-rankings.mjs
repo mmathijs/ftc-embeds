@@ -51,6 +51,8 @@ const RANK_CSS = `
 .rk-card.me{box-shadow:inset 0 0 0 2px var(--_accent);background:color-mix(in srgb,var(--_accent) 12%,var(--_surface))}
 .rk-gap{text-align:center;color:var(--_muted);letter-spacing:.2em;line-height:1;padding:2px 0}
 @container (max-width:520px){.rk-card{grid-template-columns:auto minmax(0,1fr)}.rk-card .rk-stats{grid-column:2 / -1;gap:4px 14px;flex-wrap:wrap}.rk-card .rk-stats div{align-items:flex-start}}
+.ftcw[style*="max-height"] .rk-podwrap{display:flex;flex-direction:column;flex:1 1 auto;min-height:0}
+.ftcw[style*="max-height"] .rk-podium{flex:none}
 .rk-podium{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:end;gap:var(--_gap);margin:6px 0 16px}
 .rk-step{display:flex;flex-direction:column;align-items:center;text-align:center;gap:3px;min-width:0}
 .rk-step .rk-team{align-items:center;width:100%}
@@ -225,7 +227,8 @@ export class EventRankings extends TeamWidget {
         let rest = rows.slice(3), limit = Number(this.options.limit) || null;
         // limit counts the podium: limit 8 is the top three and five more (and the marked teams further down)
         let shown = !limit ? rest : limit > 3 ? this.shownRows(rest, limit - 3) : rest.filter((r) => mine.has(r.teamNumber));
-        return h("div", null,
+        // with maxHeight the podium stays and the table under it scrolls (rk-podwrap is a column then)
+        return h("div", { class: "rk-podwrap" },
             h("div", { class: "rk-podium", part: "podium" }, steps),
             shown.length ? this.table(rest, shown) : null);
     }
