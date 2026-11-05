@@ -17,7 +17,33 @@
     try {
         FtcTeamCard.configure({ apiBase: SITE.apiBase || null, graphqlUrl: SITE.graphqlUrl || null });
         let card = new FtcTeamCard.TeamCard($("example"), { team: TEAM, season: SITE.demoSeason || null, theme: THEME, stats: "opr,record,awards-total", upcoming: 0 });
-        card.on("load", ({ data }) => ($("example-cap").textContent = `<ftc-team-card team="${data.card.number}">, live`));
+        let caption = (n) => ($("example-cap").textContent = `<ftc-team-card team="${n}">, live`);
+        card.on("load", ({ data }) => caption(data.card.number));
+        // "Make it yours": the styles (FTCScout, trophy case, …) and corners on this very card; the rest further down
+        const HERO_STYLES = [["site", "This site's"], ["ftcscout", "FTCScout"], ["ftc-events", "FTC Events"], ["trophy", "Trophy case"], ["dark", "Dark"]];
+        let pick = { style: "site", corners: "" };
+        let restyle = () => {
+            let site = pick.style === "site";
+            // this site's look has square corners of its own: a shape only shows without them
+            let theme = site ? (pick.corners ? (({ radius, innerRadius, ...t }) => t)(THEME) : THEME) : pick.style;
+            card.update({ theme, shape: pick.corners || null });
+            let name = HERO_STYLES.find((x) => x[0] === pick.style)[1];
+            let corner = pick.corners === "square" ? "square corners" : pick.corners === "bubbly" ? "rounded corners" : null;
+            let text = [site ? null : `in the ${name} style`, corner ? `with ${corner}` : null].filter(Boolean).join(", ");
+            $("example-cap").textContent = `<ftc-team-card team="${TEAM}">, live${text ? ", " + text : ""}`;
+        };
+        let seg = (box, key, items) => items.forEach(([v, label]) => {
+            let b = document.createElement("button");
+            Object.assign(b, { type: "button", textContent: label });
+            b.setAttribute("aria-pressed", String(pick[key] === v));
+            b.addEventListener("click", () => { pick[key] = v; box.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); restyle(); });
+            box.append(b);
+        });
+        seg(document.querySelector("#hero-try .ht-styles"), "style", HERO_STYLES);
+        let corners = document.querySelector("#hero-try .ht-corners");
+        corners.replaceChildren();
+        seg(corners, "corners", [["", "The style's"], ["square", "Square"], ["bubbly", "Rounded"]]);
+        $("hero-try").hidden = false;
     } catch {
         $("example").textContent = "Preview unavailable.";
     }
@@ -203,4 +229,80 @@
         if (scroll) $("styles").scrollIntoView({ behavior: "smooth", block: "start" });
     }
     spotlight("event-rankings", null, false);
+
+    // ---------------------------------------------------------------- make it yours
+    // One live team card; every control redraws it with update() (no new request), and the code
+    // shows the attributes for what was picked.
+    const CZ = {
+        accents: [["#ff5a1f", "Orange"], ["#2563eb", "Blue"], ["#16a34a", "Green"], ["#7c3aed", "Purple"], ["#e4002b", "Red"]],
+        bases: [["site", "This site's"], ["light", "Light"], ["dark", "Dark"], ["ftcscout", "FTCScout"], ["trophy", "Trophy case"]],
+        shapes: [["", "Default"], ["square", "Square"], ["bubbly", "Rounded"], ["compact", "Compact"], ["spacious", "Spacious"]],
+        fonts: [["", "The theme's", null], ["plex", "IBM Plex", 'var(--sans)'], ["serif", "Serif", 'Georgia, "Times New Roman", serif'], ["mono", "Mono", 'var(--mono)']],
+        locales: [["", "Visitor's"], ["en-US", "English (US)"], ["nl-NL", "Nederlands"], ["de-DE", "Deutsch"], ["fr-FR", "Français"]],
+        parts: [["avatar", "Avatar"], ["location", "Location"], ["rookie", "Rookie year"], ["website", "Website"], ["next-event", "Next event"]],
+    };
+    const cz = { accent: "#ff5a1f", base: "site", shape: "", font: "plex", locale: "", hide: [] };
+    const czPreview = $("cz-preview"), czCode = $("cz-code"), czControls = $("cz-controls");
+    let czCard = null;
+    const czOptions = () => {
+        let font = CZ.fonts.find((f) => f[0] === cz.font)[2];
+        let theme = cz.base === "site" ? { ...THEME, accent: cz.accent } : { base: cz.base, accent: cz.accent };
+        if (font) theme.font = font;
+        if (cz.shape) { delete theme.radius; delete theme.innerRadius; }   // the site's square corners would win over the shape
+        return { theme, shape: cz.shape || null, locale: cz.locale || null, hide: cz.hide.length ? cz.hide.join(",") : null };
+    };
+    const czRender = () => {
+        let o = czOptions();
+        if (czCard) czCard.update(o);
+        // the HTML element: this site's look is "auto" with the accent (its other colors are this site's own CSS variables)
+        let theme = { base: cz.base === "site" ? "auto" : cz.base, accent: cz.accent };
+        let font = CZ.fonts.find((f) => f[0] === cz.font);
+        if (font[2]) theme.font = font[0] === "plex" ? '"IBM Plex Sans", sans-serif' : font[0] === "mono" ? '"IBM Plex Mono", monospace' : font[2];
+        let attrs = [`team="${TEAM}"`, `theme='${JSON.stringify(theme)}'`];
+        if (cz.shape) attrs.push(`shape="${cz.shape}"`);
+        if (cz.locale) attrs.push(`locale="${cz.locale}"`);
+        if (cz.hide.length) attrs.push(`hide="${cz.hide.join(",")}"`);
+        czCode.textContent = `<script type="module" src="https://ftc-embeds.com/lib/team-card.mjs"></script>\n<ftc-team-card ${attrs.join(" ")}></ftc-team-card>`;
+    };
+    const czSeg = (label, key, items) => {
+        let s = el("span", { className: "seg", role: "group", ariaLabel: label });
+        for (let [v, text] of items) {
+            let b = el("button", { type: "button", onclick: () => { cz[key] = v; s.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x === b))); czRender(); } }, text);
+            b.setAttribute("aria-pressed", String(cz[key] === v));
+            s.append(b);
+        }
+        return el("div", { className: "q" }, el("span", {}, label), s);
+    };
+    if (czPreview) {
+        let swatches = el("div", { className: "cz-swatches", role: "group", ariaLabel: "Accent color" });
+        let picker = el("input", { type: "color", value: cz.accent, ariaLabel: "Any color" });
+        let pressAccent = () => swatches.querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.color === cz.accent)));
+        for (let [c, name] of CZ.accents) {
+            let b = el("button", { type: "button", title: name, ariaLabel: name, style: `background:${c}`, onclick: () => { cz.accent = c; picker.value = c; pressAccent(); czRender(); } });
+            b.dataset.color = c; swatches.append(b);
+        }
+        picker.addEventListener("input", () => { cz.accent = picker.value; pressAccent(); czRender(); });
+        swatches.append(el("label", {}, picker, "any color"));
+        pressAccent();
+        let checks = el("div", { className: "cz-checks" });
+        for (let [part, label] of CZ.parts) {
+            let cb = el("input", { type: "checkbox", checked: true });
+            cb.addEventListener("change", () => { cz.hide = CZ.parts.map((x) => x[0]).filter((x) => (x === part ? !cb.checked : cz.hide.includes(x))); czRender(); });
+            checks.append(el("label", {}, cb, label));
+        }
+        czControls.append(
+            el("div", { className: "q" }, el("span", {}, "Accent color"), swatches),
+            czSeg("Colors", "base", CZ.bases),
+            czSeg("Shape and corners", "shape", CZ.shapes),
+            czSeg("Font", "font", CZ.fonts.map(([v, l]) => [v, l])),
+            czSeg("Dates and numbers", "locale", CZ.locales),
+            el("div", { className: "q" }, el("span", {}, "Show"), checks));
+        let io = new IntersectionObserver((es) => {
+            if (!es.some((e) => e.isIntersecting)) return;
+            io.disconnect();
+            czCard = new FtcTeamCard.TeamCard(czPreview, { team: TEAM, season: SITE.demoSeason || null, stats: "opr,record,awards-total", upcoming: 1, linkTarget: "_blank", ...czOptions() });
+        }, { rootMargin: "300px" });
+        io.observe(czPreview);
+        czRender();
+    }
 })();

@@ -233,7 +233,45 @@
     .spot .show .pv.map { height: 520px; }
     .spot .foot { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
     .spot .foot code { font: 12px var(--mono); color: var(--ink-2); }
+    .hero-try { display: grid; gap: 10px; margin-top: 14px; padding: 12px; border: 1px solid var(--rule); background: var(--field); }
+    .ht-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+    .ht-label { font: 12px var(--mono); color: var(--accent); text-transform: uppercase; letter-spacing: .08em; min-width: 7.5em; }
+    .ht-label.ht-sub { color: var(--ink-2); }
+    .hero-try .seg { flex-wrap: wrap; background: var(--field); }
+    .hero-try .seg button { flex: none; font: 12px var(--mono); padding: 5px 10px; }
+    .hero-try .seg button:hover:not([aria-pressed="true"]) { background: var(--paper-2); }
+    .hero-try .seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+    .ht-all { display: block; margin-top: 2px; padding: 11px 16px; text-align: center; text-decoration: none; font-weight: 600; font-size: 16px; background: var(--accent); color: var(--accent-ink); border-radius: 2px; }
+    .ht-all:hover { filter: brightness(1.05); color: var(--accent-ink); }
+    .ht-all:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+    .cz { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 40px; align-items: start; }
+    .cz-stage { display: grid; gap: 14px; min-width: 0; }
+    .cz-pv { padding: 28px; border: 1px solid var(--rule); background: var(--paper-2); min-height: 260px; }
+    .cz-code { margin: 0; padding: 14px 16px; background: var(--code-bg); color: var(--code-ink); font: 12.5px/1.6 var(--mono); white-space: pre-wrap; word-break: break-word; border-radius: 2px; max-height: none; }
+    .cz-controls { display: grid; gap: 18px; }
+    .cz-controls .q { display: grid; gap: 7px; }
+    .cz-controls .q > span { font: 12px var(--mono); color: var(--ink-2); text-transform: uppercase; letter-spacing: .06em; }
+    .cz-controls .seg { display: inline-flex; flex-wrap: wrap; background: var(--field); width: fit-content; max-width: 100%; }
+    .cz-controls .seg button { flex: none; font: 12.5px var(--mono); padding: 6px 11px; }
+    .cz-controls .seg button:hover:not([aria-pressed="true"]) { background: var(--paper-2); }
+    .cz-swatches { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .cz-swatches button { all: unset; cursor: pointer; width: 26px; height: 26px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,.15); }
+    .cz-swatches button[aria-pressed="true"] { outline: 2px solid var(--ink); outline-offset: 2px; }
+    .cz-swatches button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .cz-swatches input[type=color] { width: 34px; height: 28px; padding: 0; border: 1px solid var(--rule); background: none; cursor: pointer; }
+    .cz-swatches label { font: 12px var(--mono); color: var(--ink-2); display: inline-flex; gap: 6px; align-items: center; }
+    .cz-checks { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+    .cz-checks label { display: inline-flex; gap: 6px; align-items: center; font-size: 14px; cursor: pointer; }
+    .cz-checks input { accent-color: var(--ink); }
+    .cz-all { list-style: none; margin: 40px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0 32px; }
+    .cz-all li { display: grid; gap: 3px; padding: 14px 0; border-top: 1px solid var(--rule); }
+    .cz-all b { font-weight: 600; }
+    .cz-all span { color: var(--ink-2); font-size: 14px; }
+    .cz-all code { font: 12.5px var(--mono); }
+    .cz-docs { display: flex; flex-wrap: wrap; gap: 8px 24px; margin: 18px 0 0; }
     @media (max-width: 900px) {
+        .cz { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+        .cz-pv { padding: 14px; }
         .sc-row, .sc-row:nth-child(even) { grid-template-columns: minmax(0, 1fr); gap: 20px; padding: 32px 0; }
         .sc-row:nth-child(even) .sc-stage { order: 0; }
         .sc-stage .pv, .spot .show .pv { padding: 14px; }
@@ -291,6 +329,17 @@
     <div class="example">
         <div class="live" id="example"></div>
         <div class="cap" id="example-cap"></div>
+        <div class="hero-try" id="hero-try" hidden>
+            <div class="ht-row">
+                <span class="ht-label">Make it yours</span>
+                <span class="seg ht-styles" role="group" aria-label="Style"></span>
+            </div>
+            <div class="ht-row">
+                <span class="ht-label ht-sub">Corners</span>
+                <span class="seg ht-corners" role="group" aria-label="Corners"><button type="button" data-r="" aria-pressed="true">The style's</button><button type="button" data-r="square" aria-pressed="false">Square</button><button type="button" data-r="bubbly" aria-pressed="false">Rounded</button></span>
+            </div>
+            <a class="ht-all" href="#customize">See all options ↓</a>
+        </div>
     </div>
 </section>
 
@@ -453,6 +502,32 @@
             </div>
         </article>
     </div>
+</section>
+
+<section class="details" id="customize">
+    <div class="d-head">
+        <h2>Make it look like your site</h2>
+        <p>Every widget takes your colors, corners, fonts, texts and formats, and you choose what it shows. Try it on this team card; the code below follows along.</p>
+    </div>
+    <div class="cz">
+        <div class="cz-stage">
+            <div class="pv cz-pv" id="cz-preview"></div>
+            <pre class="cz-code" id="cz-code" aria-label="The code for this card"></pre>
+        </div>
+        <div class="cz-controls" id="cz-controls"></div>
+    </div>
+    <ul class="cz-all">
+        <li><b>Themes</b><span>Light, dark, FTCScout, FTC Events and trophy case; they follow the visitor's dark mode.</span></li>
+        <li><b>Your colors</b><span>Any accent, background, text or border color, or your site's own CSS variables.</span></li>
+        <li><b>Shapes and corners</b><span>Square, rounded, compact or spacious, or your own radius and spacing.</span></li>
+        <li><b>Fonts</b><span>Your site's font, or any other.</span></li>
+        <li><b>Texts</b><span>Rename every label and heading, in any language; award and event names too.</span></li>
+        <li><b>Numbers, dates and times</b><span>Your language's formats, 12 or 24 hours, your time zone, the decimals.</span></li>
+        <li><b>What it shows</b><span>Hide parts, pick the stats or columns, limit the rows, scroll inside a fixed height.</span></li>
+        <li><b>Links</b><span>To FTCScout, FTC Events or your own pages, in a new tab or not at all.</span></li>
+        <li><b>Your own CSS</b><span>Style anything: every part can be reached with <code>::part()</code>.</span></li>
+    </ul>
+    <p class="cz-docs"><a class="go-link" href="/team">Every option in the configurator →</a><a class="go-link" href="https://github.com/mmathijs/ftc-embeds/blob/main/docs/team-widgets.md#options">The options in the docs →</a></p>
 </section>
 
 <section class="details" id="styles">
