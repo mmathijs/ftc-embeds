@@ -1,6 +1,7 @@
 // Writes dist/site/sitemap.xml: the site's pages, and a /teams/<number> page for every team that
 // played an event this season or last (from FTCScout, about 10,000). Run it after the build;
-// deploy.sh does. If FTCScout can't be reached, the sitemap has the pages only, and it says so.
+// deploy.sh does. If FTCScout can't be reached (three tries), it keeps the team pages of the sitemap
+// that's live now; only if that fails too, the sitemap has the pages only, and it says so.
 //   node scripts/sitemap.mjs [--offline]
 import { writeFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -24,12 +25,32 @@ async function activeTeams() {
     return [...numbers].filter((n) => Number.isInteger(n) && n > 0).sort((x, y) => x - y);
 }
 
+/** The team numbers in the sitemap that's live now: kept when FTCScout can't be reached. */
+async function liveTeams() {
+    let r = await fetch(`${ORIGIN}/sitemap.xml`, { signal: AbortSignal.timeout(20000) });
+    if (!r.ok) throw new Error(`the live sitemap answered ${r.status}`);
+    return [...(await r.text()).matchAll(/\/teams\/(\d+)</g)].map((m) => +m[1]);
+}
+
 let teams = [];
 if (!process.argv.includes("--offline")) {
-    try {
-        teams = await activeTeams();
-    } catch (e) {
-        console.warn(`sitemap: no team pages, FTCScout couldn't be reached (${e.message})`);
+    // FTCScout now and then doesn't answer: try three times, then keep the live sitemap's teams,
+    // so a deploy never empties it.
+    for (let attempt = 1; attempt <= 3 && !teams.length; attempt++) {
+        try {
+            teams = await activeTeams();
+        } catch (e) {
+            console.warn(`sitemap: FTCScout couldn't be reached (attempt ${attempt} of 3: ${e.message})`);
+            if (attempt < 3) await new Promise((r) => setTimeout(r, 3000 * attempt));
+        }
+    }
+    if (!teams.length) {
+        try {
+            teams = await liveTeams();
+            console.warn(`sitemap: kept the ${teams.length} team pages of the live sitemap`);
+        } catch (e) {
+            console.warn(`sitemap: no team pages (the live sitemap couldn't be read either: ${e.message})`);
+        }
     }
 }
 const url = (path, priority) => `  <url><loc>${ORIGIN}${path}</loc><priority>${priority}</priority></url>`;
