@@ -123,7 +123,7 @@ export interface TeamWidgetOptions {
     /** Replaces the heading; "" hides it. */
     title?: string | null;
     /** The widget's layouts: see its docs. */
-    layout?: "list" | "strip" | "compact" | "boxes" | "banners" | null;
+    layout?: "list" | "strip" | "compact" | "boxes" | "banners" | "cards" | "podium" | null;
     density?: "normal" | "compact";
     /** Parts to leave out: "website,epa" or ["website", "epa"]. See each widget's docs. */
     hide?: string | string[] | null;

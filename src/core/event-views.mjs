@@ -21,8 +21,10 @@ export const EVENT_CSS = `
 .ftcw[style*="max-height"] .tbl thead th{position:sticky;top:0;z-index:1;background:var(--_bg);box-shadow:inset 0 -1px 0 var(--_border)}
 @container (max-width:480px){.tbl .c-tb2,.tbl .c-matches,.tbl .c-dqs,.tbl .c-winrate{display:none}}
 @container (max-width:400px){.tbl .c-tb1,.tbl .c-opr,.tbl .c-epa{display:none}}
-.tbl th{font-size:calc(var(--_small-size) - .5px);font-weight:600;color:var(--_muted);text-transform:var(--_label-transform);letter-spacing:var(--_label-letter-spacing);text-align:left;padding:0 6px 6px;white-space:nowrap}
-.tbl td{padding:calc(var(--_row-padding) / 2) 6px;border-top:var(--_separator-width) solid var(--_border);vertical-align:middle}
+.tbl th{font-size:calc(var(--_small-size) - .5px);font-weight:600;color:var(--_muted);text-transform:var(--_label-transform);letter-spacing:var(--_label-letter-spacing);text-align:left;padding:0 6px 8px;white-space:nowrap}
+.tbl td{padding:calc(var(--_row-padding) * .8) 6px;border-top:var(--_separator-width) solid var(--_border);vertical-align:middle}
+.density-compact .tbl th{padding-bottom:6px}
+.density-compact .tbl td{padding-top:3px;padding-bottom:3px}
 .tbl th:first-child,.tbl td:first-child{padding-left:8px}
 .tbl th:last-child,.tbl td:last-child{padding-right:8px}
 .tbl .n{text-align:right;white-space:nowrap}
@@ -110,7 +112,7 @@ export function limitRows(rows, limit, isMine) {
 export function scrollToMine(w, auto = ["tr.me"]) {
     let mode = w.options.scrollTo || "auto";
     if (mode === "none") return;
-    let selectors = mode === "team" ? ["tr.me"] : mode === "next" ? ["tr.nextm"] : auto;
+    let selectors = mode === "team" ? ["tr.me", ".rk-card.me"] : mode === "next" ? ["tr.nextm"] : auto;
     let row = selectors.map((s) => w.root.querySelector(s)).find(Boolean);
     // The table scrolls (the heading stays); without room for that, the whole card.
     let wrap = row?.closest(".tbl-wrap");

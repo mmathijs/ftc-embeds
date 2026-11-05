@@ -30,13 +30,19 @@ All the [event widgets' options](event-widgets.md#options) (event, season, highl
 
 | Option | Attribute | |
 | --- | --- | --- |
+| `layout` | `layout` | `list` (a table, the default), `cards` (a leaderboard: a card per team, gold, silver and bronze for the top three), `podium` (the top three on a podium, then the others as a table) or `strip` (scrolling tiles) |
 | `events` | `events` | team mode: `tabs` for a tab per event of the team this season |
 | `columns` | `columns` | which columns, in order: `rp,record,matches,opr` (default); any of `rp`, `tb1`, `tb2`, `record`, `winrate` (win %), `matches`, `opr`, `epa`, `dqs` |
-| `limit` | `limit` | show the top N, plus the highlighted teams below them |
+| `limit` | `limit` | show the top N, plus the highlighted teams below them (with `podium`, the three on the podium count) |
 | `maxHeight` | `max-height` | scroll inside the widget; it scrolls to the highlighted team |
 
 **Parts for `hide`:** event, date, location, type, names, divisions.
 
-**Style parts** (`ftc-event-rankings::part(…)` from the page): card, head, title, event, date, location, type, table, row, row-me, rank, team, name, col, col-rp, col-tb1, col-tb2, col-record, col-winrate, col-matches, col-opr, col-epa, col-dqs, divisions, division, events, event-tab, chip-live.
+**Style parts** (`ftc-event-rankings::part(…)` from the page): card, head, title, event, date, location, type, table, row, row-me, rank, team, name, col, col-rp, col-tb1, col-tb2, col-record, col-winrate, col-matches, col-opr, col-epa, col-dqs, divisions, division, events, event-tab, chip-live; with `cards`, `strip` and `podium` also stats, tile, tile-me, podium, step, step-me, strip, arrows, arrow.
+
+```html
+<ftc-event-rankings event="NLHAQ" season="2025" layout="cards" highlight="19444" limit="8"></ftc-event-rankings>
+<ftc-event-rankings event="NLHAQ" season="2025" layout="podium" limit="8"></ftc-event-rankings>
+```
 
 Data comes from `GET {apiBase}/events/{season}/{code}/rankings` ([docs/api.md](api.md)).

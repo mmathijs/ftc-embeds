@@ -38,6 +38,8 @@ export { getTeamResults } from "../team-results/team-results";
 export interface EventRankingsOptions extends EventWidgetOptions {
     /** Which columns, in order: "rp,record,matches,opr" (default); any of rp, tb1, tb2, record, winrate, matches, opr, epa, dqs. */
     columns?: string | string[];
+    /** "list": a table (default); "cards": a leaderboard, a card per team; "podium": the top three on a podium, then a table; "strip": scrolling tiles. */
+    layout?: "list" | "cards" | "podium" | "strip";
     /** Team mode: "tabs" for a tab per event the team was ranked at this season (newest first). */
     events?: "tabs" | null;
 }
