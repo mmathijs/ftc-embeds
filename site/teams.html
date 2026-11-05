@@ -99,10 +99,11 @@
     .gallery { border-top: 1px solid var(--rule); padding-top: 40px; padding-bottom: 64px; }
     .gallery h2 { margin: 0 0 8px; font-size: 26px; letter-spacing: -0.02em; }
     .gallery > p { margin: 0 0 30px; color: var(--ink-2); max-width: 62ch; }
-    /* Two columns that tiles of different heights stack in without gaps (the widgets cap their own
+    /* Two fixed columns (col in teams.js) that tiles of different heights stack in without gaps (the widgets cap their own
        height with maxHeight, see teams.js, and scroll inside it). */
-    .grid { column-width: 480px; column-gap: 32px; }
-    .tile { display: flex; flex-direction: column; break-inside: avoid; margin-bottom: 32px; text-decoration: none; border: 1px solid var(--rule); background: var(--field); transition: border-color .15s; min-width: 0; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 32px; align-items: start; }
+    @media (max-width: 1000px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+    .tile { display: flex; flex-direction: column; margin-bottom: 32px; text-decoration: none; border: 1px solid var(--rule); background: var(--field); transition: border-color .15s; min-width: 0; }
     .tile:hover { border-color: var(--ink); color: inherit; }
     .pv { position: relative; padding: 22px; border-bottom: 1px solid var(--rule); background: var(--paper-2); cursor: pointer; min-width: 0; }
     .pv .wait { padding: 48px 0; text-align: center; font: 12px var(--mono); color: var(--ink-2); }
@@ -174,7 +175,7 @@
             <h2 id="gallery-h">Widgets with your team's data</h2>
             <p>Live, as they'd look on your website. Pick one to set it up: the setup asks for the look and where your website is built, then gives you the code to paste.</p>
             <div id="wide"></div>
-            <div class="grid" id="grid"></div>
+            <div class="grid" id="grid"><div class="col" id="col1"></div><div class="col" id="col2"></div></div>
         </section>
     </div>
 

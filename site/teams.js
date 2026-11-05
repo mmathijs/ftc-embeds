@@ -91,12 +91,12 @@
 
     // The team widgets, each in its most visual layout; the link takes that layout into the setup.
     const WIDGETS = [
-        { id: "team-results", global: "FtcTeamResults", cls: "TeamResults", name: "Season results", line: "Every event this season: rank, record, awards and advancement.", layout: "strip", seasonal: true },
+        { id: "team-results", global: "FtcTeamResults", cls: "TeamResults", name: "Season results", line: "Every event this season: rank, record, awards and advancement.", layout: "strip", seasonal: true, col: 1 },
         { id: "team-awards", global: "FtcTeamAwards", cls: "TeamAwards", name: "Awards", line: "Every award the team has won, from its first season on.", layout: "banners", wide: true, maxHeight: "460px" },
-        { id: "next-match", global: "FtcNextMatch", cls: "NextMatch", name: "Next match", line: "While you compete: the next match, the alliances and a countdown.", layout: "list" },
-        { id: "event-rankings", global: "FtcEventRankings", cls: "EventRankings", name: "Event rankings", line: "The rankings of the event you're at, or your latest, with you marked.", layout: "cards", seasonal: true },
-        { id: "team-season", global: "FtcTeamSeason", cls: "TeamSeason", name: "Season + next match", line: "Season results, with the live next match on top while you compete.", layout: "list" },
-        { id: "countdown", global: "FtcCountdown", cls: "Countdown", name: "Countdown", line: "Days, hours and minutes to your next event, or your next match.", layout: "list" },
+        { id: "next-match", global: "FtcNextMatch", cls: "NextMatch", name: "Next match", line: "While you compete: the next match, the alliances and a countdown.", layout: "list", col: 1 },
+        { id: "team-season", global: "FtcTeamSeason", cls: "TeamSeason", name: "Season + next match", line: "Season results, with the live next match on top while you compete.", layout: "list", col: 2 },
+        { id: "countdown", global: "FtcCountdown", cls: "Countdown", name: "Countdown", line: "Days, hours and minutes to your next event, or your next match.", layout: "list", col: 1 },
+        { id: "event-rankings", global: "FtcEventRankings", cls: "EventRankings", name: "Event rankings", line: "The rankings of the event you're at, or your latest, with you marked.", layout: "cards", seasonal: true, col: 2 },
     ];
 
     const MAX_HEIGHT = "400px";
@@ -141,7 +141,7 @@
             location.href = tile.href;
         }, true);
         if (w.wide) tile.classList.add("wide");
-        (w.wide ? $("wide") : $("grid")).append(tile);
+        (w.wide ? $("wide") : $(`col${w.col}`)).append(tile);
         preview(w, box);
     }
 })();
