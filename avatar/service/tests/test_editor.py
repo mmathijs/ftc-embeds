@@ -256,6 +256,48 @@ with sync_playwright() as p:
     page.keyboard.press('Delete'); check(state('e.doc.draw.length') == n0 - 2, 'Delete removes the selected shapes')
     page.keyboard.press('Control+z'); page.keyboard.press('Control+z'); page.keyboard.press('Control+z'); page.keyboard.press('Escape')
 
+    # drawings move and scale with the logo (Move logo, the size slider), unless that is switched off
+    page.locator('.ae-lay .nm', has_text=re.compile('^Drawing')).click()
+    page.keyboard.press('u'); drag([(20, 20), (60, 60)])
+    sq = state("e.doc.draw[e.doc.draw.length - 1]"); t0 = state('e.doc.t'); undo_from = state('e.undo.length')
+    page.keyboard.press('m'); drag([(160, 160), (180, 140)])
+    n1 = state(f"e.objById({sq['id']}).nodes[0]")
+    check(abs(n1['x'] - sq['nodes'][0]['x'] - 20) < 1 and abs(n1['y'] - sq['nodes'][0]['y'] + 20) < 1, 'a drawing moves with the logo')
+    t1 = state('e.doc.t')
+    page.evaluate(f"{ed}.sizeR.value = 150; {ed}.sizeR.dispatchEvent(new Event('input')); {ed}.sizeR.dispatchEvent(new Event('change'))")
+    t2 = state('e.doc.t'); n2 = state(f"e.objById({sq['id']})")
+    want = [t2['x'] + (n1['x'] - t1['x']) * t2['s'] / t1['s'], t2['y'] + (n1['y'] - t1['y']) * t2['s'] / t1['s']]
+    check(abs(n2['nodes'][0]['x'] - want[0]) < 0.5 and abs(n2['nodes'][0]['y'] - want[1]) < 0.5 and abs(n2['w'] - sq['w'] * t2['s'] / t1['s']) < 0.01,
+          'and scales with it (the size slider), line width too')
+    page.locator('.ae-side label', has_text='Drawings move with the logo').locator('input').uncheck()
+    drag([(160, 160), (170, 160)])
+    check(state(f"e.objById({sq['id']}).nodes[0].x") == n2['nodes'][0]['x'], 'switched off, the drawings stay where they are')
+    page.locator('.ae-side label', has_text='Drawings move with the logo').locator('input').check()
+    while state('e.undo.length') > undo_from - 1: page.keyboard.press('Control+z')
+    check(not any(o['id'] == sq['id'] for o in state('e.doc.draw')) and state('e.doc.t') == t0, 'undo: back to before the square')
+
+    # part of the logo: select an area on the Logo layer, drag inside it to move that part, a corner to scale it
+    page.locator('.ae-lay .nm', has_text=re.compile('^Logo')).click()
+    before = result(); layers0 = len(state('e.doc.layers'))
+    pin = to_c(300, 290)                                       # on the blue head, under the eyes, in logo pixels
+    page.keyboard.press('v'); drag([(pin[0] - 15, pin[1] - 15), (pin[0] + 15, pin[1] + 15)])
+    drag([(pin[0], pin[1]), (pin[0] + 40, pin[1] + 30)])
+    img = state("e.doc.draw.find(o => o.k === 'image')")
+    check(img is not None and len(state('e.doc.layers')) == layers0 + 1 and state('e.layerOf(e.active).name') == 'Moved part',
+          'dragging inside the area lifts that part of the logo onto a new layer, Moved part')
+    check(state(f"e.logoAlphaAt({{x: {pin[0]}, y: {pin[1]}}})") == 0, 'the logo is cut where it was')
+    px = page.evaluate(f"(([x, y]) => {{ let e = {ed}, c = e.c320.getContext('2d'); e.result(); return [...c.getImageData(Math.round(x), Math.round(y), 1, 1).data]; }})", [pin[0] + 40, pin[1] + 30])
+    check(px[2] > 120 and px[0] < 80 and px[3] == 255, f'and shows where it was dragged to ({px})')
+    box = state('e.selBox()')
+    drag([(box[2], box[3]), (box[2] + (box[2] - box[0]) / 2, box[3] + (box[3] - box[1]) / 2)])
+    img2 = state(f"e.objById({img['id']})")
+    if shots: page.screenshot(path=os.path.join(shots, 'editor-moved-part.png'))
+    want_x = box[0] + (img['x'] - box[0]) * img2['s'] / img['s']
+    check(abs(img2['s'] / img['s'] - 1.5) < 0.05 and abs(img2['x'] - want_x) < 0.5, f"a corner scales it, from the opposite corner ({img['s']:.3f} -> {img2['s']:.3f})")
+    page.keyboard.press('Control+z'); page.keyboard.press('Control+z')
+    check(result() == before and len(state('e.doc.layers')) == layers0, 'undo: the logo whole again, without the extra layer')
+    page.keyboard.press('Escape')
+
     # the transparent view in the canvas
     page.locator('.ae-view button', has_text='Transparent').click()
     check(state('e.opt.preview') == 'transparent' and page.locator('.ae-view .bd button').count() == 6, 'the canvas shows the transparent version, with backdrops')
