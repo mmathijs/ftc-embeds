@@ -3,6 +3,9 @@ name: Release
 on:
     push:
         tags: ["v*"]
+    # Started by "New version" (version.yml) on the tag it made, or by hand: Run workflow, then pick
+    # the tag (not a branch) under "Use workflow from".
+    workflow_dispatch:
 
 permissions:
     contents: write # GitHub release
