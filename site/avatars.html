@@ -213,8 +213,8 @@
     <form id="form" novalidate>
         <fieldset>
             <legend><span>01</span>Team</legend>
-            <label class="f">Team number <input type="text" id="team" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="e.g. 23452"></label>
-            <p class="hint" id="team-hint" aria-live="polite"></p>
+            <label class="f">Team number (optional) <input type="text" id="team" inputmode="numeric" autocomplete="off" maxlength="6" placeholder="e.g. 23452"></label>
+            <p class="hint" id="team-hint" aria-live="polite">To compare with your current avatar and name the files after your team.</p>
         </fieldset>
         <fieldset>
             <legend><span>02</span>Logo</legend>
@@ -309,10 +309,11 @@
 
     // --- 01 Team: show the name, so a typo is noticed before uploading (optional, never blocks) ---
     let timer, seq = 0;
+    const TEAM_HINT = $("team-hint").textContent;   // why the number helps, shown while it is empty
     $("team").addEventListener("input", () => {
         clearTimeout(timer);
         let n = $("team").value.trim(), hint = $("team-hint");
-        hint.textContent = ""; hint.classList.remove("bad");
+        hint.textContent = n ? "" : TEAM_HINT; hint.classList.remove("bad");
         if (!/^\d{1,6}$/.test(n)) return;
         let mine = ++seq;
         timer = setTimeout(async () => {
@@ -412,7 +413,7 @@
     $("form").addEventListener("submit", async (e) => {
         e.preventDefault();
         let n = $("team").value.trim();
-        if (!/^\d{1,6}$/.test(n)) return fail("Enter your team number.", $("team"));
+        if (n && !/^\d{1,6}$/.test(n)) return fail("A team number is digits only, like 16382. Or leave it empty.", $("team"));
         await reading;
         if (!logo) return fail(readError || "Choose your logo first.", $("file"));
         if (!$("own").checked) return fail("Tick the box to confirm it's your team's own logo.", $("own"));
@@ -420,7 +421,7 @@
         status("Making your options… this takes a few seconds.");
         try {
             let sent = logo.blob;
-            let r = await fetch(`${API}?team=${n}`, { method: "POST", body: sent, headers: { "Content-Type": "image/png" }, signal: AbortSignal.timeout(90000) });
+            let r = await fetch(n ? `${API}?team=${n}` : API, { method: "POST", body: sent, headers: { "Content-Type": "image/png" }, signal: AbortSignal.timeout(90000) });
             let data = null;
             try { data = await r.json(); } catch { /* not JSON: a proxy error page */ }
             if (!r.ok || !data || !Array.isArray(data.options)) {
@@ -482,7 +483,7 @@
         let s = session;
         if (!s.layers) {
             s.layers = (async () => {
-                let r = await fetch(`${API}?team=${s.team}&layers=only`, { method: "POST", body: s.blob, headers: { "Content-Type": "image/png" }, signal: AbortSignal.timeout(90000) });
+                let r = await fetch(`${API}?layers=only`, { method: "POST", body: s.blob, headers: { "Content-Type": "image/png" }, signal: AbortSignal.timeout(90000) });
                 let d = null;
                 try { d = await r.json(); } catch { /* a proxy error page */ }
                 if (!r.ok || !d || !d.layers) throw new Error((d && d.error) || "The avatar maker couldn't open the editor right now.");
@@ -614,7 +615,7 @@
     function render(d) {
         urls.forEach((u) => URL.revokeObjectURL(u));
         urls = [];
-        let who = d.name ? `${d.name} (${d.team})` : `Team ${d.team}`;
+        let who = d.name ? `${d.name} (${d.team})` : d.team ? `Team ${d.team}` : "Your logo";
         $("res-title").textContent = `${who}: ${d.options.length} option${d.options.length === 1 ? "" : "s"}`;
         $("res-sub").textContent = "Pick the one that still reads at 20 px. Notes in orange are worth a look, not errors.";
         let grid = $("grid");

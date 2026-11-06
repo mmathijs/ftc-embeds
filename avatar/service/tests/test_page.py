@@ -43,7 +43,8 @@ with sync_playwright() as p:
     page.goto(base + '/avatars')
 
     # the form's own checks, before anything is sent
-    page.click('#make'); check('team number' in page.text_content('#status'), 'asks for a team number')
+    page.click('#make'); check('logo first' in page.text_content('#status'), 'the team number is optional: it asks for a logo first')
+    page.fill('#team', '23x'); page.click('#make'); check('digits only' in page.text_content('#status'), 'a team number that is not a number is refused')
     page.fill('#team', '23452'); page.click('#make'); check('logo first' in page.text_content('#status'), 'asks for a logo')
     page.set_input_files('#file', junk); page.wait_for_function("document.querySelector('#status').classList.contains('bad') && document.querySelector('#status').textContent.includes('open')")
     check("can't open this file" in page.text_content('#status'), 'refuses a file that is not an image')
@@ -53,6 +54,12 @@ with sync_playwright() as p:
     page.check('#own'); page.click('#make')
     page.wait_for_selector('#results:not([hidden]) .opt', timeout=60000)
     n = page.locator('.opt').count(); check(n >= 2, f'SVG logo: {n} option cards')
+
+    # without a team number: the same options, no current avatar, files named avatar-…
+    make(page, '', svg)
+    page.wait_for_function("!document.querySelector('#make').disabled && document.querySelector('#res-title').textContent.startsWith('Your logo')", timeout=60000)
+    check(page.locator('.opt.current').count() == 0 and page.locator('.opt').count() == n, f"no team number: {page.locator('.opt').count()} options, no current avatar")
+    check(page.get_attribute('#zip', 'download').startswith('avatar'), f"and the files are named avatar… ({page.get_attribute('#zip', 'download')})")
 
     # every logo given
     for path in logos:
