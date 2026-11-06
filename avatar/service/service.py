@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Avatar options service for ftc-embeds.com, phase 1: one team at a time, the team uploads its logo.
 
-  POST /api/avatar/options?team=<number>    body: the logo file (PNG, JPEG, WebP or GIF, at most 10 MB)
+  POST /api/avatar/options[?team=<number>]  body: the logo file (PNG, JPEG, WebP or GIF, at most 10 MB)
        -> 200 {team, name, current, kind, info, options: [...], zip}    (images and the zip as data URIs;
           each option has an `edit` preset: the layer, transform and settings the editor starts from)
-  POST /api/avatar/options?team=<number>&layers=only    the same body
+  POST /api/avatar/options?layers=only       the same body (a team number makes no difference here)
        -> 200 {w, h, kind, bg, layers: {logo, cut, all?, main, notext?}}    (the editor's layers, PNG data URIs)
   GET  /api/avatar/health                   -> {"ok": true}
 
@@ -288,11 +288,12 @@ def make_layers(raw):
     return {'w': logo.width, 'h': logo.height, 'kind': r['kind'], 'bg': hexc(r['bg']) if r['bg'] else None, 'layers': enc}
 
 def make_answer(number, raw):
-    name, current = team_info(number)
+    """number: the team, or None (then no current avatar and no name, and the files are avatar-...)."""
+    name, current = team_info(number) if number else (None, None)
     logo = read_logo(raw)
     opts, r = build_options(logo, name, number)
     flat = r['kind'] != 'none'
-    base = f"{number}-{slug(name)}" if name else str(number)
+    base = (f"{number}-{slug(name)}" if name else str(number)) if number else 'avatar'
     zbuf = io.BytesIO()
     with tempfile.TemporaryDirectory() as tmp, zipfile.ZipFile(zbuf, 'w', zipfile.ZIP_DEFLATED) as zf:
         rows = []
@@ -306,7 +307,7 @@ def make_answer(number, raw):
                 zf.writestr(fn, data); open(os.path.join(tmp, fn), 'wb').write(data)
             rows.append((o['label'], os.path.join(tmp, o['files'][0]), os.path.join(tmp, o['files'][1])))
         lg = logo.copy(); lg.thumbnail((512, 512)); lp = os.path.join(tmp, 'logo.png'); lg.save(lp)
-        sheet = c.compare_sheet(rows, os.path.join(tmp, 'sheet.png'), f"{name or 'Team'} ({number}) avatar options", lp)
+        sheet = c.compare_sheet(rows, os.path.join(tmp, 'sheet.png'), f"{name or 'Team'} ({number}) avatar options" if number else 'Avatar options', lp)
         zf.write(sheet, f'{base}-options.png'); zf.writestr('HOW-TO-UPLOAD.txt', UPLOAD_STEPS)
     for o in opts:
         for k in ('_op', '_tr', '_content'): o.pop(k)
@@ -342,7 +343,8 @@ class Handler(BaseHTTPRequestHandler):
         if u.path != '/api/avatar/options': return self.send(404, {'error': 'Not found'})
         try:
             team = (parse_qs(u.query).get('team') or [''])[0].strip()
-            if not re.fullmatch(r'\d{1,6}', team): raise UserError(400, 'Enter your team number.')
+            # the team number is optional: it adds the current avatar, the name and the file names
+            if team and not re.fullmatch(r'\d{1,6}', team): raise UserError(400, 'A team number is digits only, like 16382.')
             size = int(self.headers.get('Content-Length') or 0)
             if size <= 0: raise UserError(400, 'Choose your logo file first.')
             if size > MAX_BYTES: raise UserError(413, 'The file is larger than 10 MB.')
@@ -359,7 +361,7 @@ class Handler(BaseHTTPRequestHandler):
                 if (parse_qs(u.query).get('layers') or [''])[0] == 'only':
                     answer = make_layers(raw); answer['ms'] = int((time.time() - t0) * 1000); self.note = f" layers {answer['ms']} ms"
                 else:
-                    answer = make_answer(int(team), raw); answer['ms'] = int((time.time() - t0) * 1000)
+                    answer = make_answer(int(team) if team else None, raw); answer['ms'] = int((time.time() - t0) * 1000)
                     self.note = f" {','.join(o['id'] for o in answer['options'])} {answer['ms']} ms {answer['kind']}"
             finally:
                 JOBS.release()

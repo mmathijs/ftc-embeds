@@ -73,7 +73,10 @@ if times:
 
 # --- errors -----------------------------------------------------------------------------------
 small = png_bytes(Image.new('RGB', (64, 64), (0, 98, 110)))
-check(post('', small)[0] == 400, 'no team number: 400')
+dot = Image.new('RGB', (300, 300), (255, 255, 255)); ImageDraw.Draw(dot).ellipse([60, 60, 240, 240], fill=(200, 30, 40))
+status, d = post('', png_bytes(dot))
+check(status == 200 and d['team'] is None and d['name'] is None and d['current'] is None and d['base'] == 'avatar'
+      and all(f.startswith('avatar-') for o in d['options'] for f in o['files']), 'no team number: still the options, with files named avatar-…')
 check(post('?team=abc', small)[0] == 400, 'team number that is not a number: 400')
 check(post('?team=1', b'')[0] == 400, 'empty body: 400')
 def announce_big():
