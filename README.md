@@ -20,6 +20,8 @@ The team widgets share their options, themes (including a trophy-case look), ico
 
 The team and event widgets come in English, Dutch, German, French and Spanish (`lang="nl"`, [languages](docs/team-widgets.md#languages)), and keep showing their last data with a note when the network drops, for example at an event ([bad connections](docs/team-widgets.md#bad-connections)).
 
+On WordPress, paste a widget's link (`https://ftc-embeds.com/embed/team-card?team=19444`, or a team page like `https://ftc-embeds.com/teams/19444`) on its own line and it becomes the widget, sized to fit: ftc-embeds.com answers [oEmbed](https://oembed.com) at `/oembed?url=…`.
+
 For the TV in your pit: [ftc-embeds.com/display?team=19444](https://ftc-embeds.com/display) shows the team's next match, its matches and the event's live rankings full screen. It finds the current event by itself and keeps the screen awake (`lang`, `theme`, `event` and the other widget options work as URL parameters).
 
 Widgets load their own data from FTCScout's [ftc-embeds API](docs/api.md) by default: REST endpoints that are cached presets of GraphQL queries (`configure({ apiBase })`), or the same queries sent to a GraphQL endpoint (`configure({ graphqlUrl })`).

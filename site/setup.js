@@ -191,11 +191,11 @@
             "Paste the code below, leave the mode on <b>HTML</b>, and click outside the block.",
             "Save. (The code shows as a placeholder while editing and works on the live page.)",
         ] },
-        wordpress: { label: "WordPress", method: "element", steps: [
-            "Edit the page and add a <b>Custom HTML</b> block where the widget should go.",
-            "Paste the code below and click <b>Preview</b> to check it.",
-            "Update the page.",
-        ], note: "On WordPress.com's free and Personal plans scripts are removed: use the <b>iframe</b> tab instead." },
+        wordpress: { label: "WordPress", method: "url", steps: [
+            "Copy the link below.",
+            "In the WordPress editor, paste it on an empty line where the widget should go. WordPress turns it into the widget (an <b>Embed</b> block); no code or plugin needed.",
+            "Update the page. The widget sizes itself.",
+        ], note: "Stays a plain link (some WordPress.com plans only embed sites they know), or want clickable team and event names? Use the <b>HTML element</b> tab in a <b>Custom HTML</b> block instead." },
         html: { label: "My own HTML", method: "element", steps: [
             "Paste the code where the widget should appear. It takes the width of the element it's in.",
             "Several widgets on one page? The <code>&lt;script&gt;</code> line is needed once per widget type.",

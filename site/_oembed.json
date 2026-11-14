@@ -1,0 +1,33 @@
+{{- /*
+  The oEmbed answer (https://oembed.com): GET /oembed?url=<page> is this file, filled in by Caddy's
+  template (see deploy/Caddyfile). WordPress and other sites ask for it when someone pastes the link
+  of an embed page (https://ftc-embeds.com/embed/team-card?team=19444) or a team page
+  (https://ftc-embeds.com/teams/19444, which shows the team card), and put the iframe below in the
+  post. The pages point here with <link rel="alternate" type="application/json+oembed">.
+  Other links: 404. format=xml: 501, as the spec says.
+*/ -}}
+{{- $q := .Req.URL.Query -}}
+{{- if and ($q.Get "format") (ne ($q.Get "format") "json") }}{{ httpError 501 }}{{ end -}}
+{{- $url := $q.Get "url" | trim -}}
+{{- $re := `^https?://(?:www\.)?ftc-embeds\.com/(?:embed/(team-card|team-results|team-awards|next-match|team-season|event-rankings|event-matches|event-advancement|league-standings|countdown|pit-map)(?:\.html)?|teams/(\d{1,6}))/?(\?[^#]*)?(?:#.*)?$` -}}
+{{- if not (regexMatch $re $url) }}{{ httpError 404 }}{{ end -}}
+{{- $widget := regexReplaceAll $re $url "${1}" -}}
+{{- $teamPage := regexReplaceAll $re $url "${2}" -}}
+{{- $query := regexReplaceAll $re $url "${3}" -}}
+{{- if $teamPage }}{{ $widget = "team-card" }}{{ $query = printf "?team=%s" $teamPage }}{{ end -}}
+{{- $names := dict "team-card" "Team card" "team-results" "Season results" "team-awards" "Awards" "next-match" "Next match" "team-season" "Season and next match" "event-rankings" "Rankings" "event-matches" "Matches" "event-advancement" "Advancement" "league-standings" "League standings" "countdown" "Countdown" "pit-map" "Pit map" -}}
+{{- /* The height it starts at; the page then tells WordPress its real height (wp-embed). */ -}}
+{{- $heights := dict "team-card" 300 "team-results" 380 "team-awards" 420 "next-match" 240 "team-season" 520 "event-rankings" 520 "event-matches" 520 "event-advancement" 520 "league-standings" 480 "countdown" 220 "pit-map" 560 -}}
+{{- $team := regexFind `\d{1,6}` (regexFind `[?&]team=\d{1,6}` $query) -}}
+{{- $event := regexFind `[A-Za-z0-9]+$` (regexFind `[?&]event=[A-Za-z0-9]+` $query) | upper -}}
+{{- $title := get $names $widget -}}
+{{- if $team }}{{ $title = printf "%s · FTC team %s" $title $team }}{{ else if $event }}{{ $title = printf "%s · %s" $title $event }}{{ end -}}
+{{- $width := 640 -}}
+{{- $height := get $heights $widget | int -}}
+{{- with $q.Get "maxwidth" }}{{ if and (gt (atoi .) 0) (lt (atoi .) $width) }}{{ $width = atoi . }}{{ end }}{{ end -}}
+{{- with $q.Get "maxheight" }}{{ if and (gt (atoi .) 0) (lt (atoi .) $height) }}{{ $height = atoi . }}{{ end }}{{ end -}}
+{{- $src := printf "https://ftc-embeds.com/embed/%s%s" $widget $query -}}
+{{- /* The blockquote is the fallback (feeds, no scripts). WordPress only loads its resize script
+     (wp-embed) when there is one; it shows the iframe once the page reports its height. */ -}}
+{{- $iframe := printf `<blockquote><a href="%s">%s</a></blockquote><iframe src="%s" width="%d" height="%d" frameborder="0" scrolling="no" title="%s"></iframe>` (html $src) (html $title) (html $src) $width $height (html $title) -}}
+{{ dict "version" "1.0" "type" "rich" "provider_name" "ftc-embeds" "provider_url" "https://ftc-embeds.com" "title" $title "html" $iframe "width" $width "height" $height "cache_age" 86400 | toJson }}

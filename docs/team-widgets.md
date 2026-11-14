@@ -12,6 +12,8 @@ Five widgets about one team, each a separate module, web component and iframe pa
 
 They load from FTCScout's ftc-embeds API by default, so a widget needs nothing but a team number. For another API: `configure({ apiBase })` once per page, or the `api-base` attribute per widget (see [api.md](api.md)). The builder at [ftc-embeds.com/team](https://ftc-embeds.com/team) writes the code for you.
 
+**WordPress and other sites that embed links (oEmbed).** Paste an iframe page's link (`https://ftc-embeds.com/embed/team-card?team=19444&lang=nl`, any option as a URL parameter) or a team page's link (`https://ftc-embeds.com/teams/19444`, which shows the team card) on its own line, and WordPress embeds the widget and sizes it to fit. The pages name their oEmbed answer in a `<link rel="alternate" type="application/json+oembed">`, at `https://ftc-embeds.com/oembed?url=<link>` (JSON; `maxwidth` and `maxheight` are honoured). WordPress sandboxes such embeds, so team and event names are plain text there and the browser cache for [bad connections](#bad-connections) is off; for clickable names, use the element in a Custom HTML block.
+
 ## Options
 
 Every team widget takes these (as options, or kebab-case attributes on the element, or URL parameters on the iframe page). Object options can be given as JSON in attributes.

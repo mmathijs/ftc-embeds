@@ -27,6 +27,10 @@
     if (options.icons && typeof options.icons === "object") {
         for (let [name, icon] of Object.entries(options.icons)) if (typeof icon !== "string" || /</.test(icon)) delete options.icons[name];
     }
+    // Embedded by WordPress from a pasted link (oEmbed): it adds #?secret=… and sandboxes the
+    // frame, which can't open links. Plain text then, and the height goes to WordPress (wp-embed).
+    const wpSecret = /[#?&]secret=([A-Za-z0-9]+)/.exec(location.hash)?.[1];
+    if (wpSecret) options.linkTarget = "none";
     // In an iframe, links open in a new tab unless asked otherwise.
     options.linkTarget ??= "_blank";
     lib.configure({ apiBase: q.get("apiBase") || site.apiBase || null, graphqlUrl: q.get("graphqlUrl") || site.graphqlUrl || null });
@@ -38,7 +42,13 @@
     let root = document.getElementById("widget");
     let widget = new Widget(root, options);
     // Tell the embedding page the height, so it can size the iframe to fit.
-    let report = () => parent !== window && parent.postMessage({ type: "ftc-embeds:height", widget: page.widget, page: location.pathname.split("/").pop().replace(/\.html$/, ""), height: Math.ceil(root.getBoundingClientRect().height) }, "*");
+    let report = () => {
+        if (parent === window) return;
+        let height = Math.ceil(root.getBoundingClientRect().height);
+        parent.postMessage({ type: "ftc-embeds:height", widget: page.widget, page: location.pathname.split("/").pop().replace(/\.html$/, ""), height }, "*");
+        // WordPress sizes the frame to exactly this: add the page's padding and room for the card's shadow.
+        if (wpSecret) parent.postMessage({ message: "height", value: height + 6, secret: wpSecret }, "*");
+    };
     if (typeof ResizeObserver !== "undefined") new ResizeObserver(report).observe(root);
     widget.on("load", report);
 })();

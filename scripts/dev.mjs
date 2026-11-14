@@ -2,7 +2,8 @@
 // Serves site/ directly, so edits show up on reload, with the built libraries and example data
 // from dist/site (run `npm run build` once, and again after changing src/). Clean URLs like the
 // production Caddyfile: /setup -> setup.html, /embed/pit-map -> embed/pit-map.html.
-// /teams/<number> is teams.html, with its Caddy template filled in (see renderTemplate).
+// /teams/<number> is teams.html, with its Caddy template filled in (see renderTemplate). /oembed is
+// Caddy-only (site/_oembed.json, a Caddy template): try it with Caddy and deploy/Caddyfile.
 // /api/avatar/* goes to the avatar service, as Caddy does in production: run it next to this one
 // (cd avatar/service && PORT=8095 python3 service.py) or point AVATAR_API somewhere else.
 import { createServer, request } from "node:http";
@@ -87,6 +88,11 @@ createServer((req, res) => {
     log(200);
     res.writeHead(200, { "content-type": TYPES[extname(file)] || "application/octet-stream", "cache-control": "no-store", "access-control-allow-origin": "*" });
     if (file.endsWith("/teams.html")) return res.end(renderTemplate(readFileSync(file, "utf8"), team));
+    // The embed pages' oEmbed link names the page's own URL (a Caddy template in production).
+    if (path.startsWith("/embed/") && file.endsWith(".html")) {
+        let own = encodeURIComponent(`https://ftc-embeds.com${req.url}`);
+        return res.end(readFileSync(file, "utf8").replace(/\{\{ urlquery \(print "https:\/\/ftc-embeds\.com" \.OriginalReq\.URL\.RequestURI\) \}\}/g, own));
+    }
     res.end(readFileSync(file));
 }).listen(PORT, HOST, () => {
     console.log(`ftc-embeds dev server: http://localhost:${PORT}/  (setup wizard: http://localhost:${PORT}/setup)`);

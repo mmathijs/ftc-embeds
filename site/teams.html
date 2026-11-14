@@ -19,6 +19,7 @@
 <title>{{if $n}}{{$label}} · FTC team widgets for your website · ftc-embeds{{else}}Find your team · ftc-embeds{{end}}</title>
 <meta name="description" content="{{if $desc}}{{$desc}}{{else}}{{if $n}}FTC team {{$n}}'s results, awards, rankings and next match as free widgets for your team's website. They update by themselves and match your site's look.{{else}}Find your FTC team and put its results, awards and next match on your website, with free widgets that update by themselves.{{end}}{{end}}">
 <link rel="canonical" href="https://ftc-embeds.com/teams{{if $n}}/{{$n}}{{end}}">
+{{if $n}}<link rel="alternate" type="application/json+oembed" href="https://ftc-embeds.com/oembed?url=https%3A%2F%2Fftc-embeds.com%2Fteams%2F{{$n}}&amp;format=json" title="Team card · ftc-embeds">{{end}}
 <meta property="og:type" content="website">
 <meta property="og:title" content="{{if $n}}{{$label}} · FTC team widgets{{else}}Find your team · ftc-embeds{{end}}">
 <meta property="og:description" content="{{if $facts}}{{$facts}}{{else}}Free widgets for FTC team websites: results, awards, rankings and the next match, always current.{{end}}">
