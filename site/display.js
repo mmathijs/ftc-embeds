@@ -13,7 +13,7 @@
     const formMode = !/^\d{1,6}$/.test(team) || q.has("setup");
     // Colors: on the display dark unless asked otherwise (a TV in a hall), light, or like the
     // device; the form follows the device, like the rest of the site.
-    const themeParam = formMode ? "auto" : (q.get("theme") || "dark").toLowerCase();
+    let themeParam = formMode ? "auto" : (q.get("theme") || "dark").toLowerCase();
     const darkMq = matchMedia("(prefers-color-scheme: dark)");
     const isDark = () => (themeParam === "light" ? false : themeParam === "auto" ? darkMq.matches : true);
     document.documentElement.classList.toggle("dark", isDark());
@@ -27,16 +27,22 @@
     const SIZES = { s: 0.85, m: 1, l: 1.15, xl: 1.3 };
     const SPACINGS = { compact: 0.6, normal: 1, roomy: 1.5 };
     const clamp = (v, lo, hi, dflt) => (Number.isFinite(+v) && v !== null && v !== "" ? Math.min(hi, Math.max(lo, +v)) : dflt);
-    const size = SIZES[q.get("size")] ?? clamp(q.get("size"), 0.6, 2, 1);
-    const spacing = SPACINGS[q.get("spacing")] ?? clamp(q.get("spacing"), 0.4, 2, 1);
-    const hide = new Set((q.get("hide") || "").toLowerCase().split(/[\s,]+/).filter(Boolean));
+    // The look (size, spacing, colors, sides, which sections show) can change while the display
+    // runs: the setup page's preview sends new settings instead of loading the display again.
+    let size, spacing, hide, rankingsLeft, split, accent;
+    const readLook = (p) => {
+        size = SIZES[p.get("size")] ?? clamp(p.get("size"), 0.6, 2, 1);
+        spacing = SPACINGS[p.get("spacing")] ?? clamp(p.get("spacing"), 0.4, 2, 1);
+        hide = new Set((p.get("hide") || "").toLowerCase().split(/[\s,]+/).filter(Boolean));
+        rankingsLeft = p.get("side") === "left";
+        // The team's column (next match, matches) in percent of the width.
+        split = clamp(p.get("split"), 30, 70, 50);
+        accent = /^#?[0-9a-f]{6}$/i.test(p.get("accent") || "") ? "#" + p.get("accent").replace("#", "") : null;
+    };
+    readLook(q);
     const shows = (part) => !hide.has(part);
-    const rankingsLeft = q.get("side") === "left";
-    // The team's column (next match, matches) in percent of the width.
-    const split = clamp(q.get("split"), 30, 70, 50);
     const extraTeams = (q.get("highlight") || "").split(/[\s,]+/).filter((n) => /^\d{1,6}$/.test(n) && n !== team);
     const columns = /^[a-z0-9,]+$/i.test(q.get("columns") || "") ? q.get("columns") : "rp,record,opr";
-    const accent = /^#?[0-9a-f]{6}$/i.test(q.get("accent") || "") ? "#" + q.get("accent").replace("#", "") : null;
     const display = $("display");
     // Zoom. Everything follows the screen's size, so the browser's zoom alone would change nothing:
     // its zoom is measured and applied on top. Ctrl/⌘ + and − change the sheet's own size instead
@@ -99,13 +105,20 @@
         saveZoom();
         showZoom();
     }, { capture: true });
-    display.style.setProperty("--space", spacing);
-    display.classList.toggle("no-frame", q.get("frame") === "false");
-    if (accent) document.documentElement.style.setProperty("--accent", accent);
-    $("clock").closest(".now").hidden = !shows("clock");
-    document.querySelector(".foot").hidden = !shows("footer");
-    // Rankings on the left: that column first.
-    if (rankingsLeft) $("right-col").parentNode.prepend($("right-col"));
+    function applyLook(p) {
+        applySize();
+        display.style.setProperty("--space", spacing);
+        display.classList.toggle("no-frame", p.get("frame") === "false");
+        if (accent) document.documentElement.style.setProperty("--accent", accent);
+        else document.documentElement.style.removeProperty("--accent");
+        $("clock").closest(".now").hidden = !shows("clock");
+        document.querySelector(".foot").hidden = !shows("footer");
+        // Rankings on the left: that column first.
+        let cols = $("right-col").parentNode;
+        if (rankingsLeft) cols.prepend($("right-col"));
+        else cols.append($("right-col"));
+    }
+    applyLook(q);
 
     // Options for every widget from the URL (hour-cycle -> hourCycle); the look is the site's own.
     const camel = (s) => s.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
@@ -203,6 +216,7 @@
         }
     };
 
+    let currentEvent;
     function follow() {
         let t = next.data;
         if (t?.name) {
@@ -211,6 +225,7 @@
         }
         let found = t?.events?.find((e) => e.event.code === fixedEvent)?.event;
         let ev = fixedEvent ? { code: fixedEvent, season: Number(shared.season) || found?.season, ...found } : pickEvent(t);
+        currentEvent = ev;
         layout(ev);
         if (!ev) return status();
         $("event-name").textContent = [ev.name || ev.code, ev.start ? dates(ev) : null].filter(Boolean).join(" · ");
@@ -315,6 +330,34 @@
         if (themeParam !== "auto") return;
         document.documentElement.classList.toggle("dark", isDark());
         for (const w of [next, matches, rankings]) w?.update({ theme: theme() });
+    });
+
+    // New settings from the setup page's preview (same site only). A change of the look is applied
+    // here; anything else (team, event, language, columns, the next match or matches shown or not:
+    // other data or widgets) loads the display again.
+    const LOOK = ["size", "spacing", "accent", "frame", "side", "split", "theme", "hide"];
+    const REBUILD_PARTS = ["next", "matches"];
+    let current = new URLSearchParams(q);
+    window.addEventListener("message", (e) => {
+        if (e.origin !== location.origin || typeof e.data?.ftcDisplay !== "string") return;
+        let url = new URL(e.data.ftcDisplay, location.href);
+        if (url.pathname !== location.pathname) return;
+        let p = url.searchParams;
+        let rest = (x) => [...x].filter(([k]) => !LOOK.includes(k)).map(([k, v]) => `${k}=${v}`).sort().join("&");
+        let parts = (x) => REBUILD_PARTS.filter((s) => (x.get("hide") || "").toLowerCase().split(/[\s,]+/).includes(s)).join();
+        if (rest(p) !== rest(current) || parts(p) !== parts(current)) return location.replace(url.href);
+        current = new URLSearchParams(p);
+        history.replaceState(null, "", url.pathname + url.search);
+        readLook(p);
+        applyLook(p);
+        layout(currentEvent);
+        let mode = (p.get("theme") || "dark").toLowerCase();
+        if (mode !== themeParam) {
+            themeParam = mode;
+            document.documentElement.classList.toggle("dark", isDark());
+            for (const w of [next, matches, rankings]) w?.update({ theme: theme() });
+        }
+        $("change").href = `/display?${new URLSearchParams([...p, ["setup", "1"]])}`;
     });
 
     // ------------------------------------------------------------ clock
@@ -447,6 +490,15 @@
             return p;
         }
 
+        // Whether two display links differ only in their look (what the display can change live).
+        const LOOK = ["size", "spacing", "accent", "frame", "side", "split", "theme", "hide"];
+        function lookOnly(a, b) {
+            let [x, y] = [a, b].map((u) => new URL(u || "/display", location.href).searchParams);
+            let rest = (p) => [...p].filter(([k]) => !LOOK.includes(k)).map(([k, v]) => `${k}=${v}`).sort().join("&");
+            let parts = (p) => ["next", "matches"].filter((s) => (p.get("hide") || "").split(",").includes(s)).join();
+            return rest(x) === rest(y) && parts(x) === parts(y);
+        }
+
         let timer;
         function update() {
             let ok = /^\d{1,6}$/.test(f.team.value.trim());
@@ -458,9 +510,21 @@
             // The preview loads the real display; wait until the typing stops.
             clearTimeout(timer);
             if (!ok) return ($("pv-frame").hidden = true);
+            // Once it has loaded, it gets the new settings instead: a change of the look shows at once,
+            // without loading everything again (the display reloads itself when it has to).
+            let frame = $("pv-frame");
+            if (frame.dataset.ready && frame.dataset.path !== path && lookOnly(frame.dataset.path, path)) {
+                frame.dataset.path = path;
+                frame.hidden = false;
+                frame.contentWindow?.postMessage({ ftcDisplay: path }, location.origin);
+                return;
+            }
             timer = setTimeout(() => {
-                let frame = $("pv-frame");
-                if (frame.getAttribute("src") !== path) frame.src = path;
+                if (frame.dataset.path !== path) {
+                    frame.dataset.path = path;
+                    delete frame.dataset.ready;
+                    frame.src = path;
+                }
                 frame.hidden = false;
             }, 500);
         }
@@ -468,6 +532,7 @@
         let scale = () => ($("pv-frame").style.transform = `scale(${$("pv").clientWidth / 1920})`);
         if (typeof ResizeObserver !== "undefined") new ResizeObserver(scale).observe($("pv"));
         scale();
+        $("pv-frame").addEventListener("load", () => ($("pv-frame").dataset.ready = "1"));
         f.addEventListener("input", update);
         f.addEventListener("change", update);
         f.addEventListener("submit", (e) => {
