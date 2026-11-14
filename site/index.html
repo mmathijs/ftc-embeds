@@ -202,6 +202,8 @@
     .ab-shot { display: block; border: 2px solid var(--ink); background: var(--paper-2); line-height: 0; box-shadow: 8px 8px 0 var(--rule); }
     .ab-shot img { width: 100%; height: auto; display: block; }
     .ab-shot:hover { box-shadow: 8px 8px 0 var(--accent); }
+    /* The pit display's band: the picture first. */
+    .band-flip { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); padding-top: 52px; }
     @media (max-width: 900px) {
         .avatar-band { grid-template-columns: minmax(0, 1fr); gap: 28px; padding: 36px 16px; }
         .ab-shot { box-shadow: 5px 5px 0 var(--rule); }
@@ -320,6 +322,7 @@
     <nav>
         <a href="/setup">setup</a>
         <a href="/pit-map">pit map</a>
+        <a href="/display">pit display</a>
         <a href="/team">widgets</a>
         <a href="/avatars">avatar</a>
         <a href="https://github.com/mmathijs/ftc-embeds#readme">docs</a>
@@ -412,6 +415,27 @@
     </section>
 </div>
 
+
+<section class="avatar-band band-flip" aria-labelledby="display-h">
+    <a class="ab-shot" href="/display" aria-label="Open the pit display">
+        <img src="img/pit-display.webp" width="1440" height="810" loading="lazy" decoding="async"
+             alt="The pit display on a TV: the team's next match Q-60 in 12 minutes with both alliances, its rank, record, RP and OPR, its matches, and the event's rankings with the team marked">
+    </a>
+    <div class="ab-text">
+        <span class="eyebrow">For your pit</span>
+        <h2 id="display-h">A pit display, on any screen</h2>
+        <p>Open one link on the TV or laptop in your pit: your next match with both alliances, your rank and record, your matches and the event's live rankings, full screen.</p>
+        <ul>
+            <li>Finds your event by itself and refreshes every 30 seconds</li>
+            <li>Keeps showing the last data when the venue's wifi drops</li>
+            <li>Keeps the screen awake; dark or light, in five languages</li>
+            <li>Nothing to install, no account: just a browser</li>
+        </ul>
+        <div class="cta">
+            <a class="go" href="/display">Start your pit display</a>
+        </div>
+    </div>
+</section>
 
 <p class="facts">iframe, HTML element or npm package · works with any website builder · no account, no cookies · data from FTCScout and <i>FIRST</i></p>
 
