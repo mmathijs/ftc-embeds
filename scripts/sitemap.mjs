@@ -16,7 +16,7 @@ const site = resolve(root, "dist/site");
 const ORIGIN = "https://ftc-embeds.com";
 const GRAPHQL = "https://api.ftcscout.org/graphql";
 // path -> the file whose last commit dates it
-const PAGES = { "/": "site/index.html", "/setup": "site/setup.html", "/team": "site/team.html", "/teams": "site/teams.html", "/pit-map": "site/pit-map.html", "/avatars": "site/avatars.html", "/privacy": "site/privacy.html" };
+const PAGES = { "/": "site/index.html", "/setup": "site/setup.html", "/team": "site/team.html", "/teams": "site/teams.html", "/pit-map": "site/pit-map.html", "/avatars": "site/avatars.html", "/display": "site/display.html", "/privacy": "site/privacy.html" };
 // Events that count for "played N events" (not scrimmages, kickoffs, demos)
 const OFFICIAL = new Set(["Qualifier", "LeagueMeet", "LeagueTournament", "Championship", "SuperQualifier", "Premier", "FIRSTChampionship", "OffSeason"]);
 // Playoff alliances, best first, said as "was on …"

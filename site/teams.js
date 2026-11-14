@@ -49,6 +49,7 @@
     $("team-page").hidden = false;
     $("setup-link").href = setupUrl();
     $("options-link").href = builderUrl();
+    $("display-link").href = `/display?team=${TEAM}`;
 
     const api = { apiBase: SITE.apiBase || null, graphqlUrl: SITE.graphqlUrl || null };
     let card;

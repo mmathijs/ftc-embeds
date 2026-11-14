@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- The pit display: /display?team=19444 is a full-screen page for a TV or laptop in the pit, with
+     the team's next match, its matches and the event's rankings. It finds the team's current event
+     by itself, keeps the screen awake, and keeps showing the last data when the venue's wifi drops.
+     Without a team it shows a short form. Any widget option can be added as a URL parameter
+     (theme, lang, hour-cycle, time-zone, season, event, shape). -->
+<link rel="canonical" href="https://ftc-embeds.com/display">
+<meta name="description" content="A full-screen pit display for FTC teams: next match, match schedule and live rankings on one screen.">
+<title>Pit display · ftc-embeds</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%231c1b19'/%3E%3Crect x='3' y='3' width='4' height='4' fill='%23ff5a1f'/%3E%3Crect x='9' y='3' width='4' height='4' fill='%23f4f1ea'/%3E%3Crect x='3' y='9' width='4' height='4' fill='%23f4f1ea'/%3E%3Crect x='9' y='9' width='4' height='4' fill='%23f4f1ea'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+    :root {
+        /* One unit that follows the screen: 19px on a 1920×1080 TV, smaller on a laptop. */
+        --u: min(1vw, 1.75vh);
+        --page: #0b0d10;
+        --page-text: #e8ebef;
+        --page-muted: #9aa3ad;
+        --page-line: #2c313a;
+        --accent: #ff5a1f;
+        color-scheme: dark;
+    }
+    :root.light {
+        --page: #e9ecf0;
+        --page-text: #1d2329;
+        --page-muted: #5d6773;
+        --page-line: #cfd5dc;
+        color-scheme: light;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+        background: var(--page);
+        color: var(--page-text);
+        font-family: "IBM Plex Sans", system-ui, sans-serif;
+        overflow: hidden;
+    }
+    body.idle, body.idle * { cursor: none !important; }
+
+    /* ---------------------------------------------------------------- the display */
+    .display {
+        height: 100vh;
+        height: 100dvh;
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
+        gap: calc(var(--u) * 1.2);
+        padding: calc(var(--u) * 1.4);
+        /* The widgets' sizes, scaled for reading from a few metres away. */
+        --ftcw-font-size: calc(var(--u) * 1.3);
+        --ftcw-small-size: calc(var(--u) * 1.05);
+        --ftcw-title-size: calc(var(--u) * 1.55);
+        --ftcw-value-size: calc(var(--u) * 2);
+        --ftcw-name-size: calc(var(--u) * 1.6);
+        --ftcw-chip-font-size: calc(var(--u) * 0.95);
+        --ftcw-padding: calc(var(--u) * 1.4);
+        --ftcw-row-padding: calc(var(--u) * 0.6);
+        --ftcw-gap: calc(var(--u) * 0.9);
+        --ftcw-radius: calc(var(--u) * 0.9);
+        --ftcw-inner-radius: calc(var(--u) * 0.6);
+        --ftcw-avatar-size: calc(var(--u) * 2.4);
+    }
+    .display[hidden] { display: none; }
+    header.bar {
+        display: flex;
+        align-items: center;
+        gap: calc(var(--u) * 1.6);
+        min-width: 0;
+    }
+    .who { min-width: 0; flex: 1; display: flex; align-items: baseline; gap: calc(var(--u) * 1.1); }
+    .who .num {
+        font-size: calc(var(--u) * 3.2);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        line-height: 1;
+        color: var(--accent);
+        font-variant-numeric: tabular-nums;
+    }
+    .who .names { min-width: 0; display: grid; }
+    .who .name, .who .event { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .who .name { font-size: calc(var(--u) * 1.9); font-weight: 650; line-height: 1.15; }
+    .who .event { font-size: calc(var(--u) * 1.2); color: var(--page-muted); }
+    .clock {
+        font-size: calc(var(--u) * 3.2);
+        font-weight: 600;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.02em;
+    }
+    /* Over the page in a corner, so they take no room from the team's name. */
+    .tools { position: fixed; right: calc(var(--u) * 1.4); bottom: calc(var(--u) * 1.4); z-index: 2; display: flex; gap: calc(var(--u) * 0.5); transition: opacity .4s; }
+    body.idle .tools { opacity: 0; pointer-events: none; }
+    .tools button, .tools a {
+        all: unset;
+        cursor: pointer;
+        font-size: calc(var(--u) * 0.95);
+        color: var(--page-muted);
+        border: 1px solid var(--page-line);
+        border-radius: 999px;
+        padding: calc(var(--u) * 0.35) calc(var(--u) * 0.9);
+        background: var(--page);
+    }
+    .tools button:hover, .tools a:hover, .tools button:focus-visible, .tools a:focus-visible { color: var(--page-text); border-color: var(--page-muted); }
+
+    .panels {
+        min-height: 0;
+        display: grid;
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.2fr) minmax(0, 0.95fr);
+        gap: calc(var(--u) * 1.2);
+    }
+    /* No event this season: the next match (or "not competing") on its own. */
+    .panels.solo { grid-template-columns: minmax(0, 1fr); max-width: calc(var(--u) * 70); width: 100%; margin: 0 auto; }
+    .panels.solo .side { display: none; }
+    .panel { min-height: 0; min-width: 0; overflow: hidden; }
+    /* The next match: larger still. */
+    #next {
+        --ftcw-font-size: calc(var(--u) * 1.7);
+        --ftcw-small-size: calc(var(--u) * 1.3);
+        --ftcw-value-size: calc(var(--u) * 3);
+        --ftcw-title-size: calc(var(--u) * 1.8);
+        --ftcw-chip-font-size: calc(var(--u) * 1.15);
+    }
+    /* The match table has five columns: a little smaller. */
+    /* The match table has five columns, and a playoff alliance three teams: its type follows the
+       panel's width, so the blue alliance always fits. */
+    #matches { container-type: inline-size; }
+    #matches > * { --ftcw-font-size: min(calc(var(--u) * 1.1), 2.5cqi); --ftcw-small-size: min(calc(var(--u) * 0.9), 2.05cqi); }
+    /* Portrait screens: the next match on top, matches and rankings next to each other below. */
+    @media (max-aspect-ratio: 1/1) {
+        :root { --u: min(1.9vw, 1.2vh); }
+        /* One column: next match, matches, rankings. */
+        .panels { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) minmax(0, 1fr); }
+    }
+
+    /* ---------------------------------------------------------------- the form */
+    .start {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px 16px;
+        overflow: auto;
+    }
+    .start[hidden] { display: none; }
+    body:has(.start:not([hidden])) { overflow: auto; }
+    .start form {
+        width: min(520px, 100%);
+        display: grid;
+        gap: 18px;
+    }
+    .start .eyebrow { font-family: "IBM Plex Mono", monospace; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+    .start h1 { margin: 0; font-size: clamp(30px, 6vw, 44px); line-height: 1.05; letter-spacing: -0.02em; }
+    .start p { margin: 0; color: var(--page-muted); line-height: 1.5; }
+    .start label { display: grid; gap: 6px; font-size: 14px; color: var(--page-muted); }
+    .start input, .start select {
+        font: inherit;
+        font-size: 18px;
+        color: var(--page-text);
+        background: transparent;
+        border: 1px solid var(--page-line);
+        border-radius: 8px;
+        padding: 10px 12px;
+        width: 100%;
+    }
+    .start input:focus, .start select:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: transparent; }
+    .start .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 420px) { .start .row { grid-template-columns: 1fr; } }
+    .start button {
+        font: inherit;
+        font-size: 18px;
+        font-weight: 600;
+        color: #fff;
+        background: var(--accent);
+        border: 0;
+        border-radius: 8px;
+        padding: 12px 16px;
+        cursor: pointer;
+    }
+    .start .tips { font-size: 14px; }
+    .start .tips li { margin: 4px 0; }
+    .start a { color: inherit; }
+    .start small { font-size: 13px; }
+</style>
+</head>
+<body>
+<main class="display" id="display" hidden>
+    <header class="bar">
+        <div class="who">
+            <span class="num" id="team-num"></span>
+            <span class="names"><span class="name" id="team-name"></span><span class="event" id="event-name"></span></span>
+        </div>
+        <div class="tools">
+            <button type="button" id="fullscreen" title="Full screen (F)">Full screen</button>
+            <a href="/display" id="change" title="Another team or look">Change</a>
+        </div>
+        <time class="clock" id="clock"></time>
+    </header>
+    <div class="panels" id="panels">
+        <section class="panel" id="next" aria-label="Next match"></section>
+        <section class="panel side" id="matches" aria-label="Matches"></section>
+        <section class="panel side" id="rankings" aria-label="Rankings"></section>
+    </div>
+</main>
+
+<section class="start" id="start" hidden>
+    <form id="form" action="/display">
+        <span class="eyebrow">Pit display</span>
+        <h1>Your next match and the rankings, on the TV in your pit</h1>
+        <p>One full-screen page with the team's next match, its matches and the event's live rankings. It finds the event by itself, keeps the screen awake, and keeps showing the last data when the venue's wifi drops.</p>
+        <label>Team number <input name="team" inputmode="numeric" pattern="[0-9]{1,6}" required autocomplete="off" placeholder="e.g. 19444" autofocus></label>
+        <div class="row">
+            <label>Look
+                <select name="theme">
+                    <option value="dark">Dark</option>
+                    <option value="light">Light</option>
+                    <option value="trophy">Trophy case</option>
+                    <option value="ftcscout-dark">FTCScout (dark)</option>
+                    <option value="ftc-events-dark">FTC Events (dark)</option>
+                </select>
+            </label>
+            <label>Language <select name="lang" id="lang"></select></label>
+        </div>
+        <button type="submit">Start the display</button>
+        <ul class="tips">
+            <li>Open it in the browser of the TV or laptop, then press <b>F</b> (or the button) for full screen.</li>
+            <li>Bookmark the page it opens: <code>ftc-embeds.com/display?team=…</code> starts straight away.</li>
+            <li>During the event it refreshes every 30 seconds. With an <code>event</code> parameter (<code>&amp;event=NLCMP</code>) it shows that event instead.</li>
+        </ul>
+        <p><small><a href="/">ftc-embeds.com</a> · <a href="/setup">put the widgets on your website</a></small></p>
+    </form>
+</section>
+
+<script src="config.js"></script>
+<script src="lib/next-match.umd.js"></script>
+<script src="lib/event-matches.umd.js"></script>
+<script src="lib/event-rankings.umd.js"></script>
+<script src="display.js"></script>
+</body>
+</html>
