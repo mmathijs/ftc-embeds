@@ -38,13 +38,12 @@
     const columns = /^[a-z0-9,]+$/i.test(q.get("columns") || "") ? q.get("columns") : "rp,record,opr";
     const accent = /^#?[0-9a-f]{6}$/i.test(q.get("accent") || "") ? "#" + q.get("accent").replace("#", "") : null;
     const display = $("display");
-    // Zoom: Ctrl/⌘ + and − change the sheet's own size (everything follows the screen size, so the
-    // browser's zoom alone wouldn't), saved in the address; the browser's zoom from its menu or
-    // Ctrl + wheel counts too (the pixel ratio changes). Ctrl/⌘ 0 goes back.
+    // Zoom. Everything follows the screen's size, so the browser's zoom alone would change nothing:
+    // its zoom is measured and applied on top. Ctrl/⌘ + and − change the sheet's own size instead
+    // (saved in the address, so a reload or bookmark keeps it), Ctrl/⌘ 0 goes back to 100%.
     let keyZoom = 1;
     let browserZoom = 1;
     const applySize = () => display.style.setProperty("--size", (size * keyZoom * browserZoom).toFixed(3));
-    applySize();
     let zoomNote;
     const showZoom = () => {
         let el = $("zoom-note");
@@ -60,28 +59,46 @@
         else p.set("size", String(total));
         history.replaceState(null, "", `${location.pathname}?${p}`);
     };
-    document.addEventListener("keydown", (e) => {
+    // The browser's zoom. Chrome and Edge: the window's outer width is in screen pixels, its inner
+    // width in CSS pixels, so their ratio is the zoom (also the zoom the site already had when the
+    // display opened: browsers keep it per site). It's snapped to the browsers' zoom levels; any
+    // other ratio (a docked developer panel) doesn't count. Other browsers: the change of the
+    // pixel ratio since the display opened.
+    const LEVELS = [0.25, 0.33, 0.5, 0.67, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2, 2.5, 3, 4, 5];
+    const startRatio = window.devicePixelRatio || 1;
+    const measureZoom = () => {
+        let r = window.outerWidth && window.innerWidth ? window.outerWidth / window.innerWidth : 1;
+        let level = LEVELS.reduce((a, b) => (Math.abs(b - r) < Math.abs(a - r) ? b : a));
+        let fromWindow = Math.abs(level - r) / level < 0.03 ? level : 1;
+        let fromRatio = (window.devicePixelRatio || 1) / startRatio;
+        return Math.abs(fromWindow - 1) > 0.01 ? fromWindow : fromRatio;
+    };
+    browserZoom = measureZoom();
+    applySize();
+    // Every zoom change resizes the page.
+    window.addEventListener("resize", () => {
+        let z = measureZoom();
+        if (Math.abs(z - browserZoom) < 0.01) return;
+        browserZoom = z;
+        applySize();
+        showZoom();
+    });
+    const KEYS = { plus: ["+", "="], minus: ["-", "_"], reset: ["0"] };
+    const CODES = { plus: ["Equal", "NumpadAdd"], minus: ["Minus", "NumpadSubtract"], reset: ["Digit0", "Numpad0"] };
+    const which = (e) => Object.keys(KEYS).find((k) => KEYS[k].includes(e.key) || CODES[k].includes(e.code));
+    window.addEventListener("keydown", (e) => {
         if (!(e.ctrlKey || e.metaKey) || e.altKey) return;
-        if (e.key === "+" || e.key === "=") keyZoom = Math.min(2.5 / size, keyZoom * 1.1);
-        else if (e.key === "-" || e.key === "_") keyZoom = Math.max(0.5 / size, keyZoom / 1.1);
-        else if (e.key === "0") keyZoom = 1 / size;
-        else return;
+        let k = which(e);
+        if (!k) return;
+        if (k === "plus") keyZoom = Math.min(2.5 / size, keyZoom * 1.1);
+        else if (k === "minus") keyZoom = Math.max(0.5 / size, keyZoom / 1.1);
+        else keyZoom = 1 / size;
         e.preventDefault();
+        e.stopPropagation();
         applySize();
         saveZoom();
         showZoom();
-    });
-    let dpr = window.devicePixelRatio || 1;
-    const watchZoom = () =>
-        matchMedia(`(resolution: ${dpr}dppx)`).addEventListener?.("change", () => {
-            let now = window.devicePixelRatio || 1;
-            browserZoom = Math.min(3, Math.max(0.3, (browserZoom * now) / dpr));
-            dpr = now;
-            applySize();
-            showZoom();
-            watchZoom();
-        }, { once: true });
-    watchZoom();
+    }, { capture: true });
     display.style.setProperty("--space", spacing);
     display.classList.toggle("no-frame", q.get("frame") === "false");
     if (accent) document.documentElement.style.setProperty("--accent", accent);
