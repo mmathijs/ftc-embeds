@@ -125,6 +125,11 @@
     .sec-b { padding: calc(var(--u) * 0.9 * var(--space)) var(--pad) var(--pad); min-height: 0; }
     .sec.grow .sec-b { flex: 1 1 0; padding-bottom: 0; overflow: hidden; }
 
+    /* The match table has five columns, and a playoff alliance three teams: its type also follows
+       the column's width, so the blue alliance always fits, also at a large size or zoom. */
+    #matches { container-type: inline-size; }
+    #matches > * { --ftcw-font-size: min(calc(var(--u) * 1.2), 2.5cqi); --ftcw-small-size: min(calc(var(--u) * 0.95), 2.05cqi); }
+
     /* The next match, at reading-from-the-pit size. */
     #next { --ftcw-font-size: calc(var(--u) * 1.45); --ftcw-small-size: calc(var(--u) * 1.05); --ftcw-value-size: calc(var(--u) * 2.2); }
 
