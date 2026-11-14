@@ -22,6 +22,11 @@
         } else if (value === "true" || value === "false") value = value === "true";
         options[camel(key)] = value;
     }
+    // Icons from the URL are text or image URLs only: an "<svg …>" string would be put in the page
+    // as HTML, so a crafted link could run script on ftc-embeds.com.
+    if (options.icons && typeof options.icons === "object") {
+        for (let [name, icon] of Object.entries(options.icons)) if (typeof icon !== "string" || /</.test(icon)) delete options.icons[name];
+    }
     // In an iframe, links open in a new tab unless asked otherwise.
     options.linkTarget ??= "_blank";
     lib.configure({ apiBase: q.get("apiBase") || site.apiBase || null, graphqlUrl: q.get("graphqlUrl") || site.graphqlUrl || null });
