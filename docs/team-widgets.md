@@ -37,7 +37,9 @@ Every team widget takes these (as options, or kebab-case attributes on the eleme
 | `apiBase`, `graphqlUrl` | URL | another API than FTCScout's (the default), per widget instead of `configure()` |
 | `data` | object | show this data instead of loading it |
 | `text` | object | change any text: `{ nextMatch: "Up next", awards: "Trophies" }` (see `TEAM_TEXT`; `{name}` is filled in) |
-| `locale` | `"en-GB"` | dates, times and numbers (default: the visitor's) |
+| `lang` | `nl`, `de`, `fr`, `es`, `auto` | the widget's language: texts, ordinals, event types and dates (default English). `"nl-BE"` also picks the region; `auto` follows the page's `<html lang>`. See [Languages](#languages) |
+| `langUrl` | URL | where language packs come from (default ftc-embeds.com): `"https://example.org/lang/{lang}.json"` |
+| `locale` | `"en-GB"` | dates, times and numbers (default: `lang`, else the visitor's) |
 | `decimals` | number | OPR and EPA (default 1) |
 | `numberFormat` | `point`, `comma`, `space`, `apostrophe`, `plain` | separators no matter the language: 1,234.5 · 1.234,5 · 1 234,5 · 1'234.5 · 1234.5 (default `locale`: the language's) |
 | `dateFormat` | `short`, `long`, `numeric`, `iso` | event dates: Feb 7, 2026 (default) · February 7, 2026 · 2/7/2026 (in the language's order) · 2026-02-07 |
@@ -97,6 +99,33 @@ Every text a widget shows is in `TEAM_TEXT`. Change any of them with `text`:
 ```
 
 `{name}` placeholders are filled in, and a pair `[one, other]` picks by number. Dates, times and numbers follow `locale`; award and event type names change with `awardNames` and `eventTypes`.
+
+## Languages
+
+The widgets speak English, Dutch, German, French and Spanish (`TEAM_LANGUAGES`):
+
+```html
+<ftc-team-card team="19444" lang="nl"></ftc-team-card>
+<ftc-event-rankings event="NLCMP" lang="de-AT"></ftc-event-rankings>
+```
+
+`lang` translates every text, the ordinals ("2e plaats"), event types and the alliance awards, and writes dates and numbers the language's way (unless `locale` says otherwise). The judged awards keep their official English names. `lang="auto"` uses the page's own `<html lang>` when it is one of these languages.
+
+The texts come from a small language pack (about 2 KB), loaded once from ftc-embeds.com and kept in the visitor's browser; until it is there the widget shows its loading state. `text`, `awardNames` and `eventTypes` still change any of them:
+
+```html
+<ftc-team-awards team="19444" lang="nl" text='{"awards":"Prijzenkast"}'></ftc-team-awards>
+```
+
+The packs are in the package as `ftc-embeds/lang/<code>.json`. To bundle one instead of loading it, register it, or pass it as `lang`:
+
+```js
+import nl from "ftc-embeds/lang/nl.json" with { type: "json" };
+import { registerLanguage } from "ftc-embeds/team-card";
+registerLanguage(nl); // then lang: "nl" anywhere on the page
+```
+
+Another language: copy a pack, translate it, and give the widgets its address with `langUrl` (`{lang}` is filled in) or register it. A pack can leave texts out; those stay English. Improvements to the packs are welcome on GitHub.
 
 ## Icons
 

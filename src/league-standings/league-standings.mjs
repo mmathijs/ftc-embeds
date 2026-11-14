@@ -10,7 +10,7 @@ export { configure, EmbedsApiError, DEFAULT_API_BASE } from "../core/api.mjs";
 export { getEventLeague, parseEventCode, EVENT_LEAGUE_QUERY } from "../core/event-api.mjs";
 export { seasonOf } from "../core/team-api.mjs";
 export { TEAM_THEMES, TEAM_THEME_MODES, TEAM_SHAPES, TEAM_THEME_SHAPES, ICONS } from "../core/team-ui.mjs";
-export { TEAM_TEXT } from "../core/team-text.mjs";
+export { TEAM_TEXT, TEAM_LANGUAGES, registerLanguage } from "../core/team-text.mjs";
 
 export class LeagueStandings extends TeamWidget {
     static kind = "league-standings";

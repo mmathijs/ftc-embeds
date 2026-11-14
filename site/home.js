@@ -251,7 +251,7 @@
         bases: [["site", "This site's"], ["light", "Light"], ["dark", "Dark"], ["ftcscout", "FTCScout"], ["trophy", "Trophy case"]],
         shapes: [["", "Default"], ["square", "Square"], ["bubbly", "Rounded"], ["compact", "Compact"], ["spacious", "Spacious"]],
         fonts: [["", "The theme's", null], ["plex", "IBM Plex", 'var(--sans)'], ["serif", "Serif", 'Georgia, "Times New Roman", serif'], ["mono", "Mono", 'var(--mono)']],
-        locales: [["", "Visitor's"], ["en-US", "English (US)"], ["nl-NL", "Nederlands"], ["de-DE", "Deutsch"], ["fr-FR", "Français"]],
+        locales: [["", "English"], ["nl-NL", "Nederlands"], ["de-DE", "Deutsch"], ["fr-FR", "Français"], ["es-ES", "Español"]],
         parts: [["avatar", "Avatar"], ["location", "Location"], ["rookie", "Rookie year"], ["website", "Website"], ["next-event", "Next event"]],
     };
     const cz = { accent: "#ff5a1f", base: "site", shape: "", font: "plex", locale: "", hide: [] };
@@ -262,7 +262,8 @@
         let theme = cz.base === "site" ? { ...THEME, accent: cz.accent } : { base: cz.base, accent: cz.accent };
         if (font) theme.font = font;
         if (cz.shape) { delete theme.radius; delete theme.innerRadius; }   // the site's square corners would win over the shape
-        return { theme, shape: cz.shape || null, locale: cz.locale || null, hide: cz.hide.length ? cz.hide.join(",") : null };
+        // lang="nl-NL": the texts in Dutch, dates and numbers the Dutch way.
+        return { theme, shape: cz.shape || null, lang: cz.locale || null, hide: cz.hide.length ? cz.hide.join(",") : null };
     };
     const czRender = () => {
         let o = czOptions();
@@ -273,7 +274,7 @@
         if (font[2]) theme.font = font[0] === "plex" ? '"IBM Plex Sans", sans-serif' : font[0] === "mono" ? '"IBM Plex Mono", monospace' : font[2];
         let attrs = [`team="${TEAM}"`, `theme='${JSON.stringify(theme)}'`];
         if (cz.shape) attrs.push(`shape="${cz.shape}"`);
-        if (cz.locale) attrs.push(`locale="${cz.locale}"`);
+        if (cz.locale) attrs.push(`lang="${cz.locale}"`);
         if (cz.hide.length) attrs.push(`hide="${cz.hide.join(",")}"`);
         czCode.textContent = `<script type="module" src="https://ftc-embeds.com/lib/team-card.mjs"></script>\n<ftc-team-card ${attrs.join(" ")}></ftc-team-card>`;
     };
@@ -308,7 +309,7 @@
             czSeg("Colors", "base", CZ.bases),
             czSeg("Shape and corners", "shape", CZ.shapes),
             czSeg("Font", "font", CZ.fonts.map(([v, l]) => [v, l])),
-            czSeg("Dates and numbers", "locale", CZ.locales),
+            czSeg("Language", "locale", CZ.locales),
             el("div", { className: "q" }, el("span", {}, "Show"), checks));
         let io = new IntersectionObserver((es) => {
             if (!es.some((e) => e.isIntersecting)) return;

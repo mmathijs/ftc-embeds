@@ -78,6 +78,7 @@
             "require": "./dist/countdown.umd.js"
         },
         "./countdown/umd": "./dist/countdown.umd.min.js",
+        "./lang/*": "./src/lang/*",
         "./package.json": "./package.json"
     },
     "typesVersions": {

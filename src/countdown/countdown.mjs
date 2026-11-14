@@ -11,7 +11,7 @@ export { configure, EmbedsApiError, DEFAULT_API_BASE } from "../core/api.mjs";
 export { getEventInfo, getEventMatches, parseEventCode, EVENT_INFO_QUERY, EVENT_MATCHES_QUERY } from "../core/event-api.mjs";
 export { getTeamMatches, seasonOf } from "../core/team-api.mjs";
 export { TEAM_THEMES, TEAM_THEME_MODES, TEAM_SHAPES, TEAM_THEME_SHAPES, ICONS } from "../core/team-ui.mjs";
-export { TEAM_TEXT } from "../core/team-text.mjs";
+export { TEAM_TEXT, TEAM_LANGUAGES, registerLanguage } from "../core/team-text.mjs";
 
 /** The moment a day ("2026-02-07") starts in a time zone ("Europe/Amsterdam"), as epoch ms. */
 export function zonedMidnight(date, timeZone) {

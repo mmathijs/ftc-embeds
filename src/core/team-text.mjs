@@ -1,5 +1,9 @@
 // Every text the team widgets show. Change any of them with the `text` option
 // ({ nextMatch: "Up next" }). {name} is filled in; a [one, other] pair picks by {n}.
+// Other languages come as packs (src/lang/<code>.json, served at ftc-embeds.com/lib/lang/), picked
+// with the `lang` option: they hold the same keys, plus ordinals, event types and award names.
+
+import { storage } from "./cache.mjs";
 
 export const TEAM_TEXT = {
     // states
@@ -161,4 +165,104 @@ export const TEAM_TEXT = {
 export function fill(text, vars = {}) {
     if (Array.isArray(text)) text = vars.n == 1 ? text[0] : text[1];
     return String(text ?? "").replace(/\{(\w+)\}/g, (m, k) => (vars[k] != null ? vars[k] : m));
+}
+
+// -------------------------------------------------------------- languages
+
+/** The ready-made language packs (`lang` option), by code. English is built in. */
+export const TEAM_LANGUAGES = { en: "English", nl: "Nederlands", de: "Deutsch", fr: "Français", es: "Español" };
+
+/** Where the packs are loaded from; {lang} is the code. */
+export const DEFAULT_LANG_URL = "https://ftc-embeds.com/lib/lang/{lang}.json";
+
+// A UMD build loaded from an ftc-embeds lib/ folder finds the packs next to itself (lib/lang/), so
+// a test server or a copy of the site uses its own. Module builds don't know where they came from.
+const SCRIPT = typeof document !== "undefined" ? document.currentScript?.src : null;
+const OWN_LANG_URL = SCRIPT && /\/lib\/[\w-]+\.umd(\.min)?\.js(\?.*)?$/.test(SCRIPT) ? new URL("lang/", SCRIPT).href + "{lang}.json" : null;
+
+// Shared by every widget bundle on the page (each one inlines its own copy of this file).
+const REG = (globalThis.__ftcEmbedsLanguages ??= { packs: {}, loading: {}, refreshed: {} });
+const LANG_STORE_KEY = "ftcw:lang:";
+
+/**
+ * The language a `lang` value asks for: { code: "nl", tag: "nl-BE" }, or null for none.
+ * "auto" is the page's own (<html lang>), when there's a pack for it.
+ */
+export function parseLang(lang) {
+    if (lang == null || lang === "" || lang === false) return null;
+    let auto = String(lang).trim().toLowerCase() === "auto";
+    let tag = auto ? (typeof document !== "undefined" && document.documentElement?.lang) || "" : String(lang).trim();
+    let m = /^([a-z]{2,3})(?:[-_][a-z0-9-]+)?$/i.exec(tag);
+    if (!m) return null;
+    let code = m[1].toLowerCase();
+    if (auto && !(code in TEAM_LANGUAGES) && !REG.packs[code]) return null;
+    return { code, tag: tag.replace("_", "-") };
+}
+
+/** Add a language pack, e.g. registerLanguage(nl) with `import nl from "ftc-embeds/lang/nl.json"`. */
+export function registerLanguage(code, pack) {
+    if (code && typeof code === "object") [code, pack] = [code.lang, code];
+    code = parseLang(code)?.code;
+    if (!code || !pack || typeof pack !== "object") throw new Error("ftc-embeds: registerLanguage(pack) needs a pack with a lang code");
+    REG.packs[code] = pack;
+    return pack;
+}
+
+/** The pack for a code when it's at hand (registered, loaded or saved in this browser), else null. */
+export function languagePack(code) {
+    if (!code || code === "en") return null;
+    if (REG.packs[code]) return REG.packs[code];
+    try {
+        let saved = JSON.parse(storage()?.getItem(LANG_STORE_KEY + code) || "null");
+        if (saved?.text) return (REG.packs[code] = saved);
+    } catch {
+        // not saved
+    }
+    return null;
+}
+
+/**
+ * Load the pack for a code from `url` ({lang} template or a folder; default: next to the script or
+ * ftc-embeds.com). Resolves to the pack, or null when it can't be had (the widgets stay English).
+ * A pack this browser saved earlier is used at once and refreshed once per page.
+ */
+export function loadLanguage(code, { url = null, fetch: f = null } = {}) {
+    let have = languagePack(code);
+    if (code === "en" || (have && REG.refreshed[code])) return Promise.resolve(have);
+    let template = url || OWN_LANG_URL || DEFAULT_LANG_URL;
+    let href = template.includes("{lang}") ? template.replace("{lang}", code) : `${template.replace(/\/+$/, "")}/${code}.json`;
+    REG.refreshed[code] = true;
+    let pending = (REG.loading[href] ??= (async () => {
+        let get = f || globalThis.fetch;
+        let signal = typeof AbortSignal !== "undefined" && AbortSignal.timeout ? AbortSignal.timeout(10000) : undefined;
+        let res = await get(href, { headers: { Accept: "application/json" }, signal });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        let pack = await res.json();
+        if (!pack || typeof pack.text !== "object") throw new Error("not a language pack");
+        REG.packs[code] = pack;
+        try {
+            storage()?.setItem(LANG_STORE_KEY + code, JSON.stringify(pack));
+        } catch {
+            // storage full or blocked: it's loaded again next time
+        }
+        return pack;
+    })().catch((e) => {
+        delete REG.loading[href];
+        if (!have) console.warn(`ftc-embeds: couldn't load language "${code}" from ${href} (${e?.message || e}); showing English`);
+        return have;
+    }));
+    return have ? Promise.resolve(have) : pending;
+}
+
+/** "1st" in a pack's language: its ordinal rules by Intl.PluralRules category ({ other: "{n}e" }). */
+export function packOrdinal(n, pack, locale) {
+    let rules = pack?.ordinal;
+    if (!rules) return null;
+    let cat = "other";
+    try {
+        cat = new Intl.PluralRules(locale || pack.lang, { type: "ordinal" }).select(n);
+    } catch {
+        // unknown locale: "other"
+    }
+    return fill(rules[cat] ?? rules.other, { n });
 }

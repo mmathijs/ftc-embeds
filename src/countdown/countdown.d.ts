@@ -3,7 +3,7 @@
 import type { TeamWidget, TeamWidgetOptions, ApiOptions, EventInfo } from "../core/team-widgets";
 import type { TeamMatchesData } from "../next-match/next-match";
 export type { TeamWidgetOptions, EventInfo, TeamThemeName, TeamTheme, TeamThemeOption, IconName, ApiOptions, EmbedsConfig } from "../core/team-widgets";
-export { configure, EmbedsApiError, TEAM_THEMES, TEAM_THEME_MODES, TEAM_SHAPES, TEAM_THEME_SHAPES, ICONS, TEAM_TEXT, seasonOf, DEFAULT_API_BASE, parseEventCode } from "../core/team-widgets";
+export { configure, EmbedsApiError, TEAM_THEMES, TEAM_THEME_MODES, TEAM_SHAPES, TEAM_THEME_SHAPES, ICONS, TEAM_TEXT, TEAM_LANGUAGES, registerLanguage, seasonOf, DEFAULT_API_BASE, parseEventCode } from "../core/team-widgets";
 export { getTeamMatches } from "../next-match/next-match";
 
 export interface EventInfoData extends EventInfo {

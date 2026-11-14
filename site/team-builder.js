@@ -131,7 +131,11 @@
         if (state.limit) o.limit = +state.limit;
         if (state.css.trim()) o.css = state.css.trim();
         if (state.hide.trim()) o.hide = state.hide.split(/[\s,]+/).filter(Boolean).join(",");
-        if (state.locale) o.locale = state.locale;
+        // A language the widgets speak (nl, de, fr, es): lang translates the texts and sets the formats.
+        if (state.locale) {
+            let code = state.locale.trim().toLowerCase().split(/[-_]/)[0];
+            o[code !== "en" && code in (window.FtcTeamCard?.TEAM_LANGUAGES || {}) ? "lang" : "locale"] = state.locale;
+        }
         if (state.numberFormat !== "locale") o.numberFormat = state.numberFormat;
         if (+state.decimals !== 1) o.decimals = +state.decimals;
         if (state.dateFormat !== "short") o.dateFormat = state.dateFormat;
@@ -204,7 +208,7 @@
         if (!lib) return;
         if (SITE.apiBase || SITE.graphqlUrl) lib.configure({ apiBase: SITE.apiBase || null, graphqlUrl: SITE.graphqlUrl || null });
         // Every option goes to the widget, so values back at their default are applied too.
-        let o = { layout: "list", density: "normal", bare: false, limit: null, hide: null, season: null, theme: "auto", linkTo: "ftcscout", linkTarget: "_blank", css: "", locale: null, numberFormat: "locale", decimals: 1, dateFormat: "short", hourCycle: null, timeZone: null, ...options() };
+        let o = { layout: "list", density: "normal", bare: false, limit: null, hide: null, season: null, theme: "auto", linkTo: "ftcscout", linkTarget: "_blank", css: "", lang: null, locale: null, numberFormat: "locale", decimals: 1, dateFormat: "short", hourCycle: null, timeZone: null, ...options() };
         if (state.widget === "team-card") o = { stats: "opr,epa,record", upcoming: 1, ...o };
         if (state.widget === "team-awards") o = { onlyWon: false, seasons: null, ...o };
         if (state.widget === "team-results" || state.widget === "team-season") o = { skipTypes: null, order: "newest", ...o };

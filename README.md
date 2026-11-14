@@ -18,7 +18,7 @@ Embeddable widgets for FIRST Tech Challenge events and teams. Each widget is a s
 
 The team widgets share their options, themes (including a trophy-case look), icons and styling hooks: see [docs/team-widgets.md](docs/team-widgets.md). The event widgets (rankings, matches, advancement, league standings, countdown) take an event code instead of a team: see [docs/event-widgets.md](docs/event-widgets.md).
 
-The team and event widgets keep showing their last data with a note when the network drops, for example at an event ([bad connections](docs/team-widgets.md#bad-connections)).
+The team and event widgets come in English, Dutch, German, French and Spanish (`lang="nl"`, [languages](docs/team-widgets.md#languages)), and keep showing their last data with a note when the network drops, for example at an event ([bad connections](docs/team-widgets.md#bad-connections)).
 
 Widgets load their own data from FTCScout's [ftc-embeds API](docs/api.md) by default: REST endpoints that are cached presets of GraphQL queries (`configure({ apiBase })`), or the same queries sent to a GraphQL endpoint (`configure({ graphqlUrl })`).
 

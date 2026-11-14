@@ -9,7 +9,7 @@ import { getTeamResults, getTeamMatches } from "../core/team-api.mjs";
 export { configure, EmbedsApiError, DEFAULT_API_BASE } from "../core/api.mjs";
 export { getTeamResults, getTeamMatches, seasonOf, TEAM_RESULTS_QUERY, TEAM_MATCHES_QUERY } from "../core/team-api.mjs";
 export { TEAM_THEMES, TEAM_THEME_MODES, TEAM_SHAPES, TEAM_THEME_SHAPES, ICONS } from "../core/team-ui.mjs";
-export { TEAM_TEXT } from "../core/team-text.mjs";
+export { TEAM_TEXT, TEAM_LANGUAGES, registerLanguage } from "../core/team-text.mjs";
 
 export class TeamSeason extends TeamWidget {
     static kind = "team-season";

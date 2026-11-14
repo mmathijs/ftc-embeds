@@ -120,6 +120,15 @@ for (const { name } of WIDGETS) {
     writeFileSync(resolve(site, `lib/${name}.mjs`), readFileSync(resolve(root, `dist/${name}.min.mjs`)));
     writeFileSync(resolve(site, `lib/${name}.umd.js`), readFileSync(resolve(root, `dist/${name}.umd.min.js`)));
 }
+// Language packs (the `lang` option): dist/lang/<code>.json, and lib/lang/ on the site.
+mkdirSync(resolve(root, "dist/lang"), { recursive: true });
+mkdirSync(resolve(site, "lib/lang"), { recursive: true });
+for (const file of readdirSync(resolve(root, "src/lang")).filter((f) => f.endsWith(".json"))) {
+    // Minified: the packs are loaded by every visitor of a translated widget.
+    const pack = JSON.stringify(JSON.parse(readFileSync(resolve(root, "src/lang", file), "utf8")));
+    writeFileSync(resolve(root, "dist/lang", file), pack);
+    writeFileSync(resolve(site, "lib/lang", file), pack);
+}
 const examples = resolve(root, "demo/pit-map/data");
 mkdirSync(resolve(site, "examples"), { recursive: true });
 writeFileSync(resolve(site, "examples/events.js"), readFileSync(resolve(examples, "events.js")));

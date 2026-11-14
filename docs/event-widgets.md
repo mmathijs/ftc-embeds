@@ -19,7 +19,7 @@ They take an event code and a season (`event="NLCMP" season="2025"`; the season 
 
 ## Options
 
-The event widgets take the [team widgets' options](team-widgets.md#options) (theme, layout, density, hide, limit, max-height, title, links, text, locale, css, …) with `event` instead of `team`, and:
+The event widgets take the [team widgets' options](team-widgets.md#options) (theme, layout, density, hide, limit, max-height, title, links, text, lang, locale, css, …) with `event` instead of `team`, and:
 
 | Option | Attribute | |
 | --- | --- | --- |

@@ -33,7 +33,8 @@ test("package exports point at existing files", () => {
     const pkg = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
     for (const [sub, target] of Object.entries(pkg.exports)) {
         const files = typeof target == "string" ? [target] : Object.values(target);
-        for (const f of files) assert.ok(existsSync(resolve(root, f)), `${sub}: ${f} missing`);
+        // "./lang/*": the folder has to exist.
+        for (const f of files) assert.ok(existsSync(resolve(root, f.replace(/\/\*$/, ""))), `${sub}: ${f} missing`);
     }
     assert.ok(existsSync(resolve(root, "dist/pit-map-demo.html")), "demo not built");
 });
@@ -439,6 +440,53 @@ test("the npm package has none of the website or the avatar maker", () => {
     const files = JSON.parse(out.slice(out.search(/^\[/m)))[0].files.map((f) => f.path);
     assert.ok(files.includes("package.json"), "npm pack listed no files");
     assert.deepEqual(files.filter((p) => /^(avatar|site|dist\/site)\//.test(p)), []);
+});
+
+test("every language pack has every text, with the same placeholders", async () => {
+    const { TEAM_TEXT, TEAM_LANGUAGES } = await import(resolve(root, "src/core/team-text.mjs"));
+    const holes = (v) => [...new Set(String([].concat(v)).match(/\{\w+\}/g) || [])].sort();
+    for (const code of Object.keys(TEAM_LANGUAGES).filter((c) => c != "en")) {
+        const pack = JSON.parse(readFileSync(resolve(root, `src/lang/${code}.json`), "utf8"));
+        assert.equal(pack.lang, code);
+        assert.deepEqual(Object.keys(pack.text).sort(), Object.keys(TEAM_TEXT).sort(), `${code}: keys differ from TEAM_TEXT`);
+        for (const [k, en] of Object.entries(TEAM_TEXT)) {
+            const v = pack.text[k];
+            if (Array.isArray(v)) assert.equal(v.length, 2, `${code}.${k}: a pair is [one, other]`);
+            // A translation may use {n} instead of {nth} (gendered ordinals), nothing else new.
+            const allowed = new Set([...holes(en), ...(holes(en).includes("{nth}") ? ["{n}"] : [])]);
+            for (const hole of holes(v)) assert.ok(allowed.has(hole), `${code}.${k}: unknown placeholder ${hole}`);
+            if (!holes(en).includes("{nth}")) assert.deepEqual(holes(v), holes(en), `${code}.${k}: placeholders differ`);
+            // Texts glued to others keep their leading/trailing spaces.
+            if (typeof en == "string" && typeof v == "string") {
+                assert.equal(/^\s/.test(v), /^\s/.test(en), `${code}.${k}: leading space`);
+                assert.equal(/\s$/.test(v), /\s$/.test(en), `${code}.${k}: trailing space`);
+            }
+        }
+        assert.ok(pack.ordinal?.other, `${code}: ordinal.other`);
+    }
+});
+
+test("lang values, registered packs and ordinals", async () => {
+    const { parseLang, registerLanguage, languagePack, packOrdinal } = await import(resolve(root, "src/core/team-text.mjs"));
+    assert.deepEqual(parseLang("nl"), { code: "nl", tag: "nl" });
+    assert.deepEqual(parseLang("de_AT"), { code: "de", tag: "de-AT" });
+    assert.equal(parseLang(""), null);
+    assert.equal(parseLang("auto"), null); // no document here
+    assert.equal(parseLang("not a language"), null);
+    const nl = JSON.parse(readFileSync(resolve(root, "src/lang/nl.json"), "utf8"));
+    registerLanguage(nl);
+    assert.equal(languagePack("nl"), nl);
+    assert.equal(languagePack("en"), null);
+    assert.equal(packOrdinal(3, nl), "3e");
+    const fr = JSON.parse(readFileSync(resolve(root, "src/lang/fr.json"), "utf8"));
+    assert.equal(packOrdinal(1, fr), "1er");
+    assert.equal(packOrdinal(2, fr), "2e");
+    assert.equal(packOrdinal(2, null), null);
+    const { awardParts } = await import(resolve(root, "src/core/team-ui.mjs"));
+    const { fill } = await import(resolve(root, "src/core/team-text.mjs"));
+    const w = { options: {}, pack: nl, t: (k, v) => fill(nl.text[k], v), ordinal: (n) => packOrdinal(n, nl) };
+    assert.deepEqual(awardParts("Winner", 2, 2025, w), ["Winnende alliantie", "1e pick"]);
+    assert.deepEqual(awardParts("Inspire", 3, 2025, w), ["Inspire Award", "3e plaats"]);
 });
 
 test("the cache keeps answers, forgets old ones and makes room when full", async () => {

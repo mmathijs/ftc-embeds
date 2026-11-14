@@ -148,7 +148,15 @@ export interface TeamWidgetOptions {
     now?: string | Date | null;
     /** Change any text, e.g. { nextMatch: "Up next" }; see TEAM_TEXT. {name} is filled in. */
     text?: Partial<Record<TeamTextKey, string | [string, string]>> | null;
-    /** Dates, times and numbers, e.g. "en-GB"; default: the visitor's. */
+    /**
+     * The widget's language: "nl", "de", "fr", "es" (or with a region, "nl-BE"; see TEAM_LANGUAGES),
+     * "auto" for the page's own <html lang>, or a pack object. Translates the texts and sets
+     * `locale`. The pack is loaded from ftc-embeds.com (or `langUrl`). Default: English.
+     */
+    lang?: string | TeamLanguagePack | null;
+    /** Where language packs are loaded from: "https://example.org/lang/{lang}.json" or a folder. */
+    langUrl?: string | null;
+    /** Dates, times and numbers, e.g. "en-GB"; default: `lang`, else the visitor's. */
     locale?: string | null;
     /** Keep the last answer in the visitor's browser (localStorage) and show it when loading fails (default true). */
     cache?: boolean;
@@ -175,6 +183,22 @@ export interface TeamWidgetOptions {
 }
 
 export type TeamTextKey = string;
+
+/** A language pack (src/lang/nl.json): the texts plus ordinals, event types and award names. */
+export interface TeamLanguagePack {
+    lang: string;
+    name?: string;
+    text: Partial<Record<TeamTextKey, string | [string, string]>>;
+    /** "1st" by Intl.PluralRules ordinal category: { one: "{n}er", other: "{n}e" }. */
+    ordinal?: Partial<Record<"zero" | "one" | "two" | "few" | "many" | "other", string>> & { other: string };
+    eventTypes?: Record<string, string>;
+    awardNames?: Record<string, string>;
+}
+/** The ready-made languages, by code: { en: "English", nl: "Nederlands", … }. */
+export declare const TEAM_LANGUAGES: Record<string, string>;
+/** Use a pack without loading it: registerLanguage(nl) with `import nl from "ftc-embeds/lang/nl.json"`. */
+export declare function registerLanguage(pack: TeamLanguagePack): TeamLanguagePack;
+export declare function registerLanguage(code: string, pack: TeamLanguagePack): TeamLanguagePack;
 /** Every text the widgets show (English); change them with the `text` option. */
 export declare const TEAM_TEXT: Record<string, string | [string, string]>;
 

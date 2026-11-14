@@ -3,7 +3,7 @@
 // element factory.
 
 import { parseTeamNumber } from "./team-api.mjs";
-import { TEAM_TEXT, fill } from "./team-text.mjs";
+import { TEAM_TEXT, TEAM_LANGUAGES, fill, parseLang, languagePack, loadLanguage, packOrdinal } from "./team-text.mjs";
 import { cacheKey, readCache, writeCache, dropCache, retryable, retryDelay } from "./cache.mjs";
 
 const PREFIX = "ftcw";
@@ -266,15 +266,15 @@ const ALLIANCE_AWARDS = new Set(["Winner", "Finalist", "DivisionWinner", "Divisi
  */
 export function awardParts(type, placement, season = null, w = null) {
     let t = (key, vars) => (w ? w.t(key, vars) : fill(TEAM_TEXT[key], vars));
-    let custom = w?.options.awardNames?.[type];
-    let nth = ordinal;
+    let custom = w?.options.awardNames?.[type] ?? w?.pack?.awardNames?.[type];
+    let nth = w?.ordinal ? (n) => w.ordinal(n) : ordinal;
     if (type.startsWith("DeansList")) {
         let rank = { DeansListWinner: "Winner", DeansListFinalist: "Finalist", DeansListSemiFinalist: "Semifinalist" }[type];
         return [custom ?? (season >= 2025 ? `FIRST Leadership Award ${rank}` : `Dean's List ${rank}`), ""];
     }
-    if (ALLIANCE_AWARDS.has(type)) return [custom ?? AWARD_NAMES[type], placement == 1 ? t("captain") : t("pick", { nth: nth(placement - 1) })];
-    if (type === "TopRanked") return [custom ?? "Top Ranked", t("place", { nth: nth(placement) })];
-    return [custom ?? AWARD_NAMES[type] ?? type, placement == 1 ? t("winner") : t("place", { nth: nth(placement) })];
+    if (ALLIANCE_AWARDS.has(type)) return [custom ?? AWARD_NAMES[type], placement == 1 ? t("captain") : t("pick", { nth: nth(placement - 1), n: placement - 1 })];
+    if (type === "TopRanked") return [custom ?? "Top Ranked", t("place", { nth: nth(placement), n: placement })];
+    return [custom ?? AWARD_NAMES[type] ?? type, placement == 1 ? t("winner") : t("place", { nth: nth(placement), n: placement })];
 }
 
 /** Whether an award means the team won something (for highlighting). */
@@ -338,7 +338,7 @@ const TYPE_NAMES = {
     Premier: "Premier Event", OffSeason: "Off-Season", Kickoff: "Kickoff", Workshop: "Workshop",
     DemoExhibition: "Demo", PracticeDay: "Practice Day", NonAdvancement: "Non-Advancement", InnovationChallenge: "Innovation Challenge",
 };
-export const eventType = (t, w = null) => w?.options.eventTypes?.[t] ?? TYPE_NAMES[t] ?? t;
+export const eventType = (t, w = null) => w?.options.eventTypes?.[t] ?? w?.pack?.eventTypes?.[t] ?? TYPE_NAMES[t] ?? t;
 
 /** A horizontally scrolling row of tiles, with prev/next buttons for the heading. */
 export function strip(tiles, w = null) {
@@ -378,7 +378,9 @@ const DEFAULTS = {
     bare: false, // no card around it (no background, border or padding)
     icons: null, // { trophy: "★", medal: "<svg …>", advanced: "https://…/flag.png" }; see ICONS
     text: null, // change any text: { nextMatch: "Up next", awards: "Trophies" }; see TEAM_TEXT
-    locale: null, // dates, times and numbers, e.g. "en-GB"; default: the visitor's
+    lang: null, // the widget's language: "nl", "de", "fr", "es" (TEAM_LANGUAGES), "auto" (the page's) or a pack object; default English
+    langUrl: null, // where language packs are loaded from: "https://example.org/lang/{lang}.json"
+    locale: null, // dates, times and numbers, e.g. "en-GB"; default: `lang`, else the visitor's
     cache: true, // keep the last answer in the visitor's browser, to show when loading fails
     decimals: 1, // OPR and EPA
     numberFormat: "locale", // "locale" | "point" (1,234.5) | "comma" (1.234,5) | "space" (1 234,5) | "apostrophe" (1'234.5) | "plain" (1234.5)
@@ -425,6 +427,7 @@ export class TeamWidget {
         // Back online: try again at once instead of waiting for the next retry.
         this._onOnline = () => this.error && retryable(this.error) && this.hasSubject && this.load();
         if (typeof window !== "undefined") window.addEventListener?.("online", this._onOnline);
+        this._useLang();
         if (this.data) this.render();
         else if (this.hasSubject) this.load();
         else this.render();
@@ -434,6 +437,7 @@ export class TeamWidget {
     update(options = {}) {
         let prev = this.options;
         this.options = { ...prev, ...options };
+        if (("lang" in options && options.lang !== prev.lang) || ("langUrl" in options && options.langUrl !== prev.langUrl)) this._useLang();
         if ("data" in options) return this.setData(options.data);
         let reload = [...this.constructor.subjects, "season", "apiBase", "graphqlUrl"].some((k) => k in options && options[k] !== prev[k]);
         if (reload) this._attempt = 0;
@@ -529,6 +533,49 @@ export class TeamWidget {
         else fn();
     }
 
+    /** Pick up the `lang` option: use its pack, loading it first if needed (shown as loading meanwhile). */
+    _useLang() {
+        let lang = this.options.lang;
+        let token = (this._langToken = {});
+        this._langPending = false;
+        if (!lang || typeof lang === "object") return;
+        let parsed = parseLang(lang);
+        if (!parsed || parsed.code === "en" || languagePack(parsed.code)) {
+            // At hand (or English); refresh a saved pack in the background.
+            if (parsed && parsed.code !== "en") loadLanguage(parsed.code, { url: this.options.langUrl });
+            return;
+        }
+        // Only the ready-made languages are fetched, unless the page says where its own pack is.
+        if (!(parsed.code in TEAM_LANGUAGES) && !this.options.langUrl) return;
+        this._langPending = true;
+        loadLanguage(parsed.code, { url: this.options.langUrl }).then(() => {
+            if (token !== this._langToken || this._destroyed) return;
+            this._langPending = false;
+            this.render();
+        });
+    }
+
+    /** The language pack in use, or null (English). */
+    get pack() {
+        let lang = this.options.lang;
+        if (lang && typeof lang === "object") return lang.text ? lang : null;
+        let parsed = parseLang(lang);
+        return parsed ? languagePack(parsed.code) : null;
+    }
+
+    /** The language tag of the texts ("nl", "de-AT"), or null for English without a lang option. */
+    get langTag() {
+        let lang = this.options.lang;
+        if (lang && typeof lang === "object") return lang.lang || null;
+        let parsed = parseLang(lang);
+        return parsed && (parsed.code === "en" || this.pack) ? parsed.tag : null;
+    }
+
+    /** "1st", "1e", "1.", … in the widget's language. */
+    ordinal(n) {
+        return packOrdinal(n, this.pack, this.locale) ?? ordinal(n);
+    }
+
     /** Subscribe to "load" | "error". Returns an unsubscribe function. */
     on(name, fn) {
         if (!this._listeners.has(name)) this._listeners.set(name, new Set());
@@ -568,11 +615,11 @@ export class TeamWidget {
 
     /** A text, with the `text` option's changes; see TEAM_TEXT. */
     t(key, vars) {
-        return fill(this.options.text?.[key] ?? TEAM_TEXT[key] ?? key, vars);
+        return fill(this.options.text?.[key] ?? this.pack?.text?.[key] ?? TEAM_TEXT[key] ?? key, vars);
     }
 
     get locale() {
-        return this.options.locale || undefined;
+        return this.options.locale || this.langTag || undefined;
     }
 
     /** "in 3 weeks", "tomorrow", … */
@@ -708,7 +755,7 @@ export class TeamWidget {
         let body;
         let byEvent = this.constructor.subjects[0] === "event";
         if (!this.hasSubject && !this.data) body = h("div", { class: "status" }, this.t(byEvent ? "noEvent" : "noTeam"));
-        else if (!this.data && !this.error) body = h("div", { "aria-busy": "true" }, h("div", { class: "skeleton", style: { width: "45%" } }), h("div", { class: "skeleton" }), h("div", { class: "skeleton", style: { width: "75%" } }));
+        else if (this._langPending || (!this.data && !this.error)) body = h("div", { "aria-busy": "true" }, h("div", { class: "skeleton", style: { width: "45%" } }), h("div", { class: "skeleton" }), h("div", { class: "skeleton", style: { width: "75%" } }));
         else if (this.error && !this.offline) {
             let notFound = this.options.event != null && this.constructor.subjects.includes("event")
                 ? this.t("eventNotFound", { event: String(this.options.event).toUpperCase(), season: this.options.season || "" })
@@ -728,7 +775,7 @@ export class TeamWidget {
         let skinCss = skin ? (SKINS[skin] || "") + (this.constructor.skins?.[skin] || "") : "";
         let style = h("style", null, `:host{${vars}}` + BASE_CSS + icons + (this.constructor.css || "") + skinCss + (this.options.css || ""));
         let cls = [PREFIX, `${PREFIX}-${this.constructor.kind}`, `layout-${this.layout}`, `density-${this.options.density || "normal"}`, this.options.bare ? "bare" : ""];
-        let card = h("div", { class: cls.filter(Boolean).join(" "), part: `card ${this.constructor.kind}` }, body);
+        let card = h("div", { class: cls.filter(Boolean).join(" "), part: `card ${this.constructor.kind}`, lang: this.langTag }, body);
         if (this.options.maxHeight) Object.assign(card.style, { maxHeight: this.options.maxHeight, overflowY: "auto" });
         this.root.replaceChildren(style, card);
         this._scheduleRefresh();
@@ -782,7 +829,7 @@ export function defineTeamElement(tagName, Widget, extraAttrs = {}) {
         team: "team", event: "event", season: "season", theme: "theme", shape: "shape", "api-base": "apiBase", "graphql-url": "graphqlUrl", "site-url": "siteUrl", title: "title",
         layout: "layout", density: "density", hide: "hide", limit: "limit", "max-height": "maxHeight", "link-target": "linkTarget", bare: "bare", now: "now",
         "scroll-to": "scrollTo", "scroll-offset": "scrollOffset",
-        icons: "icons", css: "css", skin: "skin", text: "text", locale: "locale", decimals: "decimals", cache: "cache",
+        icons: "icons", css: "css", skin: "skin", text: "text", lang: "lang", "lang-url": "langUrl", locale: "locale", decimals: "decimals", cache: "cache",
         "number-format": "numberFormat", "date-format": "dateFormat", "hour-cycle": "hourCycle", "time-zone": "timeZone",
         "award-names": "awardNames", "event-types": "eventTypes", "link-to": "linkTo", "team-url": "teamUrl", "event-url": "eventUrl",
         ...extraAttrs,

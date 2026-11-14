@@ -330,9 +330,16 @@
         return formatOptions(o);
     }
 
+    /** The widgets' language for a language tag ("nl-NL" -> "nl"), when they have its texts; else null. */
+    const textLang = (tag) => {
+        let code = localeOf(tag)?.split("-")[0];
+        return code && code != "en" && code in (window.FtcTeamCard?.TEAM_LANGUAGES || {}) ? code : null;
+    };
+
     /** The number, date and time format options (team and event widgets). */
     function formatOptions(o) {
-        if (state.locale) o.locale = state.locale;
+        // A language the widgets speak: lang="nl-NL" translates the texts and sets the formats.
+        if (state.locale) o[textLang(state.locale) ? "lang" : "locale"] = state.locale;
         if (state.numberFormat != "locale") o.numberFormat = state.numberFormat;
         if (+state.decimals !== 1) o.decimals = +state.decimals;
         if (state.dateFormat != "short") o.dateFormat = state.dateFormat;
@@ -502,7 +509,7 @@
         return "";
     }
     function formatSummary() {
-        let parts = [LOCALES[state.locale] ?? state.locale, example("number", state.numberFormat), example("date", state.dateFormat), example("time", state.hourCycle)];
+        let parts = [(LOCALES[state.locale] ?? state.locale) + (textLang(state.locale) ? " (translated)" : ""), example("number", state.numberFormat), example("date", state.dateFormat), example("time", state.hourCycle)];
         if (state.timeZone) parts.push(state.timeZone.replace(/_/g, " "));
         return parts.join(" · ");
     }
@@ -751,8 +758,8 @@
 
         format: () => `
             <span class="kicker">Formats</span>
-            <h1>How should numbers, dates and times look?</h1>
-            <p class="sub">The widgets' words stay English; this changes how numbers, dates and times are written. The examples follow your choices.</p>
+            <h1>Which language, and how should numbers, dates and times look?</h1>
+            <p class="sub">In Nederlands, Deutsch, Français and Español the widgets' words are translated too; in other languages they stay English and only numbers, dates and times change. The examples follow your choices.</p>
             <p class="q">Language and region <small>Sets all of the below, unless you pick otherwise</small></p>
             <div class="choices small">
                 ${Object.entries(LOCALES).map(([v, label]) => choice("locale", v, label, `<span data-example="locale:${v}"></span>`)).join("")}
@@ -900,7 +907,7 @@
         if (SITE.apiBase || SITE.graphqlUrl) lib.configure({ apiBase: SITE.apiBase || null, graphqlUrl: SITE.graphqlUrl || null });
         let o = step == "team" ? { team: +state.team, season: state.season ? +state.season : null, stats: "opr,record,awards-total", upcoming: 0 } : teamOptions();
         // Every option goes in, so ones back at their default are reset too.
-        o = { layout: "list", season: null, theme: "auto", shape: null, locale: null, numberFormat: "locale", decimals: 1, dateFormat: "short", hourCycle: null, timeZone: null, ...(id == "team-card" ? { stats: "opr,epa,record", upcoming: 1 } : {}), ...(id == "team-awards" ? { onlyWon: false, seasons: null } : {}), ...(id == "team-results" || id == "team-season" ? { skipTypes: null, order: "newest" } : {}), ...(id == "event-rankings" ? { columns: lib[w.cls].defaults.columns, limit: null, maxHeight: null } : {}), ...o };
+        o = { layout: "list", season: null, theme: "auto", shape: null, lang: null, locale: null, numberFormat: "locale", decimals: 1, dateFormat: "short", hourCycle: null, timeZone: null, ...(id == "team-card" ? { stats: "opr,epa,record", upcoming: 1 } : {}), ...(id == "team-awards" ? { onlyWon: false, seasons: null } : {}), ...(id == "team-results" || id == "team-season" ? { skipTypes: null, order: "newest" } : {}), ...(id == "event-rankings" ? { columns: lib[w.cls].defaults.columns, limit: null, maxHeight: null } : {}), ...o };
         if (widgetKey !== id || !widget) {
             widget?.destroy?.();
             box.replaceChildren();
@@ -934,7 +941,7 @@
         // Every option goes in, so ones back at their default are reset too.
         let o = {
             ...lib[w.cls].defaults, theme: "auto", shape: null, layout: "list", highlight: null, limit: null, team: null, maxHeight: null,
-            locale: null, numberFormat: "locale", decimals: 1, dateFormat: "short", hourCycle: null, timeZone: null,
+            lang: null, locale: null, numberFormat: "locale", decimals: 1, dateFormat: "short", hourCycle: null, timeZone: null,
             ...eventWidgetOptions(),
         };
         if (demo) {

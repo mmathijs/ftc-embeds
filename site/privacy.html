@@ -203,7 +203,7 @@
     <h2 id="storage"><span>06</span>Cookies and browser storage</h2>
     <p>ftc-embeds.com and the widgets don't set cookies. Some things are saved in your own browser, and that data never leaves your device:</p>
     <ul>
-        <li><b>The widgets</b> keep the last public FTC data they loaded (team results, matches, rankings) in your browser (localStorage), so they still show something when the network fails, for example at an event. It holds nothing about you. Entries older than 30 days are dropped; clearing the site's data in your browser removes them. Sites can turn this off with <code>cache="false"</code>.</li>
+        <li><b>The widgets</b> keep the last public FTC data they loaded (team results, matches, rankings) and their language texts in your browser (localStorage), so they still show something when the network fails, for example at an event. It holds nothing about you. Entries older than 30 days are dropped; clearing the site's data in your browser removes them. Sites can turn this off with <code>cache="false"</code>.</li>
         <li><b>The avatar editor</b> saves your projects and their versions in your browser (IndexedDB), listed on the avatar page under "Saved in this browser". Delete them there, or by clearing this site's data in your browser.</li>
         <li><b>The setup wizard</b> saves the setups you keep as templates in your browser (localStorage). Clearing this site's data removes them.</li>
     </ul>

@@ -2,12 +2,12 @@
  * ftc-embeds/team-card: an FTC team's card (name, location, the stats you pick, next event), from
  * FTCScout. Zero dependencies. License: MIT
  */
-import { TeamWidget, defineTeamElement, h, place, seasonName, daysUntil, ordinal, eventType } from "../core/team-ui.mjs";
+import { TeamWidget, defineTeamElement, h, place, seasonName, daysUntil, eventType } from "../core/team-ui.mjs";
 import { getTeamCard, getTeamStats } from "../core/team-api.mjs";
 export { configure, EmbedsApiError, DEFAULT_API_BASE } from "../core/api.mjs";
 export { getTeamCard, getTeamStats, seasonOf, TEAM_CARD_QUERY } from "../core/team-api.mjs";
 export { TEAM_THEMES, TEAM_THEME_MODES, TEAM_SHAPES, TEAM_THEME_SHAPES, ICONS } from "../core/team-ui.mjs";
-export { TEAM_TEXT } from "../core/team-text.mjs";
+export { TEAM_TEXT, TEAM_LANGUAGES, registerLanguage } from "../core/team-text.mjs";
 
 const rec = (t) => (t ? `${t.wins}-${t.losses}-${t.ties}` : "–");
 
@@ -52,7 +52,7 @@ function statValue(w, key, c, s, season) {
         case "seasons": return all ? [t("statSeasons"), n(all.seasons), t("onFtcscout")] : null;
         case "rookie": {
             let k = season - c.rookieYear + 1;
-            return [t("statRookie"), String(c.rookieYear), t("nthSeason", { n: k, nth: ordinal(k) })];
+            return [t("statRookie"), String(c.rookieYear), t("nthSeason", { n: k, nth: w.ordinal(k) })];
         }
         default: return null;
     }
