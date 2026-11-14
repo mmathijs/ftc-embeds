@@ -440,3 +440,58 @@ test("the npm package has none of the website or the avatar maker", () => {
     assert.ok(files.includes("package.json"), "npm pack listed no files");
     assert.deepEqual(files.filter((p) => /^(avatar|site|dist\/site)\//.test(p)), []);
 });
+
+test("the cache keeps answers, forgets old ones and makes room when full", async () => {
+    const c = await import(resolve(root, "src/core/cache.mjs"));
+    const fake = (limit = Infinity) => {
+        const m = new Map();
+        return {
+            get length() { return m.size; },
+            key: (i) => [...m.keys()][i] ?? null,
+            getItem: (k) => (m.has(k) ? m.get(k) : null),
+            setItem: (k, v) => {
+                const used = [...m].reduce((n, [a, b]) => n + (a === k ? 0 : a.length + b.length), 0);
+                if (used + k.length + v.length > limit) throw new Error("QuotaExceededError");
+                m.set(k, String(v));
+            },
+            removeItem: (k) => m.delete(k),
+            map: m,
+        };
+    };
+    const store = fake();
+    const key = c.cacheKey(["team-card", "19444", "", null]);
+    assert.equal(key, "ftcw:d:team-card|19444||");
+    assert.equal(c.readCache(key, { store }), null);
+    assert.ok(c.writeCache(key, { a: 1 }, { store, now: 1000 }));
+    assert.deepEqual(c.readCache(key, { store, now: 2000 }), { data: { a: 1 }, at: 1000 });
+    assert.equal(c.readCache(key, { store, now: 1000 + c.CACHE_MAX_AGE + 1 }), null, "too old");
+    assert.equal(store.getItem(key), null, "too old: removed");
+    store.setItem(key, "not json");
+    assert.equal(c.readCache(key, { store }), null);
+    // Full: the oldest answers make room.
+    const small = fake(400);
+    for (let i = 0; i < 4; i++) assert.ok(c.writeCache(c.cacheKey(["w", i]), { pad: "x".repeat(40) }, { store: small, now: i }));
+    assert.ok(c.writeCache(c.cacheKey(["w", "new"]), { pad: "y".repeat(120) }, { store: small, now: 9 }));
+    assert.ok(small.getItem(c.cacheKey(["w", "new"])));
+    assert.equal(small.getItem(c.cacheKey(["w", 0])), null, "oldest dropped");
+    small.setItem("someone-else", "kept");
+    c.pruneCache(small, 1);
+    assert.equal(small.getItem("someone-else"), "kept", "only the widgets' own entries are pruned");
+    // No storage at all: nothing breaks.
+    assert.equal(c.writeCache(key, { a: 1 }, { store: null }), false);
+    assert.equal(c.readCache(key, { store: null }), null);
+});
+
+test("retries back off and only follow network and server trouble", async () => {
+    const c = await import(resolve(root, "src/core/cache.mjs"));
+    assert.equal(c.retryDelay(0, 0.5), 5000);
+    assert.equal(c.retryDelay(1, 0.5), 10000);
+    assert.equal(c.retryDelay(3, 0.5), 40000);
+    assert.equal(c.retryDelay(20, 0.5), 300000);
+    assert.ok(c.retryDelay(0, 0) >= 4000 && c.retryDelay(0, 1) <= 6000);
+    assert.ok(c.retryable({ status: 0 }));
+    assert.ok(c.retryable({ status: 503 }));
+    assert.ok(c.retryable({ status: 429 }));
+    assert.ok(!c.retryable({ status: 404 }));
+    assert.ok(!c.retryable({ status: 400 }));
+});

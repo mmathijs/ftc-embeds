@@ -71,6 +71,10 @@ export class Countdown extends TeamWidget {
         return this.options.to === "first-match" ? getEventMatches(this.options.event, api) : getEventInfo(this.options.event, api);
     }
 
+    cacheParts() {
+        return [this.byEvent && this.options.to === "first-match" ? "first-match" : ""];
+    }
+
     get byEvent() {
         return this.options.event != null && this.options.event !== "";
     }

@@ -47,6 +47,7 @@ Every team widget takes these (as options, or kebab-case attributes on the eleme
 | `eventTypes` | object | rename event types: `{ Qualifier: "Kwalificatie" }` |
 | `linkTo` | `ftcscout` \| `ftc-events` | where team and event names link to |
 | `teamUrl`, `eventUrl` | template | your own links: `"https://example.org/teams/{team}"`, `"…/events/{season}/{code}"` |
+| `cache` | boolean | keep the last answer in the visitor's browser and show it when loading fails (default `true`); see [Bad connections](#bad-connections) |
 
 ## Theming
 
@@ -135,3 +136,9 @@ The builder at [ftc-embeds.com/team](https://ftc-embeds.com/team) has a CSS edit
 ## Live updates
 
 `next-match` and `team-season` refresh every 30 seconds (`refresh`) while the team's event is on and the page is visible.
+
+## Bad connections
+
+Every widget keeps its last answer in the visitor's browser (localStorage, at most 30 days). On the next visit it shows that answer at once while the new one loads. When loading fails, for example on an event's wifi, it keeps showing what it had with a note: *Couldn't refresh · showing data from 14:32* (`staleData` in `TEAM_TEXT`; `hide="stale"` hides the note). It then tries again after 5 s, 10 s, 20 s, … up to every 5 minutes, and at once when the browser is back online. Widgets without anything to show say so (`loadError`) and retry the same way. "There is no team" and other definite answers aren't retried.
+
+`widget.offline` tells whether the data shown is out of date, and `widget.updatedAt` when it was loaded; the `error` event has `offline: true` while old data is shown. `cache="false"` turns the browser storage off (the retries stay).

@@ -4,6 +4,7 @@
 
 import { parseTeamNumber } from "./team-api.mjs";
 import { TEAM_TEXT, fill } from "./team-text.mjs";
+import { cacheKey, readCache, writeCache, dropCache, retryable, retryDelay } from "./cache.mjs";
 
 const PREFIX = "ftcw";
 
@@ -217,6 +218,8 @@ const BASE_CSS = `
 .arrows button:focus-visible{outline:2px solid var(--_accent)}
 .clamp2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .ell{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stale{display:flex;align-items:center;gap:6px;margin-top:10px;font-size:var(--_small-size);color:var(--_muted)}
+.stale::before{content:"";flex:none;width:7px;height:7px;border-radius:50%;background:var(--_bad)}
 .icon{display:inline-flex;align-items:center;justify-content:center;line-height:1;flex:none;font-size:var(--_icon-size)}
 .icon:empty:not([data-icon]){display:none}
 .icon img,.icon svg{width:1em;height:1em;object-fit:contain}
@@ -376,6 +379,7 @@ const DEFAULTS = {
     icons: null, // { trophy: "★", medal: "<svg …>", advanced: "https://…/flag.png" }; see ICONS
     text: null, // change any text: { nextMatch: "Up next", awards: "Trophies" }; see TEAM_TEXT
     locale: null, // dates, times and numbers, e.g. "en-GB"; default: the visitor's
+    cache: true, // keep the last answer in the visitor's browser, to show when loading fails
     decimals: 1, // OPR and EPA
     numberFormat: "locale", // "locale" | "point" (1,234.5) | "comma" (1.234,5) | "space" (1 234,5) | "apostrophe" (1'234.5) | "plain" (1234.5)
     dateFormat: "short", // "short" (Feb 7, 2026) | "long" (February 7, 2026) | "numeric" (2/7/2026) | "iso" (2026-02-07)
@@ -409,12 +413,18 @@ export class TeamWidget {
         this.options = { ...DEFAULTS, ...this.constructor.defaults, ...options };
         this.data = options.data ?? null;
         this.error = null;
+        this.offline = false; // the last load failed and the data shown is older (see updatedAt)
+        this.updatedAt = null; // when the data shown was loaded (ms), for loaded data
+        this._attempt = 0;
         this._listeners = new Map();
         this.host = h("div", { class: `${PREFIX}-host` });
         container.append(this.host);
         this.root = this.host.attachShadow({ mode: "open" });
         this._onScheme = () => this.render();
         DARK?.addEventListener?.("change", this._onScheme);
+        // Back online: try again at once instead of waiting for the next retry.
+        this._onOnline = () => this.error && retryable(this.error) && this.hasSubject && this.load();
+        if (typeof window !== "undefined") window.addEventListener?.("online", this._onOnline);
         if (this.data) this.render();
         else if (this.hasSubject) this.load();
         else this.render();
@@ -426,6 +436,7 @@ export class TeamWidget {
         this.options = { ...prev, ...options };
         if ("data" in options) return this.setData(options.data);
         let reload = [...this.constructor.subjects, "season", "apiBase", "graphqlUrl"].some((k) => k in options && options[k] !== prev[k]);
+        if (reload) this._attempt = 0;
         reload && this.hasSubject ? this.load() : this.render();
         return this;
     }
@@ -433,6 +444,11 @@ export class TeamWidget {
     setData(data) {
         this.data = data;
         this.error = null;
+        this.offline = false;
+        this.updatedAt = null;
+        this._dataKey = null;
+        this._fromCache = false;
+        clearTimeout(this._retryTimer);
         this.render();
         return this;
     }
@@ -440,22 +456,77 @@ export class TeamWidget {
     /** Load (or refresh) the data. Resolves to the data, or null on failure. */
     async load() {
         let token = (this._token = {});
+        clearTimeout(this._retryTimer);
+        this._retryTimer = null;
+        let key = this.subjectKey;
+        let cached = this.options.cache !== false && this.options.cache !== "false";
+        // Show what this browser loaded last time while the new answer comes in (or doesn't).
+        if (cached && this._dataKey !== key) {
+            let saved = readCache(key);
+            if (saved) {
+                this.data = saved.data;
+                this.updatedAt = saved.at;
+                this._dataKey = key;
+                this._fromCache = true;
+                this.error = null;
+                this.offline = false;
+                this.render();
+            }
+        }
         if (!this.data) this.render();
         try {
             let data = await this.fetch({ season: this.options.season, apiBase: this.options.apiBase, graphqlUrl: this.options.graphqlUrl });
             if (token !== this._token) return null;
             this.data = data;
             this.error = null;
+            this.offline = false;
+            this.updatedAt = Date.now();
+            this._dataKey = key;
+            this._fromCache = false;
+            this._attempt = 0;
+            if (cached) writeCache(key, data);
             this.render();
             this._emit("load", { data });
             return data;
         } catch (error) {
             if (token !== this._token) return null;
             this.error = error;
+            if (error?.notFound) {
+                // Gone (or never there): don't show an old answer for it.
+                dropCache(key);
+                this.data = null;
+                this._dataKey = null;
+            }
+            // Keep showing the data we have (marked as not up to date), and try again later.
+            this.offline = !!this.data && this._dataKey === key;
+            if (!this.offline) this.data = null;
+            if (retryable(error) && !this._destroyed) {
+                this._retryTimer = setTimeout(() => this._whenVisible(() => this.load()), retryDelay(this._attempt++));
+            }
             this.render();
-            this._emit("error", { error });
+            this._emit("error", { error, offline: this.offline });
             return null;
         }
+    }
+
+    /**
+     * What the data is of (widget, subject, season, API), and the key it's kept under in the
+     * browser. Subclasses whose answer depends on more options add them (cacheParts).
+     */
+    get subjectKey() {
+        let o = this.options;
+        let norm = (v) => (v == null ? "" : String(typeof v === "object" ? v.number ?? JSON.stringify(v) : v).trim().toUpperCase());
+        return cacheKey([this.constructor.kind, ...this.constructor.subjects.map((k) => norm(o[k])), norm(o.season), o.apiBase, o.graphqlUrl, ...this.cacheParts()]);
+    }
+
+    cacheParts() {
+        return [];
+    }
+
+    _whenVisible(fn) {
+        if (this._destroyed) return;
+        if (typeof document !== "undefined" && document.hidden) document.addEventListener("visibilitychange", fn, { once: true });
+        else fn();
     }
 
     /** Subscribe to "load" | "error". Returns an unsubscribe function. */
@@ -473,7 +544,9 @@ export class TeamWidget {
         this._destroyed = true;
         this._token = null;
         clearTimeout(this._refreshTimer);
+        clearTimeout(this._retryTimer);
         DARK?.removeEventListener?.("change", this._onScheme);
+        if (typeof window !== "undefined") window.removeEventListener?.("online", this._onOnline);
         this.host.remove();
     }
 
@@ -546,6 +619,15 @@ export class TeamWidget {
             delete o.timeZone;
             return new Date(iso).toLocaleTimeString(this.locale, o);
         }
+    }
+
+    /** A moment (ms) as "14:30", or "Feb 7, 2026 14:30" when it isn't today. */
+    when(ms) {
+        let d = new Date(ms);
+        let time = this.time(d.toISOString());
+        if (d.toDateString() === this.now().toDateString()) return time;
+        let pad = (n) => String(n).padStart(2, "0");
+        return `${this.day(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`)} ${time}`;
     }
 
     /** Whether a part is shown: not in the `hide` option. */
@@ -626,13 +708,22 @@ export class TeamWidget {
         let body;
         let byEvent = this.constructor.subjects[0] === "event";
         if (!this.hasSubject && !this.data) body = h("div", { class: "status" }, this.t(byEvent ? "noEvent" : "noTeam"));
-        else if (this.error) {
+        else if (!this.data && !this.error) body = h("div", { "aria-busy": "true" }, h("div", { class: "skeleton", style: { width: "45%" } }), h("div", { class: "skeleton" }), h("div", { class: "skeleton", style: { width: "75%" } }));
+        else if (this.error && !this.offline) {
             let notFound = this.options.event != null && this.constructor.subjects.includes("event")
                 ? this.t("eventNotFound", { event: String(this.options.event).toUpperCase(), season: this.options.season || "" })
                 : this.t("notFound", { team: this.options.team });
             body = h("div", { class: "status" }, this.error.notFound ? notFound : this.t("loadError"));
-        } else if (!this.data) body = h("div", { "aria-busy": "true" }, h("div", { class: "skeleton", style: { width: "45%" } }), h("div", { class: "skeleton" }), h("div", { class: "skeleton", style: { width: "75%" } }));
-        else body = this.view(this.data);
+        } else {
+            try {
+                body = this.view(this.data);
+            } catch (e) {
+                // Data saved by an older version that this view can't read: wait for the new answer.
+                if (!this._fromCache) throw e;
+                body = h("div", { "aria-busy": "true" }, h("div", { class: "skeleton" }));
+            }
+            if (this.offline && this.updatedAt && this.shows("stale")) body = [body, h("div", { class: "stale", part: "stale", role: "status" }, this.t("staleData", { when: this.when(this.updatedAt) }))];
+        }
         let skin = this.options.skin ?? (/^trophy(-|$)/.test(themeBase(this.options.theme) || "") ? "trophy" : null);
         let skinCss = skin ? (SKINS[skin] || "") + (this.constructor.skins?.[skin] || "") : "";
         let style = h("style", null, `:host{${vars}}` + BASE_CSS + icons + (this.constructor.css || "") + skinCss + (this.options.css || ""));
@@ -647,12 +738,9 @@ export class TeamWidget {
     _scheduleRefresh() {
         clearTimeout(this._refreshTimer);
         let seconds = Number(this.options.refresh) || 30;
-        if (this._destroyed || !this.isLive || !this.data || this.options.data || !this.isLive(this.data)) return;
-        this._refreshTimer = setTimeout(() => {
-            if (typeof document !== "undefined" && document.hidden) {
-                document.addEventListener("visibilitychange", () => this.load(), { once: true });
-            } else this.load();
-        }, seconds * 1000);
+        // Offline: the retries take over.
+        if (this._destroyed || this.offline || this._retryTimer || !this.isLive || !this.data || this.options.data || !this.isLive(this.data)) return;
+        this._refreshTimer = setTimeout(() => this._whenVisible(() => this.load()), seconds * 1000);
     }
 
     // Subclasses: fetch(apiOptions) -> data, view(data) -> Node.
@@ -694,7 +782,7 @@ export function defineTeamElement(tagName, Widget, extraAttrs = {}) {
         team: "team", event: "event", season: "season", theme: "theme", shape: "shape", "api-base": "apiBase", "graphql-url": "graphqlUrl", "site-url": "siteUrl", title: "title",
         layout: "layout", density: "density", hide: "hide", limit: "limit", "max-height": "maxHeight", "link-target": "linkTarget", bare: "bare", now: "now",
         "scroll-to": "scrollTo", "scroll-offset": "scrollOffset",
-        icons: "icons", css: "css", skin: "skin", text: "text", locale: "locale", decimals: "decimals",
+        icons: "icons", css: "css", skin: "skin", text: "text", locale: "locale", decimals: "decimals", cache: "cache",
         "number-format": "numberFormat", "date-format": "dateFormat", "hour-cycle": "hourCycle", "time-zone": "timeZone",
         "award-names": "awardNames", "event-types": "eventTypes", "link-to": "linkTo", "team-url": "teamUrl", "event-url": "eventUrl",
         ...extraAttrs,

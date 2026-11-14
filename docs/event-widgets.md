@@ -34,7 +34,7 @@ Themes, icons, texts and `::part()` styling work as described in [team-widgets.m
 
 ## Live updates
 
-While the event is on, the live event widgets refresh every 30 seconds (`refresh`) while the page is visible. The API keeps their answers for at most 30 seconds.
+While the event is on, the live event widgets refresh every 30 seconds (`refresh`) while the page is visible. The API keeps their answers for at most 30 seconds. When the venue's wifi drops, they keep showing the last rankings and matches with a note, and retry until they are back ([bad connections](team-widgets.md#bad-connections)).
 
 ## Iframes
 

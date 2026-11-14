@@ -104,6 +104,10 @@ export class EventRankings extends TeamWidget {
     static defaults = { columns: "rp,record,matches,opr", highlight: null, events: null, refresh: 30, layout: "list" };
     static css = EVENT_CSS + RANK_CSS;
 
+    cacheParts() {
+        return [!this.options.event && this._pickedFor === `${this.options.team}/${this.options.season ?? ""}` ? this._picked : ""];
+    }
+
     async fetch(api) {
         if (this.options.event) return getEventRankings(this.options.event, api);
         let t = await getTeamResults(this.options.team, api);

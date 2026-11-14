@@ -150,6 +150,8 @@ export interface TeamWidgetOptions {
     text?: Partial<Record<TeamTextKey, string | [string, string]>> | null;
     /** Dates, times and numbers, e.g. "en-GB"; default: the visitor's. */
     locale?: string | null;
+    /** Keep the last answer in the visitor's browser (localStorage) and show it when loading fails (default true). */
+    cache?: boolean;
     /** Decimals of OPR and EPA (default 1). */
     decimals?: number;
     /** Number separators regardless of `locale`: "point" 1,234.5 · "comma" 1.234,5 · "space" 1 234,5 · "apostrophe" 1'234.5 · "plain" 1234.5. Default "locale". */
@@ -181,13 +183,17 @@ export declare class TeamWidget<Data = unknown, Options extends TeamWidgetOption
     readonly options: Options;
     readonly data: Data | null;
     readonly error: Error | null;
+    /** The last load failed; the data shown is from `updatedAt` (this visit or the browser's cache). */
+    readonly offline: boolean;
+    /** When the data shown was loaded (ms since 1970), or null for data given with `data`. */
+    readonly updatedAt: number | null;
     /** Merge options; reloads when the team, season or API changed. */
     update(options: Partial<Options>): this;
     setData(data: Data): this;
     /** Load or refresh; resolves to the data, or null on failure. */
     load(): Promise<Data | null>;
     on(name: "load", fn: (detail: { data: Data }) => void): () => void;
-    on(name: "error", fn: (detail: { error: Error }) => void): () => void;
+    on(name: "error", fn: (detail: { error: Error; offline: boolean }) => void): () => void;
     destroy(): void;
 }
 

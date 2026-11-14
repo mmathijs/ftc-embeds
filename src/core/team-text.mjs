@@ -8,6 +8,7 @@ export const TEAM_TEXT = {
     noEvent: "No event set.",
     eventNotFound: "There is no event {event} in {season}.",
     loadError: "Couldn't load this right now.",
+    staleData: "Couldn't refresh · showing data from {when}",
     // shared
     team: "Team {team}",
     live: "Live",
