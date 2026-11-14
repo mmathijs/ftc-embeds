@@ -164,6 +164,16 @@ new TeamAwards(el, { team: 19444, layout: "strip", theme: { base: "dark", bg: "r
 
 The builder at [ftc-embeds.com/team](https://ftc-embeds.com/team) has a CSS editor with examples for each widget and the classes you can use, and shows the result as you type.
 
+## Badges and link previews
+
+Where no widget can go (a GitHub README, Discord, an email signature, a forum post) a badge image does, and it stays current:
+
+```markdown
+[![FTC 19444](https://ftc-embeds.com/badge/19444.svg?stat=opr)](https://ftc-embeds.com/teams/19444)
+```
+
+`https://ftc-embeds.com/badge/<team>.svg` (or `.png` for Discord and email) shows "FTC 19444" and, by `stat`: the team's name (`name`, the default), `opr`, its OPR `rank` worldwide, `epa`, the season's `record`, or all its `awards`. `color=0066b3` colors the right part, `label=` replaces the left one (empty: none), `season=2024` picks a season, and `scale=2` makes the PNG sharp on high-resolution screens (show it at `height="20"`). Every team page on ftc-embeds.com has the code to copy, and its link preview (`og:image`) is the team's own: name, place, OPR, record and awards.
+
 ## Live updates
 
 `next-match` and `team-season` refresh every 30 seconds (`refresh`) while the team's event is on and the page is visible.

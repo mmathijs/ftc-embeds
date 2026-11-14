@@ -76,6 +76,13 @@ function proxyAvatar(req, res) {
 createServer((req, res) => {
     const path = decodeURIComponent(new URL(req.url, "http://x").pathname);
     if (path.startsWith("/api/avatar/")) return proxyAvatar(req, res);
+    // Team badges: a redirect to the API, like the Caddyfile.
+    const badge = /^\/badge\/(\d{1,6})\.(svg|png)$/.exec(path);
+    if (badge) {
+        const q = new URL(req.url, "http://x").search;
+        res.writeHead(302, { location: `https://ftcscout-api.mmathijs.nl/rest/embeds/v1/teams/${badge[1]}/badge.${badge[2]}${q}` }).end();
+        return;
+    }
     // Team pages, like the Caddyfile: /teams/16382 -> teams.html with the number.
     const team = /^\/teams\/(\d{1,6})\/?$/.exec(path)?.[1] ?? "";
     const file = path.startsWith("/_data/") ? null : team ? find("/teams.html") : find(path);

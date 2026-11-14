@@ -24,7 +24,7 @@
 <meta property="og:title" content="{{if $n}}{{$label}} · FTC team widgets{{else}}Find your team · ftc-embeds{{end}}">
 <meta property="og:description" content="{{if $facts}}{{$facts}}{{else}}Free widgets for FTC team websites: results, awards, rankings and the next match, always current.{{end}}">
 <meta property="og:url" content="https://ftc-embeds.com/teams{{if $n}}/{{$n}}{{end}}">
-<meta property="og:image" content="https://ftc-embeds.com/img/og.png">
+<meta property="og:image" content="{{if $n}}https://ftcscout-api.mmathijs.nl/rest/embeds/v1/teams/{{$n}}/og.png{{else}}https://ftc-embeds.com/img/og.png{{end}}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:site_name" content="ftc-embeds">
@@ -115,6 +115,13 @@
     .gallery { border-top: 1px solid var(--rule); padding-top: 40px; padding-bottom: 64px; }
     .gallery h2 { margin: 0 0 8px; font-size: 26px; letter-spacing: -0.02em; }
     .gallery > p { margin: 0 0 30px; color: var(--ink-2); max-width: 62ch; }
+    .badges { border-top: 1px solid var(--rule); padding-top: 40px; padding-bottom: 64px; }
+    .badges h2 { margin: 0 0 8px; font-size: 26px; letter-spacing: -0.02em; }
+    .badges > p { margin: 0 0 20px; color: var(--ink-2); max-width: 62ch; }
+    .badge-row { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 24px; }
+    .badges .badge-label { margin: 0 0 6px; font: 12px var(--mono); text-transform: uppercase; letter-spacing: .06em; color: var(--ink-2); }
+    .badges pre { margin: 0 0 18px; padding: 12px 14px; background: var(--paper-2); border: 1px solid var(--rule); overflow-x: auto; font: 13px/1.5 var(--mono); white-space: pre-wrap; word-break: break-all; }
+    .badges .badge-hint { font-size: 14px; }
     /* Two fixed columns (col in teams.js) that tiles of different heights stack in without gaps (the widgets cap their own
        height with maxHeight, see teams.js, and scroll inside it). */
     .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 32px; align-items: start; }
@@ -195,6 +202,22 @@
             <p>Live, as they'd look on your website. Pick one to set it up: the setup asks for the look and where your website is built, then gives you the code to paste.</p>
             <div id="wide"></div>
             <div class="grid" id="grid"><div class="col" id="col1"></div><div class="col" id="col2"></div></div>
+        </section>
+
+        <section class="wrap badges" aria-labelledby="badges-h">
+            <h2 id="badges-h">A badge for your README, Discord or email</h2>
+            <p>An image that stays current, for places where widgets can't go: GitHub READMEs, Discord, email signatures, forum posts.</p>
+            <div class="badge-row">
+                <img src="/badge/{{$n}}.svg" alt="FTC {{$n}}{{if $name}}: {{$name}}{{end}}" height="20">
+                <img src="/badge/{{$n}}.svg?stat=opr" alt="FTC {{$n}} OPR" height="20">
+                <img src="/badge/{{$n}}.svg?stat=record" alt="FTC {{$n}} season record" height="20">
+                <img src="/badge/{{$n}}.svg?stat=awards" alt="FTC {{$n}} awards" height="20">
+            </div>
+            <p class="badge-label">Markdown (GitHub)</p>
+            <pre><code>[![FTC {{$n}}](https://ftc-embeds.com/badge/{{$n}}.svg?stat=opr)](https://ftc-embeds.com/teams/{{$n}})</code></pre>
+            <p class="badge-label">HTML or email</p>
+            <pre><code>&lt;a href="https://ftc-embeds.com/teams/{{$n}}"&gt;&lt;img src="https://ftc-embeds.com/badge/{{$n}}.png?stat=opr&amp;amp;scale=2" alt="FTC {{$n}}" height="20"&gt;&lt;/a&gt;</code></pre>
+            <p class="badge-hint"><code>stat</code>: <code>name</code> (default), <code>opr</code>, <code>rank</code>, <code>epa</code>, <code>record</code>, <code>awards</code> · <code>color=0066b3</code> for the right part · <code>label=</code> for the left (empty: none) · <code>.png</code> instead of <code>.svg</code> for Discord and email, <code>scale=2</code> for sharp screens.</p>
         </section>
     </div>
 

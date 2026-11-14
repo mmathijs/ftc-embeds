@@ -28,6 +28,12 @@
 	# The embed pages' <link rel="alternate" type="application/json+oembed"> names their own URL.
 	templates /embed/*
 
+	# Team badges (/badge/19444.svg?stat=opr, or .png) are drawn by the API (embed_images.rs in
+	# FTCScout's server-rs): a redirect, so each reader's request (and its rate limit) is its own.
+	@badge path_regexp badge ^/badge/(\d{1,6})\.(svg|png)$
+	header @badge Cache-Control "public, max-age=3600"
+	redir @badge https://ftcscout-api.mmathijs.nl/rest/embeds/v1/teams/{re.badge.1}/badge.{re.badge.2}?{query} 302
+
 	# Clean URLs: /embed/pit-map -> embed/pit-map.html
 	try_files {path} {path}.html {path}/index.html
 	file_server
