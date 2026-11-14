@@ -8,6 +8,7 @@ Widgets about one event, for event, league and region websites. Each is a separa
 | [event-matches](event-matches.md) | `<ftc-event-matches>` | the match schedule and results, the next match marked |
 | [event-advancement](event-advancement.md) | `<ftc-event-advancement>` | the slots, each team's advancement points, who advanced |
 | [league-standings](league-standings.md) | `<ftc-league-standings>` | a league's standings, from any of its meets |
+| [event-playoffs](event-playoffs.md) | `<ftc-event-playoffs>` | the alliances and the bracket (double elimination or best-of-3), live |
 | [event-awards](event-awards.md) | `<ftc-event-awards>` | who won which award, the alliances and Dean's List, in ceremony order |
 | [event-teams](event-teams.md) | `<ftc-event-teams>` | the teams at the event, also before it starts |
 | [countdown](countdown.md) | `<ftc-countdown>` | a countdown to the event (or with `team`: to a team's next match or event) |

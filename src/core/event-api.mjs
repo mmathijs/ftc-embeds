@@ -160,6 +160,24 @@ export const EVENT_TEAMS_QUERY = `query EmbedEventTeams($season: Int!, $code: St
 }
 ${EVENT_RECORD_FRAGMENT}`;
 
+/**
+ * The GraphQL query behind GET {apiBase}/events/{season}/{code}/playoffs. The alliances come from
+ * the playoff matches (allianceRole), numbered by their captains' qualification rank.
+ */
+export const EVENT_PLAYOFFS_QUERY = `query EmbedEventPlayoffs($season: Int!, $code: String!) {
+    eventByCode(season: $season, code: $code) {
+        ${EVENT_FIELDS}
+        teams { teamNumber team { name } stats { ...EmbedRecord } }
+        matches {
+            id description hasBeenPlayed scheduledStartTime actualStartTime tournamentLevel series matchNum
+            scores { ...EmbedScore }
+            teams { teamNumber alliance allianceRole station surrogate noShow dq }
+        }
+    }
+}
+${EVENT_RECORD_FRAGMENT}
+${EVENT_SCORE_FRAGMENT}`;
+
 /** Who won which award at an event: GET {apiBase}/events/{season}/{code}/awards. */
 export function getEventAwards(event, options = {}) {
     return eventPreset("awards", event, EVENT_AWARDS_QUERY, options);
@@ -168,4 +186,9 @@ export function getEventAwards(event, options = {}) {
 /** The teams at an event (also before it starts): GET {apiBase}/events/{season}/{code}/teams. */
 export function getEventTeams(event, options = {}) {
     return eventPreset("teams", event, EVENT_TEAMS_QUERY, options);
+}
+
+/** An event's playoff matches and its teams' ranks, for the alliances and bracket: GET {apiBase}/events/{season}/{code}/playoffs. */
+export function getEventPlayoffs(event, options = {}) {
+    return eventPreset("playoffs", event, EVENT_PLAYOFFS_QUERY, options);
 }

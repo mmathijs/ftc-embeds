@@ -139,6 +139,7 @@ Presets of the queries in `src/core/event-api.mjs`, with variables `{ season, co
 | `GET {apiBase}/events/{season}/{code}/league` | `EVENT_LEAGUE_QUERY`: `leagueRankings { league { code name regionCode parentLeagueCode parentLeagueName } teams { teamNumber avgRp team { name } stats { rank wins losses ties } } }`: the current standings of the event's league (empty outside a league) | 5 min |
 | `GET {apiBase}/events/{season}/{code}/awards` | `EVENT_AWARDS_QUERY`: `awards { type placement divisionName personName teamNumber team { name } }` | 5 min |
 | `GET {apiBase}/events/{season}/{code}/teams` | `EVENT_TEAMS_QUERY`: `teams { teamNumber team { name rookieYear avatar location { city state country } } stats { rank wins losses ties } }`: the teams at the event, also before it starts | 5 min |
+| `GET {apiBase}/events/{season}/{code}/playoffs` | `EVENT_PLAYOFFS_QUERY`: the teams' ranks and every match with each team's `alliance`, `allianceRole` (Captain, FirstPick, SecondPick) and the scores: the widget works out the alliances and the bracket | 30 s |
 
 ## Client
 

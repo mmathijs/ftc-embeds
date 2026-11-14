@@ -22,6 +22,7 @@ const WIDGETS = [
     { name: "league-standings", global: "FtcLeagueStandings" },
     { name: "event-awards", global: "FtcEventAwards" },
     { name: "event-teams", global: "FtcEventTeams" },
+    { name: "event-playoffs", global: "FtcEventPlayoffs" },
     { name: "countdown", global: "FtcCountdown" },
 ];
 

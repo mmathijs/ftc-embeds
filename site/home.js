@@ -62,6 +62,7 @@
         ["Rankings", "live, with divisions and your teams marked", { widget: "event-rankings", event: "NLHAQ", season: "2025" }],
         ["Match schedule", "times, alliances, scores; the next match marked", { widget: "event-matches", event: "NLHAQ", season: "2025" }],
         ["Advancement", "the slots, each team's points, who advanced", { widget: "event-advancement", event: "NLCMP", season: "2025" }],
+        ["Playoffs", "the alliances and the bracket, live", { widget: "event-playoffs", event: "NLHAQ", season: "2025" }],
         ["Awards", "who won what, in ceremony order", { widget: "event-awards", event: "NLCMP", season: "2025" }],
         ["Teams", "who's coming, before the event starts", { widget: "event-teams", event: "NLHAQ", season: "2025" }],
         ["League standings", "from any meet, current all season", { widget: "league-standings", event: "NLBNM7", season: "2023" }],

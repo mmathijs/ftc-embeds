@@ -30,6 +30,7 @@
         "event-advancement": { global: "FtcEventAdvancement", cls: "EventAdvancement", tag: "ftc-event-advancement", label: "Advancement", text: "How many teams advance and where to, each team's points, and who made it.", layouts: {}, height: 600 },
         "event-awards": { global: "FtcEventAwards", cls: "EventAwards", tag: "ftc-event-awards", label: "Awards", text: "Who won which award, the winning alliances and Dean's List, in ceremony order.", layouts: {}, height: 520 },
         "event-teams": { global: "FtcEventTeams", cls: "EventTeams", tag: "ftc-event-teams", label: "Teams", text: "Every team at the event with its avatar and place, already before it starts.", layouts: {}, height: 520 },
+        "event-playoffs": { global: "FtcEventPlayoffs", cls: "EventPlayoffs", tag: "ftc-event-playoffs", label: "Playoffs", text: "The alliances and the bracket, winner and finalist marked. Updates itself during the playoffs.", badge: "Live", layouts: {}, height: 640 },
         "league-standings": { global: "FtcLeagueStandings", cls: "LeagueStandings", tag: "ftc-league-standings", label: "League standings", text: "A league's standings, from any of its meets. Stays current all season.", layouts: {}, height: 560 },
         countdown: { global: "FtcCountdown", cls: "Countdown", tag: "ftc-countdown", label: "Countdown", text: "Days, hours and minutes until the event starts; \"Happening now\" while it's on.", layouts: { list: "Boxes", compact: "One line" }, height: 200 },
     };
@@ -608,6 +609,11 @@
             <h1>Who's coming?</h1>
             <p class="sub">Every team at the event, already before it starts: number, name, place and avatar. Once matches are played, ordered by rank.</p>
             ${tall}`;
+        if (id == "event-playoffs")
+            return `${head}
+            <h1>The playoffs</h1>
+            <p class="sub">After alliance selection: the alliances (numbered by their captains' rank) and the bracket, filling in as matches are played. Highlighted teams' alliances and matches are marked.</p>
+            ${tall}`;
         if (id == "league-standings")
             return `${head}
             <h1>How many teams?</h1>
@@ -940,6 +946,7 @@
         "event-advancement": [2025, "NLCMP"],
         "event-awards": [2025, "NLCMP"],
         "event-teams": [2025, "NLHAQ"],
+        "event-playoffs": [2025, "NLHAQ"],
         "league-standings": [2023, "NLBNM7"],
         // The World Championship is always ahead during the season.
         countdown: [THIS_SEASON, "FTCCMP1"],

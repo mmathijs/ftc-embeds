@@ -187,7 +187,18 @@
     "noAwardsYet": "Les prix sont remis à la fin de l'événement.",
     "teams": "Équipes",
     "noTeamsYet": "La liste des équipes n'est pas encore publiée.",
-    "rookie": "Rookie"
+    "rookie": "Rookie",
+    "playoffs": "Phase finale",
+    "alliances": "Alliances",
+    "allianceShort": "A{n}",
+    "upperBracket": "Tableau principal",
+    "lowerBracket": "Tableau des repêchages",
+    "finals": "Finale",
+    "semifinals": "Demi-finales",
+    "roundN": "Tour {n}",
+    "finalist": "Finaliste",
+    "noPlayoffsYet": "Les alliances et le tableau apparaissent après la sélection des alliances.",
+    "noPlayoffs": "Pas de phase finale à cet événement."
   },
   "eventTypes": {
     "Scrimmage": "Match amical",

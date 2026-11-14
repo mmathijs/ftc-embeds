@@ -159,11 +159,22 @@ export const TEAM_TEXT = {
     now: "now",
     inMinutes: "in {n} min",
     inHours: "in {h} h {m} min",
-    // event awards and teams
+    // event awards, teams and playoffs
     noAwardsYet: "Awards are presented at the end of the event.",
     teams: "Teams",
     noTeamsYet: "The team list isn't out yet.",
     rookie: "Rookie",
+    playoffs: "Playoffs",
+    alliances: "Alliances",
+    allianceShort: "A{n}",
+    upperBracket: "Upper bracket",
+    lowerBracket: "Lower bracket",
+    finals: "Finals",
+    semifinals: "Semifinals",
+    roundN: "Round {n}",
+    finalist: "Finalist",
+    noPlayoffsYet: "The alliances and the bracket appear after alliance selection.",
+    noPlayoffs: "No playoffs at this event.",
 };
 
 /** Fill a text: {name} from vars; a [one, other] pair picks by vars.n. */

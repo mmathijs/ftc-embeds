@@ -186,7 +186,18 @@
     "noAwardsYet": "Los premios se entregan al final del evento.",
     "teams": "Equipos",
     "noTeamsYet": "La lista de equipos aún no está publicada.",
-    "rookie": "Novato"
+    "rookie": "Novato",
+    "playoffs": "Eliminatorias",
+    "alliances": "Alianzas",
+    "allianceShort": "A{n}",
+    "upperBracket": "Cuadro de ganadores",
+    "lowerBracket": "Cuadro de perdedores",
+    "finals": "Final",
+    "semifinals": "Semifinales",
+    "roundN": "Ronda {n}",
+    "finalist": "Finalista",
+    "noPlayoffsYet": "Las alianzas y el cuadro aparecen tras la selección de alianzas.",
+    "noPlayoffs": "No hay eliminatorias en este evento."
   },
   "eventTypes": {
     "Scrimmage": "Amistoso",

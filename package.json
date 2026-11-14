@@ -1,7 +1,7 @@
 {
     "name": "ftc-embeds",
     "version": "0.32.0",
-    "description": "Embeddable FIRST Tech Challenge widgets (pit maps, team cards, season results, awards, next match, season + live, event rankings, match schedules, advancement, league standings, event awards, event teams, countdowns). Zero dependencies; works with any framework.",
+    "description": "Embeddable FIRST Tech Challenge widgets (pit maps, team cards, season results, awards, next match, season + live, event rankings, match schedules, advancement, league standings, event awards, event teams, playoff brackets, countdowns). Zero dependencies; works with any framework.",
     "license": "MIT",
     "repository": {
         "type": "git",
@@ -90,6 +90,12 @@
             "require": "./dist/event-teams.umd.js"
         },
         "./event-teams/umd": "./dist/event-teams.umd.min.js",
+        "./event-playoffs": {
+            "types": "./src/event-playoffs/event-playoffs.d.ts",
+            "import": "./src/event-playoffs/event-playoffs.mjs",
+            "require": "./dist/event-playoffs.umd.js"
+        },
+        "./event-playoffs/umd": "./dist/event-playoffs.umd.min.js",
         "./lang/*": "./src/lang/*",
         "./package.json": "./package.json"
     },
@@ -133,6 +139,9 @@
             ],
             "event-teams": [
                 "./src/event-teams/event-teams.d.ts"
+            ],
+            "event-playoffs": [
+                "./src/event-playoffs/event-playoffs.d.ts"
             ]
         }
     },
@@ -161,7 +170,8 @@
         "./dist/*.js",
         "./dist/*.mjs",
         "./src/event-awards/event-awards.mjs",
-        "./src/event-teams/event-teams.mjs"
+        "./src/event-teams/event-teams.mjs",
+        "./src/event-playoffs/event-playoffs.mjs"
     ],
     "publishConfig": {
         "access": "public",
@@ -171,7 +181,7 @@
         "build": "node scripts/build.mjs",
         "dev": "node scripts/dev.mjs",
         "test": "node --test scripts/test.mjs",
-        "typecheck": "npx -y -p typescript@5.4.5 tsc --noEmit --strict --lib es2020,dom src/event-awards/event-awards.d.ts src/event-teams/event-teams.d.ts src/pit-map/pit-map.d.ts src/team-card/team-card.d.ts src/team-results/team-results.d.ts src/team-awards/team-awards.d.ts src/next-match/next-match.d.ts src/team-season/team-season.d.ts src/event-rankings/event-rankings.d.ts src/event-matches/event-matches.d.ts src/event-advancement/event-advancement.d.ts src/league-standings/league-standings.d.ts src/countdown/countdown.d.ts",
+        "typecheck": "npx -y -p typescript@5.4.5 tsc --noEmit --strict --lib es2020,dom src/event-awards/event-awards.d.ts src/event-teams/event-teams.d.ts src/event-playoffs/event-playoffs.d.ts src/pit-map/pit-map.d.ts src/team-card/team-card.d.ts src/team-results/team-results.d.ts src/team-awards/team-awards.d.ts src/next-match/next-match.d.ts src/team-season/team-season.d.ts src/event-rankings/event-rankings.d.ts src/event-matches/event-matches.d.ts src/event-advancement/event-advancement.d.ts src/league-standings/league-standings.d.ts src/countdown/countdown.d.ts",
         "prepare": "node scripts/build.mjs"
     },
     "devDependencies": {

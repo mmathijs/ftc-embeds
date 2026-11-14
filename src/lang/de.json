@@ -180,7 +180,18 @@
     "noAwardsYet": "Die Awards werden am Ende des Events verliehen.",
     "teams": "Teams",
     "noTeamsYet": "Die Teamliste ist noch nicht veröffentlicht.",
-    "rookie": "Rookie"
+    "rookie": "Rookie",
+    "playoffs": "Playoffs",
+    "alliances": "Allianzen",
+    "allianceShort": "A{n}",
+    "upperBracket": "Gewinnerrunde",
+    "lowerBracket": "Verliererrunde",
+    "finals": "Finale",
+    "semifinals": "Halbfinale",
+    "roundN": "Runde {n}",
+    "finalist": "Finalist",
+    "noPlayoffsYet": "Allianzen und Turnierbaum erscheinen nach der Allianzwahl.",
+    "noPlayoffs": "Keine Playoffs bei diesem Event."
   },
   "eventTypes": {
     "LeagueMeet": "Ligaspieltag",

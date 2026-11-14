@@ -180,7 +180,18 @@
     "noAwardsYet": "De awards worden aan het eind van het evenement uitgereikt.",
     "teams": "Teams",
     "noTeamsYet": "De teamlijst is nog niet bekend.",
-    "rookie": "Rookie"
+    "rookie": "Rookie",
+    "playoffs": "Play-offs",
+    "alliances": "Allianties",
+    "allianceShort": "A{n}",
+    "upperBracket": "Winnaarsronde",
+    "lowerBracket": "Verliezersronde",
+    "finals": "Finale",
+    "semifinals": "Halve finale",
+    "roundN": "Ronde {n}",
+    "finalist": "Finalist",
+    "noPlayoffsYet": "De allianties en het schema verschijnen na de alliantiekeuze.",
+    "noPlayoffs": "Geen play-offs bij dit evenement."
   },
   "eventTypes": {
     "Scrimmage": "Oefenwedstrijd",

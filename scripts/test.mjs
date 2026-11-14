@@ -143,6 +143,7 @@ const TEAM_WIDGETS = [
     { name: "league-standings", cls: "LeagueStandings", define: "defineLeagueStandingsElement", api: ["getEventLeague", "EVENT_LEAGUE_QUERY"] },
     { name: "event-awards", cls: "EventAwards", define: "defineEventAwardsElement", api: ["getEventAwards", "awardGroups", "EVENT_AWARDS_QUERY"] },
     { name: "event-teams", cls: "EventTeams", define: "defineEventTeamsElement", api: ["getEventTeams", "teamRows", "EVENT_TEAMS_QUERY"] },
+    { name: "event-playoffs", cls: "EventPlayoffs", define: "defineEventPlayoffsElement", api: ["getEventPlayoffs", "playoffBracket", "playoffAlliances", "EVENT_PLAYOFFS_QUERY"] },
     { name: "countdown", cls: "Countdown", define: "defineCountdownElement", api: ["getEventInfo", "getTeamMatches", "zonedMidnight", "timeLeft", "EVENT_INFO_QUERY", "firstMatchTime", "getEventMatches"] },
 ];
 
@@ -544,6 +545,49 @@ test("retries back off and only follow network and server trouble", async () => 
     assert.ok(c.retryable({ status: 429 }));
     assert.ok(!c.retryable({ status: 404 }));
     assert.ok(!c.retryable({ status: 400 }));
+});
+
+test("playoffs: alliances by captain rank and a double-elimination bracket from the results", async () => {
+    const { playoffBracket, playoffAlliances } = await import(resolve(root, "src/core/playoffs.mjs"));
+    // Qualifier Hasselt 2025: 4 alliances; the upper bracket's winner (A2) lost the first final and won the second.
+    const ev = JSON.parse(readFileSync(resolve(root, "scripts/fixtures/NLHAQ-2025-playoffs.json"), "utf8"));
+    const a = playoffAlliances(ev);
+    assert.deepEqual(a.map((x) => [x.seed, x.teams]), [[1, [24090, 23417]], [2, [12475, 19444]], [3, [12463, 16402]], [4, [16382, 16476]]]);
+    const b = playoffBracket(ev);
+    const ids = (r) => r.map((e) => [e.matches.map((m) => m.description).join("+"), e.red, e.blue, e.winner]);
+    assert.equal(b.format, "double");
+    assert.deepEqual(b.upper.map(ids), [[["M-1", 1, 4, 1], ["M-2", 2, 3, 2]], [["M-4", 1, 2, 2]]]);
+    assert.deepEqual(b.lower.map(ids), [[["M-3", 4, 3, 4]], [["M-5", 1, 4, 1]]]);
+    assert.deepEqual(ids(b.finals), [["M-6+M-7", 2, 1, 2]]);
+    assert.equal(b.champion, 2);
+    assert.equal(b.finalist, 1);
+    // Unranked captains (a championship's playoffs, ranked in their divisions): no guessed numbers.
+    const unranked = { ...ev, teams: ev.teams.map((t) => ({ ...t, stats: null })) };
+    assert.ok(playoffAlliances(unranked).every((x) => x.seed == null));
+    // Before the finals: no champion; before anything is played: the first round only, no winners.
+    const early = { ...ev, matches: ev.matches.filter((m) => m.matchNum === 1 && m.series <= 2).map((m) => ({ ...m, hasBeenPlayed: false, scores: null })) };
+    const eb = playoffBracket(early);
+    assert.deepEqual(eb.upper.map(ids), [[["M-1", 1, 4, null], ["M-2", 2, 3, null]]]);
+    assert.equal(eb.champion, null);
+});
+
+test("playoffs: best-of-3 series before 2023", async () => {
+    const { playoffBracket } = await import(resolve(root, "src/core/playoffs.mjs"));
+    const side = (color, captain, pick) => [{ teamNumber: captain, alliance: color, allianceRole: "Captain" }, { teamNumber: pick, alliance: color, allianceRole: "FirstPick" }];
+    const m = (id, level, series, num, [r, b], red, blue) => ({ id, description: `${level[0]}${series}-${num}`, hasBeenPlayed: true, tournamentLevel: level, series, matchNum: num, scores: { red: { totalPoints: r }, blue: { totalPoints: b } }, teams: [...side("Red", ...red), ...side("Blue", ...blue)] });
+    const A1 = [1, 11], A2 = [2, 22], A3 = [3, 33], A4 = [4, 44];
+    const ev = {
+        teams: [1, 2, 3, 4].map((n) => ({ teamNumber: n, stats: { rank: n } })),
+        matches: [
+            m(1, "Semis", 1, 1, [50, 40], A1, A4), m(2, "Semis", 1, 2, [30, 60], A1, A4), m(3, "Semis", 1, 3, [70, 20], A1, A4),
+            m(4, "Semis", 2, 1, [10, 20], A2, A3), m(5, "Semis", 2, 2, [10, 20], A2, A3),
+            m(6, "Finals", 1, 1, [80, 90], A1, A3), m(7, "Finals", 1, 2, [80, 90], A1, A3),
+        ],
+    };
+    const b = playoffBracket(ev);
+    assert.equal(b.format, "series");
+    assert.deepEqual(b.upper[0].map((e) => [e.red, e.blue, e.winner, e.wins]), [[1, 4, 1, [2, 1]], [2, 3, 3, [0, 2]]]);
+    assert.deepEqual([b.finals[0].winner, b.champion, b.finalist], [3, 3, 1]);
 });
 
 test("event awards: grouped in ceremony order, winners first", async () => {
