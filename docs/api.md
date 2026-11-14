@@ -137,6 +137,8 @@ Presets of the queries in `src/core/event-api.mjs`, with variables `{ season, co
 | `GET {apiBase}/events/{season}/{code}/matches` | `EVENT_MATCHES_QUERY`: `matches { id description hasBeenPlayed scheduledStartTime actualStartTime tournamentLevel series matchNum scores { red blue } teams { teamNumber alliance station surrogate noShow dq team { name } } }` | 30 s (live) |
 | `GET {apiBase}/events/{season}/{code}/advancement` | `EVENT_ADVANCEMENT_QUERY`: `advancementInfo { advancementSlots advancesTo fcmpReserved advancesToEvent }` and `advancement { teamNumber rank advancementRank advanced eligibility totalPoints qualPoints allianceSelectionPoints playoffPoints awardPoints is…Final team { name } }` | 1 min |
 | `GET {apiBase}/events/{season}/{code}/league` | `EVENT_LEAGUE_QUERY`: `leagueRankings { league { code name regionCode parentLeagueCode parentLeagueName } teams { teamNumber avgRp team { name } stats { rank wins losses ties } } }`: the current standings of the event's league (empty outside a league) | 5 min |
+| `GET {apiBase}/events/{season}/{code}/awards` | `EVENT_AWARDS_QUERY`: `awards { type placement divisionName personName teamNumber team { name } }` | 5 min |
+| `GET {apiBase}/events/{season}/{code}/teams` | `EVENT_TEAMS_QUERY`: `teams { teamNumber team { name rookieYear avatar location { city state country } } stats { rank wins losses ties } }`: the teams at the event, also before it starts | 5 min |
 
 ## Client
 

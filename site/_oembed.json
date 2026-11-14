@@ -9,15 +9,15 @@
 {{- $q := .Req.URL.Query -}}
 {{- if and ($q.Get "format") (ne ($q.Get "format") "json") }}{{ httpError 501 }}{{ end -}}
 {{- $url := $q.Get "url" | trim -}}
-{{- $re := `^https?://(?:www\.)?ftc-embeds\.com/(?:embed/(team-card|team-results|team-awards|next-match|team-season|event-rankings|event-matches|event-advancement|league-standings|countdown|pit-map)(?:\.html)?|teams/(\d{1,6}))/?(\?[^#]*)?(?:#.*)?$` -}}
+{{- $re := `^https?://(?:www\.)?ftc-embeds\.com/(?:embed/(team-card|team-results|team-awards|next-match|team-season|event-rankings|event-matches|event-advancement|league-standings|event-awards|event-teams|countdown|pit-map)(?:\.html)?|teams/(\d{1,6}))/?(\?[^#]*)?(?:#.*)?$` -}}
 {{- if not (regexMatch $re $url) }}{{ httpError 404 }}{{ end -}}
 {{- $widget := regexReplaceAll $re $url "${1}" -}}
 {{- $teamPage := regexReplaceAll $re $url "${2}" -}}
 {{- $query := regexReplaceAll $re $url "${3}" -}}
 {{- if $teamPage }}{{ $widget = "team-card" }}{{ $query = printf "?team=%s" $teamPage }}{{ end -}}
-{{- $names := dict "team-card" "Team card" "team-results" "Season results" "team-awards" "Awards" "next-match" "Next match" "team-season" "Season and next match" "event-rankings" "Rankings" "event-matches" "Matches" "event-advancement" "Advancement" "league-standings" "League standings" "countdown" "Countdown" "pit-map" "Pit map" -}}
+{{- $names := dict "team-card" "Team card" "team-results" "Season results" "team-awards" "Awards" "next-match" "Next match" "team-season" "Season and next match" "event-rankings" "Rankings" "event-matches" "Matches" "event-advancement" "Advancement" "league-standings" "League standings" "event-awards" "Awards" "event-teams" "Teams" "countdown" "Countdown" "pit-map" "Pit map" -}}
 {{- /* The height it starts at; the page then tells WordPress its real height (wp-embed). */ -}}
-{{- $heights := dict "team-card" 300 "team-results" 380 "team-awards" 420 "next-match" 240 "team-season" 520 "event-rankings" 520 "event-matches" 520 "event-advancement" 520 "league-standings" 480 "countdown" 220 "pit-map" 560 -}}
+{{- $heights := dict "team-card" 300 "team-results" 380 "team-awards" 420 "next-match" 240 "team-season" 520 "event-rankings" 520 "event-matches" 520 "event-advancement" 520 "league-standings" 480 "event-awards" 520 "event-teams" 520 "countdown" 220 "pit-map" 560 -}}
 {{- $team := regexFind `\d{1,6}` (regexFind `[?&]team=\d{1,6}` $query) -}}
 {{- $event := regexFind `[A-Za-z0-9]+$` (regexFind `[?&]event=[A-Za-z0-9]+` $query) | upper -}}
 {{- $title := get $names $widget -}}

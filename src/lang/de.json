@@ -176,7 +176,11 @@
     "minLate": "{n} Min. Verspätung",
     "now": "jetzt",
     "inMinutes": "in {n} Min.",
-    "inHours": "in {h} Std. {m} Min."
+    "inHours": "in {h} Std. {m} Min.",
+    "noAwardsYet": "Die Awards werden am Ende des Events verliehen.",
+    "teams": "Teams",
+    "noTeamsYet": "Die Teamliste ist noch nicht veröffentlicht.",
+    "rookie": "Rookie"
   },
   "eventTypes": {
     "LeagueMeet": "Ligaspieltag",

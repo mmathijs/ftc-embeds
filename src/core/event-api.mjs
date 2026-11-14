@@ -142,3 +142,30 @@ export function getEventLeague(event, options = {}) {
 export function getEventInfo(event, options = {}) {
     return eventPreset("info", event, EVENT_INFO_QUERY, options);
 }
+
+/** The GraphQL query behind GET {apiBase}/events/{season}/{code}/awards. */
+export const EVENT_AWARDS_QUERY = `query EmbedEventAwards($season: Int!, $code: String!) {
+    eventByCode(season: $season, code: $code) {
+        ${EVENT_FIELDS}
+        awards { type placement divisionName personName teamNumber team { name } }
+    }
+}`;
+
+/** The GraphQL query behind GET {apiBase}/events/{season}/{code}/teams. */
+export const EVENT_TEAMS_QUERY = `query EmbedEventTeams($season: Int!, $code: String!) {
+    eventByCode(season: $season, code: $code) {
+        ${EVENT_FIELDS}
+        teams { teamNumber team { name rookieYear avatar location { city state country } } stats { ...EmbedRecord } }
+    }
+}
+${EVENT_RECORD_FRAGMENT}`;
+
+/** Who won which award at an event: GET {apiBase}/events/{season}/{code}/awards. */
+export function getEventAwards(event, options = {}) {
+    return eventPreset("awards", event, EVENT_AWARDS_QUERY, options);
+}
+
+/** The teams at an event (also before it starts): GET {apiBase}/events/{season}/{code}/teams. */
+export function getEventTeams(event, options = {}) {
+    return eventPreset("teams", event, EVENT_TEAMS_QUERY, options);
+}

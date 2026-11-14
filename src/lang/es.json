@@ -182,7 +182,11 @@
     "minLate": "{n} min de retraso",
     "now": "ahora",
     "inMinutes": "en {n} min",
-    "inHours": "en {h} h {m} min"
+    "inHours": "en {h} h {m} min",
+    "noAwardsYet": "Los premios se entregan al final del evento.",
+    "teams": "Equipos",
+    "noTeamsYet": "La lista de equipos aún no está publicada.",
+    "rookie": "Novato"
   },
   "eventTypes": {
     "Scrimmage": "Amistoso",

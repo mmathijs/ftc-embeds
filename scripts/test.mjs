@@ -141,6 +141,8 @@ const TEAM_WIDGETS = [
     { name: "event-matches", cls: "EventMatches", define: "defineEventMatchesElement", api: ["getEventMatches", "matchRows", "EVENT_MATCHES_QUERY"] },
     { name: "event-advancement", cls: "EventAdvancement", define: "defineEventAdvancementElement", api: ["getEventAdvancement", "advancementRows", "EVENT_ADVANCEMENT_QUERY"] },
     { name: "league-standings", cls: "LeagueStandings", define: "defineLeagueStandingsElement", api: ["getEventLeague", "EVENT_LEAGUE_QUERY"] },
+    { name: "event-awards", cls: "EventAwards", define: "defineEventAwardsElement", api: ["getEventAwards", "awardGroups", "EVENT_AWARDS_QUERY"] },
+    { name: "event-teams", cls: "EventTeams", define: "defineEventTeamsElement", api: ["getEventTeams", "teamRows", "EVENT_TEAMS_QUERY"] },
     { name: "countdown", cls: "Countdown", define: "defineCountdownElement", api: ["getEventInfo", "getTeamMatches", "zonedMidnight", "timeLeft", "EVENT_INFO_QUERY", "firstMatchTime", "getEventMatches"] },
 ];
 
@@ -542,4 +544,26 @@ test("retries back off and only follow network and server trouble", async () => 
     assert.ok(c.retryable({ status: 429 }));
     assert.ok(!c.retryable({ status: 404 }));
     assert.ok(!c.retryable({ status: 400 }));
+});
+
+test("event awards: grouped in ceremony order, winners first", async () => {
+    const { awardGroups } = await import(resolve(root, "src/event-awards/event-awards.mjs"));
+    const aw = (type, placement, teamNumber, personName = null) => ({ type, placement, teamNumber, personName, divisionName: null, team: { name: `T${teamNumber}` } });
+    const ev = { awards: [aw("Inspire", 2, 5), aw("Inspire", 1, 6), aw("Think", 1, 7), aw("Winner", 2, 2), aw("Winner", 1, 1), aw("DeansListFinalist", 1, 9, "Sam"), aw("Finalist", 1, 3)] };
+    const g = awardGroups(ev);
+    assert.deepEqual(g.map((x) => x.type), ["Winner", "Finalist", "Think", "DeansListFinalist", "Inspire"]);
+    assert.deepEqual(g[0].awards.map((a) => a.teamNumber), [1, 2]);
+    assert.deepEqual(g.at(-1).awards.map((a) => a.teamNumber), [6, 5]);
+    assert.deepEqual(awardGroups(ev, { onlyWon: true }).find((x) => x.type === "Inspire").awards.map((a) => a.teamNumber), [6]);
+    assert.deepEqual(awardGroups(ev, { types: new Set(["think"]) }).map((x) => x.type), ["Think"]);
+});
+
+test("event teams: by number until there are ranks, then by rank", async () => {
+    const { teamRows } = await import(resolve(root, "src/event-teams/event-teams.mjs"));
+    const t = (n, rank = null, name = `T${n}`) => ({ teamNumber: n, team: { name }, stats: rank ? { rank } : null });
+    assert.deepEqual(teamRows({ teams: [t(30), t(4), t(12)] }).map((x) => x.teamNumber), [4, 12, 30]);
+    assert.deepEqual(teamRows({ teams: [t(30, 2), t(4, 3), t(12, 1), t(7)] }).map((x) => x.teamNumber), [12, 30, 4, 7]);
+    assert.deepEqual(teamRows({ teams: [t(30, 2, "B"), t(4, 3, "A")] }, "name").map((x) => x.teamNumber), [4, 30]);
+    const { initials } = await import(resolve(root, "src/event-teams/event-teams.mjs"));
+    assert.deepEqual(["Casimir Tech", "The Dukes of Brabant!", "Garfield", "", "Ø-bots 2"].map(initials), ["CT", "TD", "GA", "#", "ØB"]);
 });

@@ -176,7 +176,11 @@
     "minLate": "{n} min vertraging",
     "now": "nu",
     "inMinutes": "over {n} min",
-    "inHours": "over {h} u {m} min"
+    "inHours": "over {h} u {m} min",
+    "noAwardsYet": "De awards worden aan het eind van het evenement uitgereikt.",
+    "teams": "Teams",
+    "noTeamsYet": "De teamlijst is nog niet bekend.",
+    "rookie": "Rookie"
   },
   "eventTypes": {
     "Scrimmage": "Oefenwedstrijd",

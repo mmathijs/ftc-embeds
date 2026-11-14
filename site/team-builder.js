@@ -14,6 +14,8 @@
         "event-rankings": { global: "FtcEventRankings", cls: "EventRankings", tag: "ftc-event-rankings", label: "Event rankings", hint: "An event's rankings; or without an event code, those of the team's current or latest event.", layouts: { list: "Table", cards: "Leaderboard", podium: "Podium + table", strip: "Scrolling tiles" }, parts: "event, date, location, type, teams, names, divisions", subject: "either", columns: "rp, tb1, tb2, record, winrate, matches, opr, epa, dqs", demo: [2025, "NLHAQ"], height: 560 },
         "event-matches": { global: "FtcEventMatches", cls: "EventMatches", tag: "ftc-event-matches", label: "Match schedule", hint: "An event's matches: times, alliances, scores; the next match marked.", layouts: { list: "Table" }, parts: "event, date, location, type, time, days", subject: "event", demo: [2025, "NLHAQ"], height: 600 },
         "event-advancement": { global: "FtcEventAdvancement", cls: "EventAdvancement", tag: "ftc-event-advancement", label: "Advancement", hint: "An event's slots, each team's advancement points, and who advanced.", layouts: { list: "Table" }, parts: "event, date, location, type, names, summary", subject: "event", columns: "qual, alliance, playoff, award, total", demo: [2025, "NLCMP"], height: 600 },
+        "event-awards": { global: "FtcEventAwards", cls: "EventAwards", tag: "ftc-event-awards", label: "Event awards", hint: "Who won which award at an event, grouped by award, the alliances first and Inspire last.", layouts: { list: "List" }, parts: "event, date, location, type, icon, placement, names, division", subject: "event", demo: [2025, "NLCMP"], height: 520 },
+        "event-teams": { global: "FtcEventTeams", cls: "EventTeams", tag: "ftc-event-teams", label: "Event teams", hint: "The teams at an event, also before it starts: avatar, number, name, place; rank once matches are played.", layouts: { grid: "Tiles", list: "Table" }, parts: "event, date, location, type, count, avatar, names, rank, rookie", subject: "event", demo: [2025, "NLHAQ"], height: 520 },
         "league-standings": { global: "FtcLeagueStandings", cls: "LeagueStandings", tag: "ftc-league-standings", label: "League standings", hint: "A league's standings, from any of its meets (or its tournament).", layouts: { list: "Table" }, parts: "region, parent, record, names", subject: "event", demo: [2023, "NLBNM7"], height: 560 },
     };
     // What a widget is about: a team (default), an event, or either (an event code, else the team).
@@ -62,6 +64,8 @@
         "event-matches": ".ftcw, .evline, .tbl, tr.day, tr.played, tr.nextm, tr.me, .md, .tt, .al.red, .al.blue, .tn, .tn.me, .tnm, .sc, .scg",
         "event-advancement": ".ftcw, .evline, .adv-sum, .tbl, tr.me, tr.cut, tr.out, .c-qual / .c-alliance / .c-playoff / .c-award / .c-total, .nf (not final), td.st",
         "league-standings": ".ftcw, .lg-sub, .tbl, tr.me, tr.gap, .rk, .tm, .c-record",
+        "event-awards": ".ftcw, .evline, .ag, .ag.alliance, .ag.judged, .ag.won, .ag.type-<Award>, .ag-name, .ag-list, .aw-t, .aw-t.me, .pl, .num, .nm, .person",
+        "event-teams": ".ftcw, .evline, .tgrid, .tt, .tt.me, .av, .num, .rk, .nm, .pl, .chip.rookie, .tbl (table layout)",
     };
 
     const STATS = { opr: "OPR", epa: "EPA", "region-rank": "Rank in region", record: "Season record", "record-total": "All-time record", "win-rate": "Win rate", awards: "Season awards", "awards-total": "All awards", matches: "Season matches", "matches-total": "All matches", events: "Season events", "events-total": "All events", seasons: "Seasons", rookie: "Since" };

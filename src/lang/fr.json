@@ -183,7 +183,11 @@
     "minLate": "{n} min de retard",
     "now": "maintenant",
     "inMinutes": "dans {n} min",
-    "inHours": "dans {h} h {m} min"
+    "inHours": "dans {h} h {m} min",
+    "noAwardsYet": "Les prix sont remis à la fin de l'événement.",
+    "teams": "Équipes",
+    "noTeamsYet": "La liste des équipes n'est pas encore publiée.",
+    "rookie": "Rookie"
   },
   "eventTypes": {
     "Scrimmage": "Match amical",

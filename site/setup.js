@@ -28,6 +28,8 @@
         "event-rankings": { global: "FtcEventRankings", cls: "EventRankings", tag: "ftc-event-rankings", label: "Rankings", text: "Rank, ranking points, record and OPR of every team. Updates itself during the event.", badge: "Live", layouts: { list: "Table", cards: "Leaderboard", podium: "Podium + table", strip: "Scrolling tiles" }, height: 560 },
         "event-matches": { global: "FtcEventMatches", cls: "EventMatches", tag: "ftc-event-matches", label: "Match schedule", text: "Every match with its time, alliances and score, the next one marked.", badge: "Live", layouts: {}, height: 600 },
         "event-advancement": { global: "FtcEventAdvancement", cls: "EventAdvancement", tag: "ftc-event-advancement", label: "Advancement", text: "How many teams advance and where to, each team's points, and who made it.", layouts: {}, height: 600 },
+        "event-awards": { global: "FtcEventAwards", cls: "EventAwards", tag: "ftc-event-awards", label: "Awards", text: "Who won which award, the winning alliances and Dean's List, in ceremony order.", layouts: {}, height: 520 },
+        "event-teams": { global: "FtcEventTeams", cls: "EventTeams", tag: "ftc-event-teams", label: "Teams", text: "Every team at the event with its avatar and place, already before it starts.", layouts: {}, height: 520 },
         "league-standings": { global: "FtcLeagueStandings", cls: "LeagueStandings", tag: "ftc-league-standings", label: "League standings", text: "A league's standings, from any of its meets. Stays current all season.", layouts: {}, height: 560 },
         countdown: { global: "FtcCountdown", cls: "Countdown", tag: "ftc-countdown", label: "Countdown", text: "Days, hours and minutes until the event starts; \"Happening now\" while it's on.", layouts: { list: "Boxes", compact: "One line" }, height: 200 },
     };
@@ -365,6 +367,7 @@
         if (id != "countdown" && state.eventLimit) o.limit = +state.eventLimit;
         if (id != "countdown" && state.maxHeight) o.maxHeight = state.maxHeight;
         if (id == "countdown" && state.countdownTo != "start") o.to = state.countdownTo;
+        if (id == "event-awards" && state.onlyWon) o.onlyWon = true;
         return formatOptions(o);
     }
     const scrollHeight = () => (state.maxHeight ? parseInt(state.maxHeight) + 4 : null);
@@ -593,6 +596,17 @@
             <div class="choices small">${choice("columns", "", "Every part", "Qualification, alliance, playoff, award, total")}${choice("columns", "total", "Total only", "For narrow places")}</div>
             <p class="q">How many teams? <small>Highlighted teams lower down are shown too</small></p>
             ${limits("All", [["10", "Top 10"], ["20", "Top 20"]])}
+            ${tall}`;
+        if (id == "event-awards")
+            return `${head}
+            <h1>Which awards?</h1>
+            <p class="sub">Grouped by award in ceremony order, the alliances first and Inspire last. Before the end of the event it says when they come.</p>
+            <div class="choices small">${choice("onlyWon", false, "All places", "Winners, 2nd and 3rd places")}${choice("onlyWon", true, "Winners only", "First places and the winning alliance")}</div>
+            ${tall}`;
+        if (id == "event-teams")
+            return `${head}
+            <h1>Who's coming?</h1>
+            <p class="sub">Every team at the event, already before it starts: number, name, place and avatar. Once matches are played, ordered by rank.</p>
             ${tall}`;
         if (id == "league-standings")
             return `${head}
@@ -924,6 +938,8 @@
         "event-rankings": [2025, "NLHAQ"],
         "event-matches": [2025, "NLHAQ"],
         "event-advancement": [2025, "NLCMP"],
+        "event-awards": [2025, "NLCMP"],
+        "event-teams": [2025, "NLHAQ"],
         "league-standings": [2023, "NLBNM7"],
         // The World Championship is always ahead during the season.
         countdown: [THIS_SEASON, "FTCCMP1"],

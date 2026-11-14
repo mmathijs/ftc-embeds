@@ -159,6 +159,11 @@ export const TEAM_TEXT = {
     now: "now",
     inMinutes: "in {n} min",
     inHours: "in {h} h {m} min",
+    // event awards and teams
+    noAwardsYet: "Awards are presented at the end of the event.",
+    teams: "Teams",
+    noTeamsYet: "The team list isn't out yet.",
+    rookie: "Rookie",
 };
 
 /** Fill a text: {name} from vars; a [one, other] pair picks by vars.n. */
