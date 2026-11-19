@@ -463,5 +463,5 @@ with sync_playwright() as p:
     if shots: ph.screenshot(path=os.path.join(shots, 'editor-phone.png'))
     browser.close()
 
-real = [e for e in errors if 'config.js' not in e and 'Failed to load resource' not in e and 'ERR_' not in e]
+real = [e for e in errors if 'config.js' not in e and 'fonts.css' not in e and 'Failed to load resource' not in e and 'ERR_' not in e]
 check(not real, f'no script errors {real}')

@@ -114,6 +114,6 @@ with sync_playwright() as p:
         phone.screenshot(path=os.path.join(shots, 'phone.png'), full_page=True)
     browser.close()
 
-# config.js only exists on the real site, and the team lookup can't reach FTCScout from a sandbox
-real = [e for e in errors if 'config.js' not in e and 'Failed to load resource' not in e and 'ERR_' not in e]
+# config.js and fonts/fonts.css only exist on the real site, and the team lookup can't reach FTCScout from a sandbox
+real = [e for e in errors if 'config.js' not in e and 'fonts.css' not in e and 'Failed to load resource' not in e and 'ERR_' not in e]
 check(not real, f'no script errors {real}')

@@ -11,7 +11,7 @@ decompression bomb; the lime and empty-band notes on two made-up logos; and (wit
 matching the service's RATE) the rate limit. Against the live site, without --rate, every upload
 counts for one visitor: 5 of these checks count, so use at most 5 logos with RATE=10.
 """
-import base64, http.client, io, json, os, sys, time, urllib.error, urllib.parse, urllib.request, zipfile
+import base64, hashlib, http.client, io, json, os, sys, time, urllib.error, urllib.parse, urllib.request, zipfile
 import numpy as np
 from PIL import Image, ImageDraw
 
@@ -31,6 +31,16 @@ def post(query, body, ip=None):
         with urllib.request.urlopen(req, timeout=120) as r: return r.status, json.load(r)
     except urllib.error.HTTPError as e:
         return e.code, json.loads(e.read() or b'{}')
+
+def post_raw(query, body):
+    """POST and return (status, content type, content disposition, body bytes)."""
+    visitor[0] += 1
+    req = urllib.request.Request(f'{base}/api/avatar/options{query}', data=body, method='POST',
+                                 headers={'Content-Type': 'application/octet-stream', 'X-Client-IP': f'10.0.1.{visitor[0] % 250}'})
+    try:
+        with urllib.request.urlopen(req, timeout=120) as r: return r.status, r.headers.get('Content-Type'), r.headers.get('Content-Disposition') or '', r.read()
+    except urllib.error.HTTPError as e:
+        return e.code, e.headers.get('Content-Type'), '', e.read()
 
 def check(cond, what):
     print(('ok   ' if cond else 'FAIL ') + what)
@@ -57,6 +67,7 @@ for name in logos:
             im = Image.open(io.BytesIO(data))
             if im.format != 'PNG' or im.size != (40, 40) or getattr(im, 'is_animated', False): problems.append(f"{o['id']} {kind}: {im.format} {im.size}")
             if len(data) > 20000: problems.append(f"{o['id']} {kind}: {len(data)} bytes")
+        if o['sha256'] != [hashlib.sha256(op).hexdigest(), hashlib.sha256(tr).hexdigest()]: problems.append(f"{o['id']}: sha256 doesn't match the PNGs")
         if Image.open(io.BytesIO(op)).mode not in ('RGB', 'P', 'L'): problems.append(f"{o['id']} opaque has alpha")
         al = np.asarray(Image.open(io.BytesIO(tr)).convert('RGBA'))[..., 3].astype(int); P = np.pad(al, 1)
         inside = (P[1:-1, :-2] >= 128) & (P[1:-1, 2:] >= 128) & (P[:-2, 1:-1] >= 128) & (P[2:, 1:-1] >= 128)
@@ -77,6 +88,14 @@ dot = Image.new('RGB', (300, 300), (255, 255, 255)); ImageDraw.Draw(dot).ellipse
 status, d = post('', png_bytes(dot))
 check(status == 200 and d['team'] is None and d['name'] is None and d['current'] is None and d['base'] == 'avatar'
       and all(f.startswith('avatar-') for o in d['options'] for f in o['files']), 'no team number: still the options, with files named avatar-…')
+status, ctype, disp, body = post_raw('?format=zip', png_bytes(dot))
+check(status == 200 and ctype == 'application/zip' and 'avatar-avatars.zip' in disp and 'HOW-TO-UPLOAD.txt' in zipfile.ZipFile(io.BytesIO(body)).namelist(),
+      'format=zip: the zip itself, as a download')
+status, d = post('?images=none', png_bytes(dot))
+check(status == 200 and 'zip' not in d and 'current' not in d and d['hasCurrent'] is False and d['options']
+      and all('opaque' not in o and 'transparent' not in o and len(o['sha256']) == 2 and o['files'] for o in d['options']) and len(json.dumps(d)) < 20000,
+      f"images=none: no images, sha256 and file names kept ({len(json.dumps(d))} bytes)")
+check(post('?format=xml', small)[0] == 400 and post('?images=some', small)[0] == 400, 'unknown format or images: 400')
 check(post('?team=abc', small)[0] == 400, 'team number that is not a number: 400')
 check(post('?team=1', b'')[0] == 400, 'empty body: 400')
 def announce_big():

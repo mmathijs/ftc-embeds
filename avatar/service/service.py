@@ -16,7 +16,7 @@ MAX_JOBS (2 at a time), RATE (10 uploads per visitor per 10 minutes), CLIENT_IP_
 the header the proxy sets to the visitor's address; X-Forwarded-For is not read, because visitors can
 send their own), DEV_PAGE (an HTML file served at / and /avatar, for testing without Caddy).
 """
-import base64, collections, io, json, os, re, sys, tempfile, threading, time, unicodedata, urllib.request, zipfile
+import base64, collections, hashlib, io, json, os, re, sys, tempfile, threading, time, unicodedata, urllib.request, zipfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
 
@@ -301,7 +301,7 @@ def make_answer(number, raw):
             op_png, tr_png = png(o['_op'], 'RGB'), png(o['_tr'], 'RGBA')
             o.update(opaque='data:image/png;base64,' + base64.b64encode(op_png).decode(),
                      transparent='data:image/png;base64,' + base64.b64encode(tr_png).decode(),
-                     bytes=[len(op_png), len(tr_png)], warnings=checks(o['_op'], o['_tr'], op_png, tr_png, o['_content']),
+                     bytes=[len(op_png), len(tr_png)], sha256=[hashlib.sha256(op_png).hexdigest(), hashlib.sha256(tr_png).hexdigest()], warnings=checks(o['_op'], o['_tr'], op_png, tr_png, o['_content']),
                      files=[f"{base}-{o['id']}-avatar-40.png", f"{base}-{o['id']}-avatar-40-transparent.png"])
             for fn, data in zip(o['files'], (op_png, tr_png)):
                 zf.writestr(fn, data); open(os.path.join(tmp, fn), 'wb').write(data)
@@ -311,8 +311,22 @@ def make_answer(number, raw):
         zf.write(sheet, f'{base}-options.png'); zf.writestr('HOW-TO-UPLOAD.txt', UPLOAD_STEPS)
     for o in opts:
         for k in ('_op', '_tr', '_content'): o.pop(k)
-    return {'team': number, 'name': name, 'current': current, 'base': base, 'flat': flat, 'kind': r['kind'], 'info': r['info'], 'options': opts,
-            'zip': 'data:application/zip;base64,' + base64.b64encode(zbuf.getvalue()).decode()}
+    return {'team': number, 'name': name, 'current': current, 'currentSha256': sha_of_uri(current), 'base': base, 'flat': flat, 'kind': r['kind'], 'info': r['info'],
+            'options': opts, 'zip': 'data:application/zip;base64,' + base64.b64encode(zbuf.getvalue()).decode()}
+
+def sha_of_uri(uri):
+    """The SHA-256 of a data URI's bytes (the current avatar), to compare files without the image."""
+    if not uri or not uri.startswith('data:') or ',' not in uri: return None
+    try: return hashlib.sha256(base64.b64decode(uri.split(',', 1)[1])).hexdigest()
+    except Exception: return None
+
+def without_images(answer):
+    """?images=none: the answer without its PNGs and zip (a few kB instead of hundreds), for scripts and
+    agents. The sha256 fields and file names stay; ?format=zip has the files."""
+    out = {k: v for k, v in answer.items() if k not in ('current', 'zip')}
+    out['hasCurrent'] = bool(answer.get('current'))
+    out['options'] = [{k: v for k, v in o.items() if k not in ('opaque', 'transparent')} for o in answer['options']]
+    return out
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -320,9 +334,10 @@ class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt, *args):                      # one line per request: no images, no IP addresses
         sys.stderr.write('%s %s%s\n' % (time.strftime('%Y-%m-%dT%H:%M:%S'), fmt % args, getattr(self, 'note', '')))
 
-    def send(self, status, body, ctype='application/json'):
+    def send(self, status, body, ctype='application/json', headers=()):
         data = body if isinstance(body, bytes) else json.dumps(body).encode()
         self.send_response(status); self.send_header('Content-Type', ctype); self.send_header('Content-Length', str(len(data)))
+        for k, v in headers: self.send_header(k, v)
         self.send_header('Cache-Control', 'no-store'); self.send_header('X-Content-Type-Options', 'nosniff'); self.end_headers(); self.wfile.write(data)
 
     def client(self):
@@ -342,9 +357,15 @@ class Handler(BaseHTTPRequestHandler):
         u = urlparse(self.path)
         if u.path != '/api/avatar/options': return self.send(404, {'error': 'Not found'})
         try:
-            team = (parse_qs(u.query).get('team') or [''])[0].strip()
+            qs = {k: v[0] for k, v in parse_qs(u.query).items()}
+            team = qs.get('team', '').strip()
             # the team number is optional: it adds the current avatar, the name and the file names
             if team and not re.fullmatch(r'\d{1,6}', team): raise UserError(400, 'A team number is digits only, like 16382.')
+            # format=zip: the zip itself (every PNG, the comparison sheet, how to upload); images=none: the
+            # JSON without the images. Both are for scripts and agents; the page uses the default.
+            fmt, images = qs.get('format', 'json'), qs.get('images', 'all')
+            if fmt not in ('json', 'zip'): raise UserError(400, 'format is json (the default) or zip.')
+            if images not in ('all', 'none'): raise UserError(400, 'images is all (the default) or none.')
             size = int(self.headers.get('Content-Length') or 0)
             if size <= 0: raise UserError(400, 'Choose your logo file first.')
             if size > MAX_BYTES: raise UserError(413, 'The file is larger than 10 MB.')
@@ -358,14 +379,17 @@ class Handler(BaseHTTPRequestHandler):
             if not JOBS.acquire(timeout=20): raise UserError(503, 'The server is busy. Try again in a minute.')
             try:
                 t0 = time.time()
-                if (parse_qs(u.query).get('layers') or [''])[0] == 'only':
+                if qs.get('layers') == 'only':
                     answer = make_layers(raw); answer['ms'] = int((time.time() - t0) * 1000); self.note = f" layers {answer['ms']} ms"
                 else:
                     answer = make_answer(int(team) if team else None, raw); answer['ms'] = int((time.time() - t0) * 1000)
                     self.note = f" {','.join(o['id'] for o in answer['options'])} {answer['ms']} ms {answer['kind']}"
             finally:
                 JOBS.release()
-            self.send(200, answer)
+            if fmt == 'zip' and 'zip' in answer:
+                return self.send(200, base64.b64decode(answer['zip'].split(',', 1)[1]), 'application/zip',
+                                 [('Content-Disposition', f'attachment; filename="{answer["base"]}-avatars.zip"')])
+            self.send(200, without_images(answer) if images == 'none' and 'options' in answer else answer)
         except UserError as e:
             self.send(e.status, {'error': str(e)})
         except Exception as e:                               # never leak details to the visitor
