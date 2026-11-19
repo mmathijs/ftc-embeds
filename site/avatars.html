@@ -17,6 +17,39 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%231c1b19'/%3E%3Crect x='3' y='3' width='4' height='4' fill='%23ff5a1f'/%3E%3Crect x='9' y='3' width='4' height='4' fill='%23f4f1ea'/%3E%3Crect x='3' y='9' width='4' height='4' fill='%23f4f1ea'/%3E%3Crect x='9' y='9' width='4' height='4' fill='%23f4f1ea'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="fonts/fonts.css">
+<link rel="help" type="text/plain" href="/llms.txt" title="Guide for AI agents">
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@graph": [
+        {
+            "@type": "WebApplication",
+            "@id": "https://ftc-embeds.com/avatars#app",
+            "name": "FTC avatar maker",
+            "url": "https://ftc-embeds.com/avatars",
+            "description": "Makes the 40 × 40 pixel FIRST avatar for a FIRST Tech Challenge team from its logo: up to eight options, each as a PNG with a background and a transparent PNG, checked against FIRST's rules, with an editor to finish them.",
+            "applicationCategory": "DesignApplication",
+            "operatingSystem": "Any (in the browser)",
+            "isAccessibleForFree": true,
+            "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+            "featureList": ["40 × 40 PNG avatars under 20 kB, as FIRST takes them", "A version with a background and a transparent version of every option", "Checks for colours near lime or magenta, which video overlays key out", "Preview at 40 and 20 px on FIRST's backgrounds", "An editor with an eraser, magic wand, brush, pen and shapes", "Nothing is stored on the server"],
+            "isPartOf": { "@id": "https://ftc-embeds.com/#site" },
+            "publisher": { "@type": "Person", "name": "mmathijs", "url": "https://github.com/mmathijs" }
+        },
+        {
+            "@type": "FAQPage",
+            "mainEntity": [
+                { "@type": "Question", "name": "What size is an FTC team avatar?", "acceptedAnswer": { "@type": "Answer", "text": "FIRST takes a 40 × 40 pixel PNG of at most 20 kB. FTCScout and the event screens show it at 40 and 20 pixels, so it has to read at that size." } },
+                { "@type": "Question", "name": "Which colours should a FIRST avatar avoid?", "acceptedAnswer": { "@type": "Answer", "text": "Colours close to lime green or magenta. Video overlays at events key those colours out, so those pixels can disappear on the stream. The avatar maker counts them in every option." } },
+                { "@type": "Question", "name": "Should I upload the transparent or the opaque version?", "acceptedAnswer": { "@type": "Answer", "text": "Both follow FIRST's rules. The opaque one has a background colour; the transparent one has a thin border in that colour so it stays readable on any background. Pick the one that still reads at 20 pixels." } },
+                { "@type": "Question", "name": "How do I upload a team avatar to FIRST?", "acceptedAnswer": { "@type": "Answer", "text": "Lead Mentor 1 or 2 logs in at ftc-scoring.firstinspires.org, chooses Team Avatar, then Upload New Avatar, and picks one PNG. Upload at least 2 weeks before your event: changes can take up to 24 hours to show. There is one submission at a time, and FIRST may not review more than three a season." } },
+                { "@type": "Question", "name": "Does the avatar maker keep my logo?", "acceptedAnswer": { "@type": "Answer", "text": "No. Your browser turns the logo into a PNG and sends it once to make the options; the server keeps nothing. Edits are saved in your browser only, and as a project file if you download one." } },
+                { "@type": "Question", "name": "Can a script or an AI assistant make the avatar?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. The page offers its steps and the editor as tools to AI agents (WebMCP, or window.ftcEmbedsAgent), and the API behind it takes a logo and answers the options. See https://ftc-embeds.com/docs/avatar-maker.md." } }
+            ]
+        }
+    ]
+}
+</script>
 <style>
     /* Same tokens and header, lede, form and footer styles as site/team.html. */
     :root {
@@ -157,10 +190,19 @@
     .steps h3 { margin: 0 0 8px; font-size: 15px; }
     .steps ol { margin: 0; padding-left: 20px; display: grid; gap: 4px; font-size: 14px; }
 
+    .url-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px; }
+    input[type="url"] { width: 100%; font: 14px var(--sans); color: var(--ink); background: var(--field); border: 1px solid var(--rule); border-radius: 2px; padding: 7px 9px; outline: none; }
+    .faq { border-top: 1px solid var(--rule); padding: 28px 28px 34px; }
+    .faq h2 { margin: 0 0 10px; font-size: 20px; font-weight: 600; letter-spacing: -0.01em; }
+    .faq dl { margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 18px 32px; max-width: 1100px; }
+    .faq dt { font-weight: 600; font-size: 15px; }
+    .faq dd { margin: 4px 0 0; color: var(--ink-2); font-size: 14px; max-width: 60ch; }
+    @media (max-width: 560px) { .faq dl { grid-template-columns: minmax(0, 1fr); } }
+
     footer { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 18px 28px 28px; border-top: 2px solid var(--ink); font: 12px/1.6 var(--mono); color: var(--ink-2); }
 
     @media (max-width: 920px) {
-        .top, .lede, fieldset, .work, footer { padding-left: 16px; padding-right: 16px; }
+        .top, .lede, fieldset, .work, .faq, footer { padding-left: 16px; padding-right: 16px; }
         .lede { grid-template-columns: 1fr; padding-top: 24px; }
         .lede h1 { font-size: 27px; }
         .lede .note { text-align: left; }
@@ -224,6 +266,11 @@
                 <img id="logo-preview" alt="Your logo" hidden>
                 <span id="drop-text"><b>Choose your logo</b> or drop it here<small>PNG, JPEG, WebP, GIF or SVG. A large logo on a plain or transparent background works best.</small></span>
             </label>
+            <label class="f" for="logo-url">Or the logo's web address</label>
+            <div class="url-row">
+                <input type="url" id="logo-url" inputmode="url" autocomplete="off" placeholder="https://…/logo.png">
+                <button class="btn" type="button" id="logo-url-go">Use</button>
+            </div>
             <label class="check"><input type="checkbox" id="own"> <span>This is our team's own logo, and we may use it.</span></label>
             <p class="hint">Saved an avatar from the editor? <label class="linkish">Open the .ftcavatar file<input type="file" id="open-project" accept=".ftcavatar,.json,application/json" hidden></label>, or drop it anywhere on this page.</p>
         </fieldset>
@@ -283,11 +330,24 @@
     </main>
 </div>
 
+<section class="faq" aria-labelledby="faq-h">
+    <h2 id="faq-h">Questions</h2>
+    <dl>
+        <div><dt>What size is an FTC team avatar?</dt><dd>FIRST takes a 40 × 40 pixel PNG of at most 20 kB. FTCScout and the event screens show it at 40 and 20 pixels, so it has to read at that size.</dd></div>
+        <div><dt>Which colours should a FIRST avatar avoid?</dt><dd>Colours close to lime green or magenta. Video overlays at events key those colours out, so those pixels can disappear on the stream. The avatar maker counts them in every option.</dd></div>
+        <div><dt>Should I upload the transparent or the opaque version?</dt><dd>Both follow FIRST's rules. The opaque one has a background colour; the transparent one has a thin border in that colour so it stays readable on any background. Pick the one that still reads at 20 pixels.</dd></div>
+        <div><dt>How do I upload a team avatar to FIRST?</dt><dd>Lead Mentor 1 or 2 logs in at ftc-scoring.firstinspires.org, chooses <b>Team Avatar</b>, then <b>Upload New Avatar</b>, and picks one PNG. Upload at least 2 weeks before your event: changes can take up to 24 hours to show. There is one submission at a time, and FIRST may not review more than three a season.</dd></div>
+        <div><dt>Does the avatar maker keep my logo?</dt><dd>No. Your browser turns the logo into a PNG and sends it once to make the options; the server keeps nothing. Edits are saved in your browser only, and as a project file if you download one.</dd></div>
+        <div><dt>Can a script or an AI assistant make the avatar?</dt><dd>Yes. The page offers its steps and the editor as tools to AI agents (WebMCP, or <code>window.ftcEmbedsAgent</code>), and the API behind it takes a logo and answers the options: see <a href="/docs/avatar-maker.md">the avatar maker's docs</a> and the <a href="/docs/avatar-format.md">project file format</a>. Links like <code>/avatars?team=23452&amp;logo=https://…</code> fill the page in.</dd></div>
+    </dl>
+</section>
+
 <footer>
     <span>Made for the FTC community by <a href="https://github.com/mmathijs">mmathijs</a>. Open source, MIT license. <a href="/privacy">Privacy</a>.</span>
     <span>Not affiliated with <i>FIRST</i>®. Data from FTCScout and <i>FIRST</i>.</span>
 </footer>
 <script src="config.js"></script>
+<script src="agent-tools.js"></script>
 <script src="avatar-editor.js"></script>
 <script>
 (() => {
@@ -296,7 +356,7 @@
     const CARD_API = ((window.FTC_EMBEDS_SITE || {}).apiBase || "https://ftcscout-api.mmathijs.nl/rest/embeds/v1").replace(/\/$/, "");
     const MAX_SIDE = 1024;                       // the server never needs more for a 40 px result
     const BACKGROUNDS = [["white", "#ffffff", true], ["red", "#ed1c24"], ["blue", "#0066b3"], ["award", "#0083ae"], ["dark", "#16161a"]];
-    let logo = null;                             // {blob, url}: the logo as a PNG made in the browser
+    let logo = null;                             // {blob, url, name, w, h}: the logo as a PNG made in the browser
     let reading = Promise.resolve();             // the file being read; Make waits for it
     let readError = "";                          // why the last file couldn't be used
     let urls = [];                               // object URLs of the current results
@@ -370,7 +430,7 @@
         reading = readFile(file);
     }
     async function openFromDisk(file) {
-        try { let p = await window.AvatarEditor.readProject(file); status(""); openProjectFile(p); }
+        try { let p = await window.AvatarEditor.readProject(file); status(""); await openProjectFile(p); }
         catch (e) { fail(e.message); }
         $("file").value = "";
     }
@@ -382,7 +442,7 @@
         status("Reading the logo…");
         try {
             let blob = await toPng(file);
-            logo = { blob, url: URL.createObjectURL(blob) };
+            logo = { blob, url: URL.createObjectURL(blob), name: file.name };
             $("logo-preview").src = logo.url; $("logo-preview").hidden = false;
             $("drop-text").textContent = file.name + " · choose another";
             status("");
@@ -393,6 +453,43 @@
         }
     }
     $("file").addEventListener("change", () => useFile($("file").files[0]));
+
+    // --- a logo (or a saved project) from a web address: fetched by this browser, so only from sites that
+    // allow it (CORS: GitHub, most image hosts and CDNs); nothing goes through ftc-embeds ----------------
+    async function fetchFile(address, what) {
+        let u;
+        try { u = new URL(String(address).trim(), location.href); } catch { throw new Error("That isn't a web address. It starts with https://"); }
+        if (!/^https?:$/.test(u.protocol)) throw new Error("That isn't a web address. It starts with https://");
+        let r;
+        try { r = await fetch(u, { credentials: "omit", signal: AbortSignal.timeout(20000) }); }
+        catch { throw new Error(`That website doesn't let other sites load its files, or couldn't be reached. Save the ${what} and choose the file instead.`); }
+        if (!r.ok) throw new Error(`That address answered ${r.status}. Check it, or save the ${what} and choose the file.`);
+        let blob = await r.blob(), name = decodeURIComponent(u.pathname.split("/").pop() || what) || what;
+        if (blob.size > 40 * 1024 * 1024) throw new Error("That file is larger than 40 MB.");
+        return new File([blob], name, { type: blob.type && blob.type !== "application/octet-stream" ? blob.type : /\.svg$/i.test(name) ? "image/svg+xml" : "" });
+    }
+    async function useUrl(address) {
+        let a = address != null ? address : $("logo-url").value;
+        if (!String(a).trim()) return fail("Paste the address of your logo first.", $("logo-url"));
+        status("Loading the logo…");
+        let file;
+        try { file = await fetchFile(a, "logo"); }
+        catch (e) {      // never send an earlier logo by mistake
+            if (logo) URL.revokeObjectURL(logo.url);
+            logo = null; reading = Promise.resolve(); $("logo-preview").hidden = true; $("drop-text").textContent = "Choose your logo, or drop it here";
+            return fail(readError = e.message, $("logo-url"));
+        }
+        if (isProject(file)) return openFromDisk(file);
+        reading = readFile(file);
+        return reading;
+    }
+    $("logo-url-go").addEventListener("click", () => useUrl());
+    $("logo-url").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); useUrl(); } });
+    async function openUrl(address) {   // a hosted .ftcavatar (?open=…): kept in this browser, then opened
+        status("Loading the saved avatar…");
+        try { let p = await window.AvatarEditor.readProject(await fetchFile(address, "project file")); status(""); await openProjectFile(p); }
+        catch (e) { fail(e.message); }
+    }
     let drop = $("drop");
     drop.addEventListener("dragover", (e) => { e.preventDefault(); drop.classList.add("over"); });
     drop.addEventListener("dragleave", () => drop.classList.remove("over"));
@@ -411,13 +508,13 @@
     document.addEventListener("paste", (e) => { let f = [...(e.clipboardData || {}).files || []].find((f) => f.type.startsWith("image/")); if (f) useFile(f); });
 
     // --- Make: one request, then show the answer ------------------------------------------------
-    $("form").addEventListener("submit", async (e) => {
-        e.preventDefault();
+    const problem = (text, field) => Object.assign(new Error(text), { field });
+    async function make() {   // the server's answer, shown; throws with the sentence to show (and the field)
         let n = $("team").value.trim();
-        if (n && !/^\d{1,6}$/.test(n)) return fail("A team number is digits only, like 16382. Or leave it empty.", $("team"));
+        if (n && !/^\d{1,6}$/.test(n)) throw problem("A team number is digits only, like 16382. Or leave it empty.", $("team"));
         await reading;
-        if (!logo) return fail(readError || "Choose your logo first.", $("file"));
-        if (!$("own").checked) return fail("Tick the box to confirm it's your team's own logo.", $("own"));
+        if (!logo) throw problem(readError || "Choose your logo first.", $("file"));
+        if (!$("own").checked) throw problem("Tick the box to confirm it's your team's own logo.", $("own"));
         $("make").disabled = true;
         status("Making your options… this takes a few seconds.");
         try {
@@ -434,14 +531,21 @@
             session = { id: "u" + Date.now().toString(36), team: n, blob: sent, base: data.base, layers: null };
             render(data);
             status("");
-            if (matchMedia("(max-width: 920px)").matches) $("results").scrollIntoView({ behavior: "smooth" });
+            return data;
         } catch (err) {
-            fail(err.name === "TimeoutError" ? "This took too long. Try again in a minute."
+            throw problem(err.name === "TimeoutError" ? "This took too long. Try again in a minute."
                 : err instanceof TypeError ? "Couldn't reach the avatar maker. Check your connection and try again."
                 : err.message);
         } finally {
             $("make").disabled = false;
         }
+    }
+    $("form").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        try {
+            await make();
+            if (matchMedia("(max-width: 920px)").matches) $("results").scrollIntoView({ behavior: "smooth" });
+        } catch (err) { fail(err.message, err.field); }
     });
 
     function blobUrl(dataUri) {
@@ -538,8 +642,10 @@
     }
     async function openProjectFile(p) {   // a .ftcavatar file: keep it in this browser, then open it
         let id = "f" + Date.now().toString(36), rec = { id: `${id}:p`, layersId: id, team: p.team, base: p.base || "avatar", label: p.label || "Imported project", preset: p.preset, doc: JSON.stringify(p.doc), active: p.active, versions: JSON.stringify(p.versions || []), updated: Date.now() };
-        try { await store.putLayers(id, p.layers); await store.put(rec); delete memory[rec.id]; openSaved(rec.id); renderSaved(); }
-        catch { openSaved(rec.id, { rec, layers: p.layers, noStore: true }); }
+        let stored = false;
+        try { await store.putLayers(id, p.layers); await store.put(rec); delete memory[rec.id]; stored = true; } catch { /* no storage (private window): open it as it is */ }
+        if (stored) { await openSaved(rec.id); renderSaved(); }
+        else await openSaved(rec.id, { rec, layers: p.layers, noStore: true });
     }
     if (window.AvatarEditor) window.AvatarEditor.onImport = openProjectFile;
     $("open-project").addEventListener("change", async () => {
@@ -613,7 +719,9 @@
     }
     $("sheet-open").addEventListener("click", openSheet);
 
+    let shown = null;                            // the server's last answer, shown
     function render(d) {
+        shown = d;
         urls.forEach((u) => URL.revokeObjectURL(u));
         urls = [];
         let who = d.name ? `${d.name} (${d.team})` : d.team ? `Team ${d.team}` : "Your logo";
@@ -631,6 +739,123 @@
         $("intro").hidden = true;
         $("results").hidden = false;
     }
+
+    // --- links that fill the page in: ?team=23452, ?logo=<address of the logo>, ?open=<address of a .ftcavatar> ---
+    const given = new URLSearchParams(location.search);
+    if (/^\d{1,6}$/.test(given.get("team") || "")) { $("team").value = given.get("team"); $("team").dispatchEvent(new Event("input")); }
+    if (given.get("logo")) { $("logo-url").value = given.get("logo"); useUrl(given.get("logo")); }
+    if (given.get("open")) openUrl(given.get("open"));
+
+    // --- tools for AI agents (agent-tools.js; the editor's own are in avatar-editor.js) ------------------
+    const agent = window.ftcEmbedsAgent;
+    if (!agent) return;
+    const pick = (id) => {
+        let o = sheet.items.get(String(id));
+        if (!o) throw new Error(`No option “${id}”. avatar_maker_status lists the options shown: ${[...sheet.items.keys()].join(", ") || "none yet"}.`);
+        return o;
+    };
+    const zoom = async (uri, checker) => {   // a 40 px PNG at 8 x, pixel for pixel, for an agent to look at
+        let img = new Image(); img.src = uri; await img.decode();
+        let c = el("canvas", { width: 320, height: 320 }), x = c.getContext("2d");
+        if (checker) for (let j = 0; j < 16; j++) for (let i = 0; i < 16; i++) { x.fillStyle = (i + j) % 2 ? "#c8c8c8" : "#f2f2f2"; x.fillRect(i * 20, j * 20, 20, 20); }
+        x.imageSmoothingEnabled = false; x.drawImage(img, 0, 0, 320, 320);
+        return c.toDataURL("image/png");
+    };
+    const option = (o) => ({ id: o.id, label: o.label, note: o.note || "", notes: o.warnings || [], bytes: o.bytes, files: o.files, sha256: o.sha256, editable: !!(o.onEdit || (o.edit && window.AvatarEditor)) });
+    const waitEditor = async () => { let ed = window.AvatarEditor.current; if (ed) await ed.ready; return agent.call("avatar_editor_state", { images: false }); };
+    agent.register({
+        name: "avatar_maker_status", readOnly: true,
+        description: "The avatar maker at ftc-embeds.com/avatars: the team number and its name on FTCScout, whether a logo is chosen, whether the own-logo box is ticked, the options made (ids, labels, notes, sizes, file names) and the edits saved in this browser.",
+        inputSchema: { type: "object", properties: {} },
+        async run() {
+            let saved = store ? await store.list().catch(() => []) : [];
+            return {
+                team: $("team").value.trim() || null, teamHint: $("team-hint").textContent.trim(),
+                logo: logo ? { name: logo.name } : null, problem: readError || null, ownLogoConfirmed: $("own").checked, status: $("status").textContent,
+                results: $("results").hidden ? null : { title: $("res-title").textContent, currentAvatar: !!(shown && shown.current), options: [...sheet.items.values()].map(option) },
+                saved: saved.map((x) => ({ id: x.id, label: x.label, team: x.team || null, updated: new Date(x.updated).toISOString() })),
+                editorOpen: !!window.AvatarEditor.current,
+            };
+        },
+    });
+    agent.register({
+        name: "avatar_set_logo",
+        description: "Choose the team's logo by its web address (fetched by this browser, so only from sites that allow it: GitHub, most image hosts). A .ftcavatar address opens that saved project in the editor instead. Then avatar_make_options.",
+        inputSchema: { type: "object", properties: { url: { type: "string", description: "https://… of a PNG, JPEG, WebP, GIF or SVG logo, or of a .ftcavatar file" } }, required: ["url"] },
+        async run(i) {
+            $("logo-url").value = i.url;
+            await useUrl(i.url);
+            if (!logo && !window.AvatarEditor.current) throw new Error(readError || $("status").textContent || "The logo couldn't be used.");
+            return window.AvatarEditor.current ? { opened: "editor", editor: await waitEditor() } : { logo: logo.name, note: "Chosen. Next: avatar_make_options." };
+        },
+    });
+    agent.register({
+        name: "avatar_make_options",
+        description: "Make the avatar options from the chosen logo (one request, a few seconds): up to eight 40 × 40 avatars, each with a background and transparent, checked against FIRST's rules. ownLogoConfirmed ticks the page's box “This is our team's own logo, and we may use it”: only set it when the user has said so.",
+        inputSchema: { type: "object", properties: {
+            team: { type: "string", description: "The FTC team number (optional): names the files and shows the team's current avatar" },
+            ownLogoConfirmed: { type: "boolean", description: "The user confirmed it's their team's own logo, which they may use" },
+        } },
+        async run(i) {
+            if (i.team != null) { $("team").value = String(i.team).trim(); $("team").dispatchEvent(new Event("input")); }
+            if (i.ownLogoConfirmed === true) $("own").checked = true;
+            try { await make(); } catch (e) { fail(e.message, e.field); throw e; }
+            return { title: $("res-title").textContent, currentAvatar: !!(shown && shown.current), options: [...sheet.items.values()].map(option),
+                next: "avatar_get_option shows one; avatar_download saves it; avatar_open_editor edits it." };
+        },
+    });
+    agent.register({
+        name: "avatar_get_option", readOnly: true,
+        description: "One option (or the team's current avatar, id “current”) as images: with background and transparent, 8× zoomed so the pixels show, and the real 40 × 40 PNGs as data URIs.",
+        inputSchema: { type: "object", properties: { id: { type: "string" } }, required: ["id"] },
+        async run(i) {
+            if (i.id === "current") {
+                if (!shown || !shown.current) throw new Error("There's no current avatar (no team number, or the team has none).");
+                return { id: "current", images: [{ label: "current avatar, 8× zoom", uri: await zoom(shown.current, true) }], dataUri: shown.current };
+            }
+            let o = pick(i.id);
+            return Object.assign(option(o), { opaque: o.opaque, transparent: o.transparent,
+                images: [{ label: `${o.label}, with background, 8× zoom`, uri: await zoom(o.opaque) }, { label: `${o.label}, transparent, on a grey checkerboard, 8× zoom`, uri: await zoom(o.transparent, true) }] });
+        },
+    });
+    agent.register({
+        name: "avatar_download",
+        description: "Save files in the browser's downloads: one option's PNG (opaque, with background) or transparent PNG, or the zip with every option, a comparison sheet and how to upload them to FIRST.",
+        inputSchema: { type: "object", properties: { id: { type: "string", description: "The option (not needed for the zip)" }, kind: { type: "string", enum: ["opaque", "transparent", "zip"] } }, required: ["kind"] },
+        async run(i) {
+            if (i.kind === "zip") {
+                if ($("zip").hidden || $("results").hidden) throw new Error("There's no zip: make the options first.");
+                $("zip").click(); return { downloaded: $("zip").download };
+            }
+            let o = pick(i.id), k = i.kind === "transparent" ? 1 : 0;
+            if (!["opaque", "transparent"].includes(i.kind)) throw new Error("kind: opaque, transparent or zip");
+            let a = el("a", { href: k ? o.transparent : o.opaque, download: o.files[k] }); document.body.append(a); a.click(); a.remove();
+            return { downloaded: o.files[k], bytes: o.bytes[k] };
+        },
+    });
+    agent.register({
+        name: "avatar_open_editor",
+        description: "Open the editor on one option (or a saved edit, from avatar_maker_status's saved list). Then the avatar_editor_ tools change it; avatar_editor_close with use: true puts the edit on the page.",
+        inputSchema: { type: "object", properties: { id: { type: "string", description: "An option's id" }, saved: { type: "string", description: "A saved edit's id instead" } } },
+        async run(i) {
+            if (window.AvatarEditor.current) throw new Error("An editor is open already. Close it first (avatar_editor_close).");
+            if (i.saved) await openSaved(i.saved);
+            else { let o = pick(i.id); if (o.onEdit) o.onEdit(); else if (o.edit) openEditor(o); else throw new Error("This option can't be edited."); }
+            if (!window.AvatarEditor.current) throw new Error($("status").textContent || "The editor didn't open.");
+            return waitEditor();
+        },
+    });
+    agent.register({
+        name: "avatar_render_project", readOnly: true,
+        description: "Render a .ftcavatar project file (its web address, or its JSON text) without opening it: the two 40 × 40 PNGs exactly as the editor makes them, as data URIs and 8× zoomed images, with the editor's notes. The format: ftc-embeds.com/docs/avatar-format.md.",
+        inputSchema: { type: "object", properties: { url: { type: "string" }, json: { type: "string" }, version: { type: "string", description: "A saved version's id or name instead of the current state" } } },
+        async run(i) {
+            let p = i.url ? await window.AvatarEditor.readProject(await fetchFile(i.url, "project file")) : i.json;
+            if (!p) throw new Error("Give the project's url or json.");
+            let r = await window.AvatarEditor.render(p, { version: i.version });
+            return Object.assign(r, { images: [{ label: "with background, 8× zoom", uri: await zoom(r.opaque) }, { label: "transparent, on a grey checkerboard, 8× zoom", uri: await zoom(r.transparent, true) }] });
+        },
+    });
 })();
 </script>
 </body>

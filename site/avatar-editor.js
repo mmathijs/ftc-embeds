@@ -97,6 +97,14 @@
         }
         return O;
     }
+    function boxReduce(P) {   // pixel art: each 8 x 8 block of the 320 px canvas becomes one pixel, its plain average
+        let O = new Float32Array(40 * 40 * 4), k = 1 / (S * S);
+        for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+            let p = (y * N + x) * 4, q = (((y / S) | 0) * 40 + ((x / S) | 0)) * 4;
+            O[q] += P[p] * k; O[q + 1] += P[p + 1] * k; O[q + 2] += P[p + 2] * k; O[q + 3] += P[p + 3] * k;
+        }
+        return O;
+    }
     function maxFilter(A, R, W = N) {   // square max filter of a W x W alpha map, as Pillow's MaxFilter
         let T = new Float32Array(W * W), U = new Float32Array(W * W);
         for (let y = 0; y < W; y++) for (let x = 0; x < W; x++) { let m = 0; for (let k = Math.max(0, x - R); k <= Math.min(W - 1, x + R); k++) m = Math.max(m, A[y * W + k]); T[y * W + x] = m; }
@@ -511,23 +519,12 @@
             document.documentElement.style.overflow = "hidden";
             this.resize();
             try {
-                let L = await this.o.layers();
-                this.L = { w: L.w, h: L.h, kind: L.kind, bg: L.bg, layers: L.layers };
-                this.w = L.w; this.h = L.h;
-                this.src = {};
-                await Promise.all(Object.entries(L.layers).map(async ([k, uri]) => {
-                    let img = await loadImage(uri), c = canvas(this.w, this.h);
-                    ctx2d(c).drawImage(img, 0, 0); this.src[k] = c;
-                }));
+                await this.loadLayers(await this.o.layers());
             } catch (e) {
                 this.busy.textContent = (e && e.message && e.message !== "layer" ? e.message : "The editor couldn't load this logo.") + " Close the editor and try again.";
                 return;
             }
             this.busy.remove();
-            this.orig = ctx2d(this.src.logo, { willReadFrequently: true }).getImageData(0, 0, this.w, this.h);
-            this.layer = canvas(this.w, this.h); this.lctx = ctx2d(this.layer, { willReadFrequently: true });
-            this.tmp = canvas(this.w, this.h);
-            this.c320 = canvas(N, N); this.dl320 = canvas(N, N);
             this.palette = this.logoPalette();
             let p = this.o.preset || {};
             let saved = this.o.saved;
@@ -555,6 +552,27 @@
             this.setTool(this.tool);
             this.sync();
             this.paint();
+        }
+
+        /** The server's layers ({w, h, kind, bg, layers: {logo, cut, …}} as PNG data URIs) as canvases, and the
+         *  canvases the result is drawn on. Without any of the editor's page: render() uses it too. */
+        async loadLayers(L) {
+            this.L = { w: L.w, h: L.h, kind: L.kind, bg: L.bg, layers: L.layers };
+            this.w = L.w; this.h = L.h;
+            this.src = {};
+            await Promise.all(Object.entries(L.layers).map(async ([k, uri]) => {
+                let img = await loadImage(uri), c = canvas(this.w, this.h);
+                ctx2d(c).drawImage(img, 0, 0); this.src[k] = c;
+            }));
+            this.orig = ctx2d(this.src.logo, { willReadFrequently: true }).getImageData(0, 0, this.w, this.h);
+            this.layer = canvas(this.w, this.h); this.lctx = ctx2d(this.layer, { willReadFrequently: true });
+            this.tmp = canvas(this.w, this.h);
+            this.c320 = canvas(N, N); this.dl320 = canvas(N, N);
+        }
+        /** Every lifted part of the logo (image objects) decoded, so a render needs no second pass. */
+        async loadImages(doc = this.doc) {
+            let m = (this.imgs ||= new Map());
+            await Promise.all(doc.draw.filter((o) => o.k === "image" && !(m.get(o.src) || {}).img).map(async (o) => { m.set(o.src, { img: await loadImage(o.src) }); }));
         }
 
         build() {
@@ -590,7 +608,8 @@
             this.bar = el("div", { className: "ae-bar", role: "toolbar", ariaLabel: "Tool options" });
             this.root.append(this.bar);
             // stage
-            this.cv = el("canvas"); this.vctx = ctx2d(this.cv);
+            this.cv = el("canvas", { role: "img", ariaLabel: "The avatar, zoomed in: 8 × 8 canvas pixels for every avatar pixel. Draw and erase here with the tools; the 40 × 40 result is in the side panel." });
+            this.vctx = ctx2d(this.cv);
             this.hintText = el("p", { ariaLive: "polite" });
             this.zoomOut = el("output");
             this.busy = el("div", { className: "ae-busy" }, "Loading your logo…");
@@ -634,8 +653,12 @@
                 this.strip.append(el("div", { className: light ? "light" : "", style: `background:${colour}` }, a, b, el("span", {}, name)));
             }
             this.warnBox = el("div");
+            this.filterSel = el("select", { ariaLabel: "Shrinking to 40 px" }, el("option", { value: "smooth" }, "Smooth (logos and photos)"), el("option", { value: "box" }, "Pixel art: each 8 × 8 block is one pixel"));
+            this.filterSel.addEventListener("change", () => { this.set({ filter: this.filterSel.value === "box" ? "box" : undefined }); this.commit(); });
             s.append(sec("Result, 40 × 40", el("div", { className: "ae-pv" }, el("figure", {}, this.pvOp, el("figcaption", {}, "with background")), el("figure", {}, this.pvTr, el("figcaption", {}, "transparent"))),
-                this.strip, el("div", { className: "ae-ok" }, "Actual size, 40 and 20 px, as FTCScout and the event screens show it."), this.warnBox));
+                this.strip, el("div", { className: "ae-ok" }, "Actual size, 40 and 20 px, as FTCScout and the event screens show it."), this.warnBox,
+                el("label", { className: "col" }, "Shrinking to 40 px", this.filterSel),
+                el("div", { className: "ae-ok" }, "Pixel art keeps drawings that line up with the pixel grid (G) exactly as drawn: no soft edges.")));
             // background
             this.bgSw = el("div", { className: "ae-sw" });
             this.bgPick = el("input", { type: "color", title: "Any colour" });
@@ -873,6 +896,7 @@
             this.borderR.value = d.border; this.borderOut.textContent = d.border ? d.border.toFixed(1) + " px" : "none";
             this.borderSame.checked = !d.borderColour; this.borderPick.value = d.borderColour || d.bg;
             this.edgeSel.value = d.edges === "pixel" || d.edges === "crisp" ? "pixel" : "smooth";
+            this.filterSel.value = d.filter === "box" ? "box" : "smooth";
             if (this.srcSel.options.length !== Object.keys(this.src || {}).length) {
                 this.srcSel.textContent = "";
                 for (let k of Object.keys(SOURCES)) if (this.src && this.src[k]) this.srcSel.append(el("option", { value: k }, SOURCES[k]));
@@ -917,6 +941,12 @@
         applyOp(op, from) {   // from: the first point to draw (strokes are drawn as they grow)
             let c = this.lctx;
             if (op.k === "wand") return this.applyWand(op);
+            if (op.k === "area" && op.restore) {   // the original logo back inside the area (agents' erase tool)
+                let t = ctx2d(this.tmp);
+                t.globalCompositeOperation = "source-over"; t.clearRect(0, 0, this.w, this.h); t.fillStyle = "#000"; t.fill(polyPath(op.poly));
+                t.globalCompositeOperation = "source-in"; t.drawImage(this.src.logo, 0, 0);
+                c.save(); c.globalCompositeOperation = "source-over"; c.drawImage(this.tmp, 0, 0); c.restore(); return;
+            }
             if (op.k === "area") {
                 c.save(); c.globalCompositeOperation = "destination-out"; c.fillStyle = "#000";
                 c.fill(polyPath(op.poly, op.invert ? [-1e5, -1e5, 2e5, 2e5] : null), "evenodd"); c.restore(); return;
@@ -1204,7 +1234,8 @@
             this.scene(x, { k: 1, ox: 0, oy: 0 }, false, this.dl320);
             let D = x.getImageData(0, 0, N, N).data, P = new Float32Array(N * N * 4), A = new Float32Array(N * N);
             for (let i = 0; i < N * N; i++) { let a = D[i * 4 + 3] / 255; A[i] = a; P[i * 4] = (D[i * 4] / 255) * a; P[i * 4 + 1] = (D[i * 4 + 1] / 255) * a; P[i * 4 + 2] = (D[i * 4 + 2] / 255) * a; P[i * 4 + 3] = a; }
-            let content = reduce(P), [br, bgc, bb] = hex2rgb(this.doc.bg).map((v) => v / 255);
+            let shrink = this.doc.filter === "box" ? boxReduce : reduce;
+            let content = shrink(P), [br, bgc, bb] = hex2rgb(this.doc.bg).map((v) => v / 255);
             let O = new Float32Array(content.length);
             for (let i = 0; i < 1600; i++) { let a = content[i * 4 + 3]; O[i * 4] = content[i * 4] + br * (1 - a); O[i * 4 + 1] = content[i * 4 + 1] + bgc * (1 - a); O[i * 4 + 2] = content[i * 4 + 2] + bb * (1 - a); O[i * 4 + 3] = 1; }
             let R = Math.round(this.doc.border * S), T = content;
@@ -1218,7 +1249,7 @@
                     B.data[i * 4] = bc[0]; B.data[i * 4 + 1] = bc[1]; B.data[i * 4 + 2] = bc[2]; B.data[i * 4 + 3] = Dm[i] * 255;
                 }
                 bctx.putImageData(B, 0, 0);
-                T = reduce(Q);
+                T = shrink(Q);
             }
             let pixel = this.doc.edges === "pixel" || this.doc.edges === "crisp";
             return { op: toImageData(O, 0), tr: pixel ? toImageData(T, 20, true) : tidyEdges(toImageData(T, 20)), content: toImageData(content, 20) };
@@ -2237,21 +2268,325 @@ ${b}.ftcavatar       the project: open it in the editor at ftc-embeds.com/avatar
         return c;
     }
 
-    async function readProject(file) {   // a .ftcavatar file -> {label, team, base, preset, layers, doc, active}
-        let p;
-        try { p = JSON.parse(await file.text()); } catch { throw new Error("This isn't a project file from the avatar editor."); }
+    function checkProject(p) {   // a parsed .ftcavatar file, checked
         if (!p || p.format !== "ftc-embeds-avatar" || !p.layers || !p.layers.layers || !p.layers.layers.logo || !p.doc) throw new Error("This isn't a project file from the avatar editor.");
         if (p.version > 1) throw new Error("This project was made with a newer editor. Reload the page and try again.");
         return p;
     }
+    async function readProject(file) {   // a .ftcavatar file -> {label, team, base, preset, layers, doc, active}
+        let p;
+        try { p = JSON.parse(await file.text()); } catch { throw new Error("This isn't a project file from the avatar editor."); }
+        return checkProject(p);
+    }
     function openProject(p, extra) {   // open a project without the page's help (not saved in the browser)
         return window.AvatarEditor.open(Object.assign({ label: p.label, preset: p.preset, layers: () => Promise.resolve(p.layers), saved: { doc: p.doc, active: p.active, versions: p.versions || [] }, fileBase: p.base }, extra || {}));
     }
+    const bytesOfUri = (u) => Math.floor(((u.length - u.indexOf(",") - 1) * 3) / 4);
+
+    /** render(project, {version}): the two 40 x 40 PNGs of a project (a .ftcavatar file, its text, or the parsed
+     *  object) exactly as the editor makes them, without opening it: {opaque, transparent} as data URIs,
+     *  {warnings} the editor's notes, {bytes} the PNGs' sizes. version: a saved version's id or name. */
+    async function render(project, opts = {}) {
+        let p = project instanceof Blob ? await readProject(project) : checkProject(typeof project === "string" ? JSON.parse(project) : project);
+        let ed = new Editor({ label: p.label, preset: p.preset, fileBase: p.base });
+        await ed.loadLayers(p.layers);
+        let doc = p.doc;
+        if (opts.version) {
+            let v = (p.versions || []).find((x) => x.id === opts.version || x.name === opts.version);
+            if (!v) throw new Error(`This project has no version “${opts.version}”.`);
+            doc = typeof v.doc === "string" ? JSON.parse(v.doc) : v.doc;
+        }
+        ed.doc = migrate(typeof doc === "string" ? JSON.parse(doc) : doc);
+        if (!ed.src[ed.doc.src]) throw new Error(`The project starts from the layer “${ed.doc.src}”, which isn't in its layers.`);
+        await ed.loadImages();
+        let r = ed.result(), op = ed.uri(r.op), tr = ed.uri(r.tr);
+        return { opaque: op, transparent: tr, warnings: ed.warnings(r, op, tr), bytes: [bytesOfUri(op), bytesOfUri(tr)] };
+    }
+
+    // --- tools for AI agents (site/agent-tools.js): the open editor, without dragging on its canvas ------
+    // Positions and sizes are in avatar pixels: 0 to 40 from the top left of the 40 x 40 result
+    // (fractions are fine). The editor's canvas has 8 x 8 of its units in every avatar pixel.
+    const toUnits = (v) => v * S;
+    function colourIn(v, what) {
+        let s = String(v).trim();
+        if (!/^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.test(s)) throw new Error(`${what}: a colour like #00626e`);
+        s = s.replace("#", "");
+        return "#" + (s.length === 3 ? s.replace(/./g, "$&$&") : s).toLowerCase();
+    }
+    function numberIn(v, lo, hi, what) {
+        let n = +v;
+        if (v === "" || v === null || !Number.isFinite(n) || n < lo || n > hi) throw new Error(`${what}: a number from ${lo} to ${hi}`);
+        return n;
+    }
+    async function editorNow() {
+        let ed = window.AvatarEditor.current;
+        if (!ed) throw new Error("No editor is open. Make the options first (avatar_make_options), then open one with avatar_open_editor.");
+        await ed.ready;
+        if (!ed.doc) throw new Error("The editor couldn't load this logo. Close it (avatar_editor_close) and open it again.");
+        return ed;
+    }
+    function zoomed(imgData, checker) {   // the 40 px result at 8 x, pixel for pixel, for an agent to look at
+        let small = canvas(40, 40); ctx2d(small).putImageData(imgData, 0, 0);
+        let c = canvas(N, N), x = ctx2d(c);
+        if (checker) for (let j = 0; j < 16; j++) for (let i = 0; i < 16; i++) { x.fillStyle = (i + j) % 2 ? "#c8c8c8" : "#f2f2f2"; x.fillRect(i * 20, j * 20, 20, 20); }
+        x.imageSmoothingEnabled = false; x.drawImage(small, 0, 0, N, N);
+        return c.toDataURL("image/png");
+    }
+    function summary(ed, images = true) {
+        let d = ed.doc, last = ed.updatePreview(), fit = ed.fitT(d.src, "fit"), t = d.t, f = d.frame || { type: "none" }, a = d.adjust || {};
+        let tenth = (v) => Math.round(v * 10) / 10, bytes = [bytesOfUri(last.op), bytesOfUri(last.tr)];
+        let [x0, y0, x1, y1] = fit.box;
+        let kind = (o) => (o.k === "path" ? o.shape || "path" : o.k === "stroke" ? (o.mode === "erase" ? "eraser stroke" : "brush stroke") : "moved part of the logo");
+        let out = {
+            label: ed.label,
+            logo: {
+                source: d.src, sources: Object.fromEntries(Object.keys(SOURCES).filter((k) => ed.src[k]).map((k) => [k, SOURCES[k]])),
+                sizePercent: Math.round((t.s / fit.s) * 100), box: [x0 * t.s + t.x, y0 * t.s + t.y, x1 * t.s + t.x, y1 * t.s + t.y].map((v) => tenth(v / S)),
+                brightness: a.brightness, contrast: a.contrast, saturation: a.saturate, colours: a.colours, edits: d.logoOps.length,
+            },
+            background: d.bg,
+            transparentVersion: { border: d.border, borderColour: d.borderColour || "the background colour", edges: d.edges === "pixel" || d.edges === "crisp" ? "pixel" : "smooth" },
+            shrink: d.filter === "box" ? "pixel-art" : "smooth",
+            frame: f.type === "circle" ? { type: "circle", ringColour: f.ring, ringWidth: f.ringWidth, insideColour: f.fill, radius: tenth(f.r / S) } : { type: f.type },
+            layers: d.layers.slice().reverse().map((l) => ({ id: l.id, name: l.name, kind: l.kind, visible: l.vis, opacity: l.opacity, shapes: d.draw.filter((o) => o.layer === l.id && o.k !== "area").length })),
+            activeLayer: ed.active,
+            shapes: d.draw.filter((o) => o.k !== "area").map((o) => ({ id: o.id, kind: kind(o), layer: o.layer })),
+            canUndo: ed.undo.length > 0 || ed.doc !== ed.base, canRedo: ed.redo.length > 0,
+            versions: ed.versions.map((v) => ({ id: v.id, name: v.name })),
+            bytes,
+            firstRules: { size: "40 × 40 PNG", under20kB: bytes.every((b) => b <= 20000), noLimeOrMagenta: !last.warnings.some((w) => /lime or magenta/.test(w)) },
+            notes: last.warnings,
+        };
+        if (images) out.images = [{ label: "with background, 8× zoom", uri: zoomed(last.r.op) }, { label: "transparent version on a grey checkerboard, 8× zoom", uri: zoomed(last.r.tr, true) }];
+        return out;
+    }
+    function done(ed, images) { ed.commit(); ed.sync(); ed.paint(); return summary(ed, images !== false); }
+    function drawingLayer(ed, id) {
+        if (id == null) return ed.drawLayer();
+        let l = ed.layerOf(id);
+        if (!l || l.kind !== "draw") throw new Error(`layer: the id of a drawing layer (${ed.doc.layers.filter((x) => x.kind === "draw").map((x) => x.id).join(", ")})`);
+        return l.id;
+    }
+    function boxPoly(o) {   // a rectangle or ellipse in avatar pixels -> a polygon in canvas units
+        let x = numberIn(o.x, -40, 80, "x"), y = numberIn(o.y, -40, 80, "y"), w = numberIn(o.width, 0.1, 120, "width"), h = numberIn(o.height, 0.1, 120, "height");
+        if ((o.shape || "rect") === "rect") return [[x, y], [x + w, y], [x + w, y + h], [x, y + h]].map(([a, b]) => [toUnits(a), toUnits(b)]);
+        if (o.shape !== "ellipse") throw new Error("shape: rect or ellipse");
+        return Array.from({ length: 64 }, (_, i) => { let t = (i / 64) * 2 * Math.PI; return [toUnits(x + w / 2 + (w / 2) * Math.cos(t)), toUnits(y + h / 2 + (h / 2) * Math.sin(t))]; });
+    }
+    const POS = { x: { type: "number", description: "Avatar pixels from the left (0 to 40)" }, y: { type: "number", description: "Avatar pixels from the top (0 to 40)" } };
+    const BOX = Object.assign({}, POS, { width: { type: "number", description: "Avatar pixels" }, height: { type: "number", description: "Avatar pixels" } });
+    const IMAGES = { images: { type: "boolean", description: "Return the zoomed-in result as images (default true)" } };
+    const AGENT_TOOLS = [
+        { name: "avatar_editor_state", readOnly: true,
+            description: "The open avatar editor: where the logo is, the background, the transparent version's border, the frame, the layers and shapes, the notes on FIRST's rules, and the 40 × 40 result as images (8× zoom). Positions everywhere are in avatar pixels, 0 to 40 from the top left.",
+            inputSchema: { type: "object", properties: Object.assign({}, IMAGES) },
+            run: async (i) => summary(await editorNow(), i.images !== false) },
+        { name: "avatar_editor_set",
+            description: "Change the avatar's settings in the open editor; leave out what stays. One undo step.",
+            inputSchema: { type: "object", properties: {
+                background: { type: "string", description: "The opaque version's background, #rrggbb. Teal #00626e, navy #16264a and black #121216 suit most logos." },
+                border: { type: "number", description: "The transparent version's border around the logo, 0 (none) to 3 avatar pixels (default 1.1)" },
+                borderColour: { type: "string", description: "The border's colour, #rrggbb; empty: the background colour" },
+                edges: { type: "string", enum: ["smooth", "pixel"], description: "The transparent version's edges: smooth outline, or no half-transparent pixels" },
+                shrink: { type: "string", enum: ["smooth", "pixel-art"], description: "How the 320 px canvas becomes 40 px: smooth (Lanczos, for logos), or pixel-art (each 8 × 8 block averaged, so drawings on the pixel grid stay exact)" },
+                source: { type: "string", description: "The logo layer to start from: cut (letter gaps cut out), all (every enclosed gap cut out), main (main part only), notext (without the text), logo (the original, with its background). avatar_editor_state lists the ones there are." },
+                sizePercent: { type: "number", description: "The logo's size, 10 to 400, where 100 fits the square with a 1 px margin" },
+                frame: { type: "string", enum: ["none", "circle", "rounded"], description: "A circle badge with a ring, a rounded tile, or none" },
+                ringColour: { type: "string" }, ringWidth: { type: "number", description: "0 to 3 avatar pixels" }, insideColour: { type: "string" },
+                frameRadius: { type: "number", description: "The circle's radius, 7.5 to 19.75 avatar pixels" },
+                brightness: { type: "number", description: "0.5 to 1.5 (1 = unchanged)" }, contrast: { type: "number", description: "0.5 to 2" }, saturation: { type: "number", description: "0 to 2" },
+                colours: { type: "integer", description: "Limit the logo to this many flat colours, 2 to 32 (0 = off)" },
+            } },
+            async run(i) {
+                let ed = await editorNow(), d = ed.doc, patch = {};
+                if (i.background != null) patch.bg = colourIn(i.background, "background");
+                if (i.border != null) patch.border = numberIn(i.border, 0, 3, "border");
+                if (i.borderColour !== undefined) patch.borderColour = i.borderColour ? colourIn(i.borderColour, "borderColour") : "";
+                if (i.edges != null) { if (!["smooth", "pixel"].includes(i.edges)) throw new Error("edges: smooth or pixel"); patch.edges = i.edges; }
+                if (i.shrink != null) { if (!["smooth", "pixel-art"].includes(i.shrink)) throw new Error("shrink: smooth or pixel-art"); patch.filter = i.shrink === "pixel-art" ? "box" : undefined; }
+                if (i.source != null) { if (!SOURCES[i.source] || !ed.src[i.source]) throw new Error(`source: one of ${Object.keys(SOURCES).filter((k) => ed.src[k]).join(", ")}`); patch.src = i.source; }
+                let adj = {};
+                for (let [key, name, lo, hi] of [["brightness", "brightness", 0.5, 1.5], ["contrast", "contrast", 0.5, 2], ["saturate", "saturation", 0, 2], ["colours", "colours", 0, 32]]) if (i[name] != null) adj[key] = numberIn(i[name], lo, hi, name);
+                if (adj.colours != null) adj.colours = Math.round(adj.colours) === 1 ? 2 : Math.round(adj.colours);
+                if (Object.keys(adj).length) patch.adjust = Object.assign({}, d.adjust, adj);
+                if ([i.frame, i.ringColour, i.ringWidth, i.insideColour, i.frameRadius].some((v) => v != null)) {
+                    let type = i.frame != null ? i.frame : (d.frame || {}).type || "none";
+                    if (!["none", "circle", "rounded"].includes(type)) throw new Error("frame: none, circle or rounded");
+                    let f = Object.assign({ r: 145, ring: "#121216", ringWidth: 1.1, fill: "#ffffff" }, d.frame, { type });
+                    if (i.ringColour != null) f.ring = colourIn(i.ringColour, "ringColour");
+                    if (i.ringWidth != null) f.ringWidth = numberIn(i.ringWidth, 0, 3, "ringWidth");
+                    if (i.insideColour != null) f.fill = colourIn(i.insideColour, "insideColour");
+                    if (i.frameRadius != null) f.r = toUnits(numberIn(i.frameRadius, 7.5, 19.75, "frameRadius"));
+                    patch.frame = f;
+                }
+                ed.set(patch, true);
+                if (i.sizePercent != null) ed.setSize(numberIn(i.sizePercent, 10, 400, "sizePercent") / 100);
+                return done(ed);
+            } },
+        { name: "avatar_editor_place",
+            description: "Place the logo in the square: fit (all of it, 1 px margin), fill (cover the square), center (keep the size, centre it) or bottom (cut off at the bottom edge, for tall mascots).",
+            inputSchema: { type: "object", properties: { how: { type: "string", enum: ["fit", "fill", "center", "bottom"] } }, required: ["how"] },
+            async run(i) {
+                let ed = await editorNow();
+                if (!["fit", "fill", "center", "bottom"].includes(i.how)) throw new Error("how: fit, fill, center or bottom");
+                ed.place(i.how); return done(ed);
+            } },
+        { name: "avatar_editor_move",
+            description: "Move the logo (and, as in the editor, the drawings on it) by dx, dy avatar pixels. Positive dx is right, positive dy is down.",
+            inputSchema: { type: "object", properties: { dx: { type: "number" }, dy: { type: "number" } } },
+            async run(i) {
+                let ed = await editorNow(), t = ed.doc.t;
+                ed.logoT({ s: t.s, x: t.x + toUnits(numberIn(i.dx || 0, -80, 80, "dx")), y: t.y + toUnits(numberIn(i.dy || 0, -80, 80, "dy")) });
+                return done(ed);
+            } },
+        { name: "avatar_editor_wand",
+            description: "The magic wand at one point of the avatar: cut out the area of the original logo's colour there (the gap inside a letter, a leftover background), or bring it back with restore.",
+            inputSchema: { type: "object", properties: Object.assign({}, POS, {
+                restore: { type: "boolean", description: "Bring the area back instead of cutting it out" },
+                tolerance: { type: "number", description: "How different a colour may be and still count, 1 to 160 (default 40)" },
+                contiguous: { type: "boolean", description: "Only the connected area (default true); false: that colour everywhere" },
+            }), required: ["x", "y"] },
+            async run(i) {
+                let ed = await editorNow();
+                let [sx, sy] = ed.toSrc({ x: toUnits(numberIn(i.x, -40, 80, "x")), y: toUnits(numberIn(i.y, -40, 80, "y")) }).map(Math.floor);
+                if (sx < 0 || sy < 0 || sx >= ed.w || sy >= ed.h) throw new Error("That point isn't on the logo. avatar_editor_state gives the logo's box.");
+                let op = { k: "wand", mode: i.restore ? "restore" : "erase", x: sx, y: sy, tol: i.tolerance != null ? numberIn(i.tolerance, 1, 160, "tolerance") : 40, contig: i.contiguous !== false, clip: ed.clipSrc() };
+                ed.set({ logoOps: [...ed.doc.logoOps, op] }, true);
+                return done(ed);
+            } },
+        { name: "avatar_editor_erase",
+            description: "Erase a rectangle or ellipse of the logo (or restore the original logo there, background included), or erase it on a drawing layer.",
+            inputSchema: { type: "object", properties: Object.assign({ shape: { type: "string", enum: ["rect", "ellipse"] } }, BOX, {
+                restore: { type: "boolean", description: "Bring back the original logo there (the logo layer only)" },
+                layer: { type: "string", description: "A drawing layer's id instead of the logo" },
+            }), required: ["x", "y", "width", "height"] },
+            async run(i) {
+                let ed = await editorNow(), poly = boxPoly(i), l = i.layer != null ? ed.layerOf(i.layer) : ed.layerOf("logo") || ed.doc.layers.find((x) => x.kind === "logo");
+                if (!l) throw new Error(`layer: one of ${ed.doc.layers.map((x) => x.id).join(", ")}`);
+                if (l.kind === "logo") ed.set({ logoOps: [...ed.doc.logoOps, { k: "area", poly: poly.map((p) => ed.toSrc({ x: p[0], y: p[1] })), invert: false, restore: !!i.restore || undefined }] }, true);
+                else if (i.restore) throw new Error("restore works on the logo layer only");
+                else ed.set({ draw: [...ed.doc.draw, { id: uid++, k: "area", layer: l.id, poly, invert: false }] }, true);
+                return done(ed);
+            } },
+        { name: "avatar_editor_draw_shape",
+            description: "Draw a shape in the box x, y, width, height (avatar pixels) on a drawing layer: rect, ellipse, triangle, polygon, star, heart, arrow or line (a line goes from the box's top left to its bottom right). It stays editable in the editor.",
+            inputSchema: { type: "object", properties: Object.assign({ shape: { type: "string", enum: SHAPES.map((x) => x[0]) } }, BOX, {
+                fill: { type: "string", description: "#rrggbb, or leave out for no fill" },
+                stroke: { type: "string", description: "The line colour, #rrggbb, or leave out for no line" },
+                lineWidth: { type: "number", description: "Avatar pixels (default 1.2)" },
+                corners: { type: "number", description: "Rounded corners, avatar pixels (rect, triangle, polygon, star, arrow)" },
+                sides: { type: "integer", description: "Polygon sides (default 6)" }, points: { type: "integer", description: "Star points (default 5)" },
+                layer: { type: "string", description: "A drawing layer's id (default: the one above the logo); behind the logo is \"under\"" },
+            }), required: ["shape", "x", "y", "width", "height"] },
+            async run(i) {
+                let ed = await editorNow();
+                if (!SHAPES.some((x) => x[0] === i.shape)) throw new Error(`shape: one of ${SHAPES.map((x) => x[0]).join(", ")}`);
+                let [[ax, ay], , [bx, by]] = boxPoly({ x: i.x, y: i.y, width: i.width, height: i.height });
+                let a = { x: ax, y: ay }, b = { x: bx, y: by }, params = { sides: i.sides || 6, points: i.points || 5, inner: 0.5 };
+                let style = { stroke: i.stroke ? colourIn(i.stroke, "stroke") : null, fill: i.fill ? colourIn(i.fill, "fill") : null, w: toUnits(i.lineWidth != null ? numberIn(i.lineWidth, 0.1, 10, "lineWidth") : 1.2) };
+                if (!style.stroke && (!style.fill || i.shape === "line")) style.stroke = "#121216";
+                let o = Object.assign({ id: uid++, k: "path", layer: drawingLayer(ed, i.layer), shape: i.shape }, style, shapeNodes(i.shape, a, b, false, params), { box: { a, b, shift: false, centre: false }, params });
+                if (ROUNDABLE.includes(i.shape) && i.corners) o.radius = toUnits(numberIn(i.corners, 0, 20, "corners"));
+                ed.set({ draw: [...ed.doc.draw, o] }, true);
+                return Object.assign(done(ed), { drawn: o.id });
+            } },
+        { name: "avatar_editor_draw_line",
+            description: "Paint a brush stroke through points (avatar pixels) on a drawing layer, like the brush tool. One point makes a dot.",
+            inputSchema: { type: "object", properties: {
+                points: { type: "array", items: { type: "array", items: { type: "number" }, minItems: 2, maxItems: 2 }, description: "[[x, y], …] in avatar pixels" },
+                width: { type: "number", description: "Avatar pixels (default 1.2)" }, colour: { type: "string", description: "#rrggbb (default #121216)" },
+                layer: { type: "string", description: "A drawing layer's id (default: the one above the logo)" },
+            }, required: ["points"] },
+            async run(i) {
+                let ed = await editorNow();
+                if (!Array.isArray(i.points) || !i.points.length) throw new Error("points: [[x, y], …]");
+                let pts = i.points.map((p, k) => [toUnits(numberIn(p[0], -40, 80, `points[${k}][0]`)), toUnits(numberIn(p[1], -40, 80, `points[${k}][1]`))]);
+                let o = { id: uid++, k: "stroke", mode: "paint", layer: drawingLayer(ed, i.layer), pts, w: toUnits(i.width != null ? numberIn(i.width, 0.1, 20, "width") : 1.2), colour: i.colour ? colourIn(i.colour, "colour") : "#121216" };
+                ed.set({ draw: [...ed.doc.draw, o] }, true);
+                return Object.assign(done(ed), { drawn: o.id });
+            } },
+        { name: "avatar_editor_delete_shapes",
+            description: "Delete shapes and strokes by their ids (avatar_editor_state lists them).",
+            inputSchema: { type: "object", properties: { ids: { type: "array", items: { type: "integer" } } }, required: ["ids"] },
+            async run(i) {
+                let ed = await editorNow(), ids = (i.ids || []).map(Number);
+                ed.set({ draw: ed.doc.draw.filter((o) => !ids.includes(o.id)) }, true); ed.select([]);
+                return done(ed);
+            } },
+        { name: "avatar_editor_layers",
+            description: "The layers: add a drawing layer (above the active one), update one (name, visible, opacity), delete or clear one (clearing the logo layer undoes all its erasing), or make one active.",
+            inputSchema: { type: "object", properties: {
+                action: { type: "string", enum: ["add", "update", "delete", "clear", "select"] },
+                id: { type: "string", description: "The layer (not for add)" }, name: { type: "string" }, visible: { type: "boolean" }, opacity: { type: "number", description: "0 to 1" },
+            }, required: ["action"] },
+            async run(i) {
+                let ed = await editorNow();
+                if (i.action === "add") { ed.addLayer(); if (i.name) ed.layerEdit(ed.active, { name: String(i.name) }, true); return Object.assign(done(ed), { added: ed.active }); }
+                let l = ed.layerOf(i.id);
+                if (!l) throw new Error(`id: one of ${ed.doc.layers.map((x) => x.id).join(", ")}`);
+                if (i.action === "select") { ed.active = l.id; return done(ed); }
+                if (i.action === "delete") { if (l.kind === "logo") throw new Error("The logo layer stays; hide it with visible: false."); ed.deleteLayer(l.id); return done(ed); }
+                if (i.action === "clear") { ed.active = l.id; ed.clearLayer(); return done(ed); }
+                if (i.action !== "update") throw new Error("action: add, update, delete, clear or select");
+                let patch = {};
+                if (i.name != null) patch.name = String(i.name).trim() || "Layer";
+                if (i.visible != null) patch.vis = !!i.visible;
+                if (i.opacity != null) patch.opacity = numberIn(i.opacity, 0, 1, "opacity");
+                ed.layerEdit(l.id, patch, false);
+                return done(ed);
+            } },
+        { name: "avatar_editor_history",
+            description: "Undo, redo, or start over from the option as the server made it.",
+            inputSchema: { type: "object", properties: { action: { type: "string", enum: ["undo", "redo", "start_over"] } }, required: ["action"] },
+            async run(i) {
+                let ed = await editorNow();
+                if (i.action === "undo") ed.doUndo(); else if (i.action === "redo") ed.doRedo(); else if (i.action === "start_over") ed.reset();
+                else throw new Error("action: undo, redo or start_over");
+                return summary(ed);
+            } },
+        { name: "avatar_editor_colour_at", readOnly: true,
+            description: "The colour at a point: of the result (with background) and of the original logo under it.",
+            inputSchema: { type: "object", properties: POS, required: ["x", "y"] },
+            async run(i) {
+                let ed = await editorNow(), x = numberIn(i.x, 0, 39.99, "x"), y = numberIn(i.y, 0, 39.99, "y"), D = ed.updatePreview().r.op.data, k = ((y | 0) * 40 + (x | 0)) * 4;
+                let [sx, sy] = ed.toSrc({ x: toUnits(x), y: toUnits(y) }).map(Math.floor), on = sx >= 0 && sy >= 0 && sx < ed.w && sy < ed.h, O = ed.orig.data, j = (sy * ed.w + sx) * 4;
+                return { result: rgb2hex(D[k], D[k + 1], D[k + 2]), logo: on && O[j + 3] ? rgb2hex(O[j], O[j + 1], O[j + 2]) : null };
+            } },
+        { name: "avatar_editor_save",
+            description: "Save the work in this browser (it's also saved as you go), and with versionName keep this state as a named version to go back to or compare.",
+            inputSchema: { type: "object", properties: { versionName: { type: "string" } } },
+            async run(i) {
+                let ed = await editorNow(), v = i.versionName ? await ed.saveVersion(String(i.versionName)) : null;
+                await ed.saveNow(true);
+                return { saved: ed.saveOut ? ed.saveOut.textContent : "", version: v ? { id: v.id, name: v.name } : null };
+            } },
+        { name: "avatar_editor_export",
+            description: "The avatar as a file: the 40 × 40 PNG with background (opaque) or transparent, as FIRST takes them, or the project file (.ftcavatar, with every layer and version). Returns the PNG as a data URI; download: true also saves the file in the browser's downloads (the project file is only downloaded).",
+            inputSchema: { type: "object", properties: { kind: { type: "string", enum: ["opaque", "transparent", "project"] }, download: { type: "boolean" } }, required: ["kind"] },
+            async run(i) {
+                let ed = await editorNow();
+                if (i.kind === "project") { ed.downloadProject(); return { downloaded: (ed.o.fileBase || "avatar") + ".ftcavatar" }; }
+                if (!["opaque", "transparent"].includes(i.kind)) throw new Error("kind: opaque, transparent or project");
+                let r = ed.updatePreview(), uri = i.kind === "opaque" ? r.op : r.tr, file = (ed.o.fileBase || "avatar") + (i.kind === "opaque" ? "-avatar-40.png" : "-avatar-40-transparent.png");
+                if (i.download) saveBlob(await (await fetch(uri)).blob(), file);
+                return { file, bytes: bytesOfUri(uri), dataUri: uri, notes: r.warnings };
+            } },
+        { name: "avatar_editor_close",
+            description: "Close the editor. use: true puts the edit on the page as a new option (with downloads), as the editor's “Use this avatar” button does. Either way the work stays saved in this browser.",
+            inputSchema: { type: "object", properties: { use: { type: "boolean" } } },
+            async run(i) {
+                let ed = window.AvatarEditor.current;
+                if (!ed) return { closed: false, note: "No editor was open." };
+                await ed.ready; ed.close(!!i.use && !!ed.doc);
+                return { closed: true, used: !!i.use };
+            } },
+    ];
+    if (window.ftcEmbedsAgent) for (let t of AGENT_TOOLS) window.ftcEmbedsAgent.register(t);
 
     window.AvatarEditor = {
         /** open({label, preset, layers: () => Promise<{w, h, layers}>, saved, fileBase, project: {id, layersId, team, base}, onDone, onClose, onSaved}) */
         open(o) { let ed = new Editor(o); this.current = ed; ed.ready = ed.start(); return ed; },
-        readProject, openProject, store, compareSheet,
+        readProject, openProject, render, store, compareSheet,
         onImport: null,     // the page sets this: open a project file chosen inside the editor
         _internal: { reduce, maxFilter, medianCut, shapeNodes, zip, ico, crc32 },
     };

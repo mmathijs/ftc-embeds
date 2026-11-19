@@ -1,0 +1,135 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://ftc-embeds.com/docs/ftcavatar.schema.json",
+    "title": "ftc-embeds avatar project (.ftcavatar)",
+    "description": "A project of the avatar editor at ftc-embeds.com/avatars. See https://ftc-embeds.com/docs/avatar-format.md for what every field means and how the 40 x 40 PNGs are made.",
+    "type": "object",
+    "required": ["format", "version", "layers", "doc"],
+    "properties": {
+        "format": { "const": "ftc-embeds-avatar" },
+        "version": { "const": 1 },
+        "saved": { "type": "string", "format": "date-time" },
+        "label": { "type": "string" },
+        "team": { "type": ["string", "number", "null"] },
+        "base": { "type": "string", "description": "The start of the file names" },
+        "preset": {
+            "type": ["object", "null"],
+            "properties": {
+                "src": { "type": "string" }, "s": { "type": "number" }, "x": { "type": "number" }, "y": { "type": "number" },
+                "bg": { "$ref": "#/$defs/colour" }, "border": { "type": "number" }, "frame": { "$ref": "#/$defs/frame" }, "adjust": { "$ref": "#/$defs/adjust" }
+            }
+        },
+        "layers": {
+            "type": "object",
+            "required": ["w", "h", "layers"],
+            "properties": {
+                "w": { "type": "integer", "minimum": 1 },
+                "h": { "type": "integer", "minimum": 1 },
+                "kind": { "enum": ["alpha", "flat", "palette", "gradient", "none", null] },
+                "bg": { "anyOf": [{ "$ref": "#/$defs/colour" }, { "type": "null" }] },
+                "layers": {
+                    "type": "object",
+                    "required": ["logo"],
+                    "properties": {
+                        "logo": { "$ref": "#/$defs/png" }, "cut": { "$ref": "#/$defs/png" }, "all": { "$ref": "#/$defs/png" },
+                        "main": { "$ref": "#/$defs/png" }, "notext": { "$ref": "#/$defs/png" }
+                    },
+                    "additionalProperties": { "$ref": "#/$defs/png" }
+                }
+            }
+        },
+        "doc": { "$ref": "#/$defs/doc" },
+        "active": { "type": "string" },
+        "versions": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["id", "name", "doc"],
+                "properties": {
+                    "id": { "type": "string" }, "name": { "type": "string" }, "time": { "type": "number" },
+                    "doc": { "type": "string", "description": "A doc, as JSON text" },
+                    "active": { "type": "string" }, "op": { "$ref": "#/$defs/png" }, "tr": { "$ref": "#/$defs/png" }
+                }
+            }
+        }
+    },
+    "$defs": {
+        "colour": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+        "png": { "type": "string", "pattern": "^data:image/png;base64," },
+        "point": { "type": "array", "items": { "type": "number" }, "minItems": 2, "maxItems": 2 },
+        "polygon": { "type": "array", "items": { "$ref": "#/$defs/point" }, "minItems": 3 },
+        "frame": {
+            "type": "object",
+            "required": ["type"],
+            "properties": {
+                "type": { "enum": ["none", "circle", "rounded"] },
+                "r": { "type": "number", "description": "Circle: the radius of the inside, canvas units" },
+                "ring": { "$ref": "#/$defs/colour" },
+                "ringWidth": { "type": "number", "description": "Avatar pixels" },
+                "fill": { "$ref": "#/$defs/colour" }
+            }
+        },
+        "adjust": {
+            "type": "object",
+            "properties": {
+                "brightness": { "type": "number", "minimum": 0.5, "maximum": 1.5 },
+                "contrast": { "type": "number", "minimum": 0.5, "maximum": 2 },
+                "saturate": { "type": "number", "minimum": 0, "maximum": 2 },
+                "colours": { "type": "integer", "minimum": 0, "maximum": 32 }
+            }
+        },
+        "doc": {
+            "type": "object",
+            "required": ["src", "t", "bg", "border", "adjust", "logoOps", "draw", "layers"],
+            "properties": {
+                "src": { "type": "string" },
+                "t": { "type": "object", "required": ["s", "x", "y"], "properties": { "s": { "type": "number", "exclusiveMinimum": 0 }, "x": { "type": "number" }, "y": { "type": "number" } } },
+                "bg": { "$ref": "#/$defs/colour" },
+                "border": { "type": "number", "minimum": 0, "maximum": 3 },
+                "borderColour": { "anyOf": [{ "const": "" }, { "$ref": "#/$defs/colour" }] },
+                "edges": { "enum": ["smooth", "pixel", "crisp"] },
+                "filter": { "enum": ["box"] },
+                "frame": { "$ref": "#/$defs/frame" },
+                "adjust": { "$ref": "#/$defs/adjust" },
+                "logoOps": { "type": "array", "items": { "$ref": "#/$defs/logoOp" } },
+                "draw": { "type": "array", "items": { "$ref": "#/$defs/drawing" } },
+                "layers": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": ["id", "kind"],
+                        "properties": {
+                            "id": { "type": "string" }, "name": { "type": "string" }, "kind": { "enum": ["logo", "draw"] },
+                            "vis": { "type": "boolean" }, "opacity": { "type": "number", "minimum": 0, "maximum": 1 }
+                        }
+                    }
+                }
+            }
+        },
+        "logoOp": {
+            "type": "object",
+            "required": ["k"],
+            "oneOf": [
+                { "properties": { "k": { "enum": ["erase", "restore"] }, "pts": { "type": "array", "items": { "$ref": "#/$defs/point" }, "minItems": 1 }, "r": { "type": "number" }, "clip": { "$ref": "#/$defs/polygon" } }, "required": ["pts", "r"] },
+                { "properties": { "k": { "const": "wand" }, "mode": { "enum": ["erase", "restore"] }, "x": { "type": "integer" }, "y": { "type": "integer" }, "tol": { "type": "number" }, "contig": { "type": "boolean" }, "clip": { "$ref": "#/$defs/polygon" } }, "required": ["mode", "x", "y", "tol"] },
+                { "properties": { "k": { "const": "area" }, "poly": { "$ref": "#/$defs/polygon" }, "invert": { "type": "boolean" }, "restore": { "type": "boolean" } }, "required": ["poly"] }
+            ]
+        },
+        "node": {
+            "type": "object",
+            "required": ["x", "y", "ix", "iy", "ox", "oy"],
+            "properties": { "x": { "type": "number" }, "y": { "type": "number" }, "ix": { "type": "number" }, "iy": { "type": "number" }, "ox": { "type": "number" }, "oy": { "type": "number" }, "smooth": { "type": "boolean" } }
+        },
+        "drawing": {
+            "type": "object",
+            "required": ["k"],
+            "oneOf": [
+                { "properties": { "k": { "const": "stroke" }, "mode": { "enum": ["paint", "erase"] }, "pts": { "type": "array", "items": { "$ref": "#/$defs/point" }, "minItems": 1 }, "w": { "type": "number" }, "colour": { "$ref": "#/$defs/colour" } }, "required": ["id", "layer", "mode", "pts", "w"] },
+                { "properties": { "k": { "const": "path" }, "nodes": { "type": "array", "items": { "$ref": "#/$defs/node" } }, "closed": { "type": "boolean" }, "stroke": { "anyOf": [{ "$ref": "#/$defs/colour" }, { "type": "null" }] }, "fill": { "anyOf": [{ "$ref": "#/$defs/colour" }, { "type": "null" }] }, "w": { "type": "number" }, "radius": { "type": "number" }, "shape": { "type": "string" } }, "required": ["id", "layer", "nodes"] },
+                { "properties": { "k": { "const": "image" }, "src": { "$ref": "#/$defs/png" }, "iw": { "type": "number" }, "ih": { "type": "number" }, "s": { "type": "number" }, "x": { "type": "number" }, "y": { "type": "number" } }, "required": ["id", "layer", "src", "iw", "ih", "s", "x", "y"] },
+                { "properties": { "k": { "const": "area" }, "poly": { "$ref": "#/$defs/polygon" }, "invert": { "type": "boolean" } }, "required": ["layer", "poly"] }
+            ],
+            "properties": { "id": { "type": "number" }, "layer": { "type": "string" }, "clip": { "$ref": "#/$defs/polygon" } }
+        }
+    }
+}

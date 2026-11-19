@@ -1,0 +1,132 @@
+{
+  "format": "ftc-embeds-avatar",
+  "version": 1,
+  "saved": "2026-11-19T12:00:00.000Z",
+  "label": "Whole logo",
+  "team": null,
+  "base": "avatar-whole",
+  "preset": {
+    "src": "cut",
+    "s": 11.7,
+    "x": -27.1,
+    "y": -27.1,
+    "bg": "#16264a",
+    "border": 1.1
+  },
+  "layers": {
+    "w": 32,
+    "h": 32,
+    "kind": "flat",
+    "bg": "#ffffff",
+    "layers": {
+      "logo": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAnElEQVR42u1XwRHAIAhTroN0r87XvdyELiCKEYoPePYOAomVWJmZS2BQCY7wBi4o67n739+2XKqqz4AEKoWyGXIBX8gZM4AAL7JB7uCTWuF/QV+C2fQSpUAeuVKvqJ03If1Gv4CREmQDhzUA7PPdxZQSkIWt2vEFsiGxvhWFwQ4+A5ZSDGrpXDEqh2IIsrTYSE6F3oYhD5NcRk7xAavAQBveursdAAAAAElFTkSuQmCC",
+      "cut": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAkElEQVR42u1X2xGAMAgrLKJz6Xw6l05SF+gDKAgf8Nk7kkD0mpaS5VwgaarHVptg9wtmAnqkXWCiGLQg5/SANjF3G2hNPsPCkH/BdPrraZ+fO9sKtFw9BdvdglgCLNff40gLUkAsAZL7fPViSgtQI1at5AL4Iw+MBov7DWhaMcICq1BKHQI1I7akx/1hkuVeH9cXPi6fAiReAAAAAElFTkSuQmCC"
+    }
+  },
+  "doc": {
+    "src": "cut",
+    "t": {
+      "s": 11.7,
+      "x": -27.1,
+      "y": -27.1
+    },
+    "bg": "#16264a",
+    "border": 1.1,
+    "borderColour": "",
+    "edges": "smooth",
+    "frame": {
+      "type": "none"
+    },
+    "adjust": {
+      "brightness": 1,
+      "contrast": 1,
+      "saturate": 1,
+      "colours": 0
+    },
+    "logoOps": [
+      {
+        "k": "wand",
+        "mode": "erase",
+        "x": 15,
+        "y": 15,
+        "tol": 40,
+        "contig": true
+      }
+    ],
+    "draw": [
+      {
+        "id": 1,
+        "k": "path",
+        "layer": "over",
+        "shape": "rect",
+        "nodes": [
+          {
+            "x": 128,
+            "y": 280,
+            "ix": 128,
+            "iy": 280,
+            "ox": 128,
+            "oy": 280,
+            "smooth": false
+          },
+          {
+            "x": 192,
+            "y": 280,
+            "ix": 192,
+            "iy": 280,
+            "ox": 192,
+            "oy": 280,
+            "smooth": false
+          },
+          {
+            "x": 192,
+            "y": 296,
+            "ix": 192,
+            "iy": 296,
+            "ox": 192,
+            "oy": 296,
+            "smooth": false
+          },
+          {
+            "x": 128,
+            "y": 296,
+            "ix": 128,
+            "iy": 296,
+            "ox": 128,
+            "oy": 296,
+            "smooth": false
+          }
+        ],
+        "closed": true,
+        "stroke": null,
+        "fill": "#ffffff",
+        "w": 9.6
+      }
+    ],
+    "layers": [
+      {
+        "id": "under",
+        "name": "Behind the logo",
+        "kind": "draw",
+        "vis": true,
+        "opacity": 1
+      },
+      {
+        "id": "logo",
+        "name": "Logo",
+        "kind": "logo",
+        "vis": true,
+        "opacity": 1
+      },
+      {
+        "id": "over",
+        "name": "Drawing",
+        "kind": "draw",
+        "vis": true,
+        "opacity": 1
+      }
+    ]
+  },
+  "active": "logo",
+  "versions": []
+}
