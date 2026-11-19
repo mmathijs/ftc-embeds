@@ -541,7 +541,7 @@ DEFAULT_SLACK = (":robot_face: *Free 40×40 FIRST avatars for your team*\n\nThe 
                  "• a transparent version\n• a preview sheet showing it at actual size on different backgrounds\n• the logo it's based on\n\n"
                  "*Want one too?*\nPost your logo in this thread or email it to {reply} and I'll make one for you.\n\n*Uploading*\nYour Lead Mentor 1 or 2 "
                  "uploads the avatar in ftc-scoring → Team Avatar → Upload New Avatar. Upload it at least two weeks before your event, so it shows up "
-                 "in time. More about avatars: https://community.firstinspires.org/team-avatars\n\nQuestions, or want something changed? Reply in this thread or email {reply}.")
+                 "in time. More about avatars: https://www.firstinspires.org/community-blog/team-avatars\n\nQuestions, or want something changed? Reply in this thread or email {reply}.")
 
 def cmd_outreach_page(a):
     """Outreach page: per team the contact (email or Instagram), the zip to attach and the ready message

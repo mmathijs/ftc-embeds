@@ -53,7 +53,7 @@ with sync_playwright() as p:
     # an SVG without width and height, drawn at 1024 px in the browser
     page.check('#own'); page.click('#make')
     page.wait_for_selector('#results:not([hidden]) .opt', timeout=60000)
-    n = page.locator('.opt').count(); check(n >= 2, f'SVG logo: {n} option cards')
+    n = page.locator('.opt:not(.current)').count(); check(n >= 2, f'SVG logo: {n} option cards')   # 23452 has a current avatar now that the lookup works
 
     # without a team number: the same options, no current avatar, files named avatar-…
     make(page, '', svg)

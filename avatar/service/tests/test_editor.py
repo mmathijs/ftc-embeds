@@ -422,8 +422,10 @@ with sync_playwright() as p:
     page.wait_for_function(f'{ed} && {ed}.last', timeout=30000)
     check(result() == final, 'a project file opens on the page exactly as it was')
     check(state('e.doc.layers.length') == 3 and state('e.doc.draw.length') > 0 and state('e.versions.length') == final_versions, 'with its layers, shapes and versions')
+    # wait for the new editor: until Open… has read the file, the old one is still open and has a result
+    page.evaluate(f'window.__before = {ed}')
     page.set_input_files('.ae-head input[type=file]', project_path)
-    page.wait_for_function(f'{ed} && {ed}.last && document.querySelectorAll(".ae").length == 1', timeout=30000)
+    page.wait_for_function(f'{ed} && {ed} !== window.__before && {ed}.last && document.querySelectorAll(".ae").length == 1', timeout=30000)
     check(result() == final, 'and inside the editor (Open…)')
     page.locator('.ae-head button', has_text='Close').click(); page.wait_for_timeout(300)
     # the other ways to open a saved avatar: the logo chooser, a drop anywhere, and /avatars#open

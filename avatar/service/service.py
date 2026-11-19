@@ -37,8 +37,10 @@ PORT = int(os.environ.get('PORT', 8080))
 API = os.environ.get('FTCSCOUT_API', 'https://ftcscout-api.mmathijs.nl/rest/embeds/v1').rstrip('/')
 JOBS = threading.BoundedSemaphore(int(os.environ.get('MAX_JOBS', 2)))
 RATE, WINDOW = int(os.environ.get('RATE', 10)), 600
+CHECK_RATE, CHECK_BYTES = int(os.environ.get('CHECK_RATE', 120)), 1024 * 1024   # /check: cheap, for a team's whole set of files
 IP_HEADER = os.environ.get('CLIENT_IP_HEADER', 'X-Client-IP')
-_hits, _lock = collections.defaultdict(collections.deque), threading.Lock()
+UA = {'User-Agent': 'ftc-embeds-avatars/1 (+https://ftc-embeds.com/avatars)'}   # Cloudflare in front of the API refuses Python's default one (403)
+_hits, _checks, _lock = collections.defaultdict(collections.deque), collections.defaultdict(collections.deque), threading.Lock()
 # background colours to try, in this order when scores tie (the 2026 picks first)
 TRY_BGS = [('teal', (0, 98, 110)), ('navy', (22, 38, 74)), ('black', (18, 18, 22)), ('white', (255, 255, 255)), ('cream', (245, 236, 214))]
 UPLOAD_STEPS = """How to upload your avatar
@@ -50,7 +52,7 @@ UPLOAD_STEPS = """How to upload your avatar
 5. One submission at a time, and FIRST may not review more than three a season.
 6. Only use artwork your team owns.
 
-More: https://community.firstinspires.org/team-avatars
+More: https://www.firstinspires.org/community-blog/team-avatars
 """
 
 
@@ -69,14 +71,21 @@ def team_info(n):
     hit = _teams.get(n)
     if hit and time.time() - hit[0] < 600: return hit[1], hit[2]
     try:
-        # Our own User-Agent: Cloudflare in front of the API refuses Python's default one (403).
-        req = urllib.request.Request(f'{API}/teams/{n}/card', headers={'User-Agent': 'ftc-embeds-avatars/1 (+https://ftc-embeds.com/avatars)'})
-        with urllib.request.urlopen(req, timeout=4) as r:
+        with urllib.request.urlopen(urllib.request.Request(f'{API}/teams/{n}/card', headers=UA), timeout=4) as r:
             t = (json.load(r).get('data') or {}).get('teamByNumber') or {}
     except Exception:
         return None, None
     av = t.get('avatar')
     if av and not av.startswith(('data:', 'http')): av = 'data:image/png;base64,' + av
+    # The API gives the avatar as an address of its own: fetch it, so the answer has the image itself (and its
+    # hashes), like the options. Only from the API's own host; on any trouble the address stays.
+    if av and av.startswith('https://') and urlparse(av).netloc == urlparse(API).netloc:
+        try:
+            with urllib.request.urlopen(urllib.request.Request(av, headers=UA), timeout=4) as r:
+                kind, raw = r.headers.get_content_type(), r.read(200_001)
+            if kind.startswith('image/') and 0 < len(raw) <= 200_000: av = f'data:{kind};base64,' + base64.b64encode(raw).decode()
+        except Exception:
+            pass
     if len(_teams) > 1000: _teams.clear()
     _teams[n] = (time.time(), t.get('name'), av)
     return t.get('name'), av
@@ -303,7 +312,8 @@ def make_answer(number, raw):
             op_png, tr_png = png(o['_op'], 'RGB'), png(o['_tr'], 'RGBA')
             o.update(opaque='data:image/png;base64,' + base64.b64encode(op_png).decode(),
                      transparent='data:image/png;base64,' + base64.b64encode(tr_png).decode(),
-                     bytes=[len(op_png), len(tr_png)], sha256=[hashlib.sha256(op_png).hexdigest(), hashlib.sha256(tr_png).hexdigest()], warnings=checks(o['_op'], o['_tr'], op_png, tr_png, o['_content']),
+                     bytes=[len(op_png), len(tr_png)], sha256=[hashlib.sha256(op_png).hexdigest(), hashlib.sha256(tr_png).hexdigest()],
+                     pixelSha256=[pixel_sha(op_png), pixel_sha(tr_png)], warnings=checks(o['_op'], o['_tr'], op_png, tr_png, o['_content']),
                      files=[f"{base}-{o['id']}-avatar-40.png", f"{base}-{o['id']}-avatar-40-transparent.png"])
             for fn, data in zip(o['files'], (op_png, tr_png)):
                 zf.writestr(fn, data); open(os.path.join(tmp, fn), 'wb').write(data)
@@ -313,14 +323,67 @@ def make_answer(number, raw):
         zf.write(sheet, f'{base}-options.png'); zf.writestr('HOW-TO-UPLOAD.txt', UPLOAD_STEPS)
     for o in opts:
         for k in ('_op', '_tr', '_content'): o.pop(k)
-    return {'team': number, 'name': name, 'current': current, 'currentSha256': sha_of_uri(current), 'base': base, 'flat': flat, 'kind': r['kind'], 'info': r['info'],
+    cur = uri_bytes(current)
+    return {'team': number, 'name': name, 'current': current, 'currentSha256': hashlib.sha256(cur).hexdigest() if cur else None,
+            'currentPixelSha256': pixel_sha(cur) if cur else None, 'base': base, 'flat': flat, 'kind': r['kind'], 'info': r['info'],
             'options': opts, 'zip': 'data:application/zip;base64,' + base64.b64encode(zbuf.getvalue()).decode()}
 
-def sha_of_uri(uri):
-    """The SHA-256 of a data URI's bytes (the current avatar), to compare files without the image."""
+def uri_bytes(uri):
+    """The bytes of a data URI (the current avatar), or None."""
     if not uri or not uri.startswith('data:') or ',' not in uri: return None
-    try: return hashlib.sha256(base64.b64decode(uri.split(',', 1)[1])).hexdigest()
+    try: return base64.b64decode(uri.split(',', 1)[1])
     except Exception: return None
+
+def pixel_sha(data):
+    """The SHA-256 of an image's pixels: decoded to 8-bit RGBA, row by row from the top left, with fully
+    transparent pixels as 0, 0, 0, 0. The same picture saved again by another program (other chunks,
+    compression or colour type, as FIRST seems to do) keeps this hash; the file's sha256 changes."""
+    try:
+        im = Image.open(io.BytesIO(data))
+        if im.width * im.height > MAX_PIXELS: return None
+        a = np.asarray(im.convert('RGBA')).copy()
+    except Exception:
+        return None
+    a[a[..., 3] == 0] = 0
+    return hashlib.sha256(a.tobytes()).hexdigest()
+
+def check_png(raw):
+    """FIRST's rules and the editor's notes for a finished avatar (any image, meant to be a 40 x 40 PNG),
+    with its hashes: POST /api/avatar/check."""
+    try:
+        im = Image.open(io.BytesIO(raw)); fmt, animated = im.format, getattr(im, 'is_animated', False)
+        if im.width * im.height > MAX_PIXELS: raise UserError(413, 'This image is too large.')
+        im.seek(0); a = np.asarray(im.convert('RGBA')).astype(int)
+    except UserError: raise
+    except Exception: raise UserError(415, "This file couldn't be read as an image.")
+    h, w = a.shape[:2]; al = a[..., 3]; notes = []
+    rules = {'png': fmt == 'PNG' and not animated, 'size40': (w, h) == (40, 40), 'under20kB': len(raw) <= 20000}
+    if fmt != 'PNG': notes.append(f'It is a {fmt or "unknown"} file; FIRST takes a PNG.')
+    elif animated: notes.append('It is an animated PNG; FIRST takes a still one.')
+    if not rules['size40']: notes.append(f'It is {w} x {h} px; FIRST takes 40 x 40.')
+    if not rules['under20kB']: notes.append(f'It is {len(raw)} bytes; FIRST allows 20 kB.')
+    lime, mag = c.chroma_pixels(a[al > 0][None]) if (al > 0).any() else (0, 0)
+    rules['noLimeOrMagenta'] = not (lime or mag)
+    if lime or mag: notes.append(f'{lime + mag} pixels are close to lime or magenta, which video overlays can key out.')
+    hidden = (al == 0) & (a[..., :3].sum(-1) > 0)
+    if hidden.any():
+        hl, hm = c.chroma_pixels(a[hidden][None])
+        n = int(hidden.sum())
+        notes.append(f'{n} fully transparent pixel{"s still have" if n > 1 else " still has"} a colour' + (f' ({hl + hm} lime or magenta)' if hl or hm else '') + '.')
+    P = np.pad(al, 1)
+    inside = (P[1:-1, :-2] >= 128) & (P[1:-1, 2:] >= 128) & (P[:-2, 1:-1] >= 128) & (P[2:, 1:-1] >= 128)
+    half = int(((al > 0) & (al < 255) & inside).sum())
+    if half: notes.append(f'{half} half-transparent pixels inside the avatar, which can look muddy.')
+    solid = al > 127
+    if not solid.any(): notes.append('The avatar is empty.')
+    else:
+        ys, xs = np.nonzero(solid); bw, bh = xs.max() - xs.min() + 1, ys.max() - ys.min() + 1
+        margins = [int(xs.min()), int(ys.min()), w - 1 - int(xs.max()), h - 1 - int(ys.max())]
+        if (w, h) == (40, 40) and max(bw, bh) < 34: notes.append(f'The logo only uses {bw} x {bh} px of 40 x 40.')
+        elif (w, h) == (40, 40) and max(margins) >= 5: notes.append(f"There's an empty band of {max(margins)} px on the {['left', 'top', 'right', 'bottom'][int(np.argmax(margins))]}.")
+    return {'format': fmt, 'width': w, 'height': h, 'bytes': len(raw), 'transparent': bool((al < 255).any()),
+            'firstRules': rules, 'followsFirstRules': all(rules.values()), 'notes': notes,
+            'sha256': hashlib.sha256(raw).hexdigest(), 'pixelSha256': pixel_sha(raw)}
 
 def without_images(answer):
     """?images=none: the answer without its PNGs and zip (a few kB instead of hundreds), for scripts and
@@ -355,8 +418,17 @@ class Handler(BaseHTTPRequestHandler):
             if os.path.isfile(f): return self.send(200, open(f, 'rb').read(), 'text/javascript; charset=utf-8')
         self.send(404, {'error': 'Not found'})
 
+    def limit(self, hits, rate):
+        now = time.time()
+        with _lock:
+            q = hits[self.client()]
+            while q and q[0] < now - WINDOW: q.popleft()
+            if len(q) >= rate: raise UserError(429, 'Too many uploads. Try again in a few minutes.')
+            q.append(now)
+
     def do_POST(self):
         u = urlparse(self.path)
+        if u.path == '/api/avatar/check': return self.check()
         if u.path != '/api/avatar/options': return self.send(404, {'error': 'Not found'})
         try:
             qs = {k: v[0] for k, v in parse_qs(u.query).items()}
@@ -368,15 +440,11 @@ class Handler(BaseHTTPRequestHandler):
             fmt, images = qs.get('format', 'json'), qs.get('images', 'all')
             if fmt not in ('json', 'zip'): raise UserError(400, 'format is json (the default) or zip.')
             if images not in ('all', 'none'): raise UserError(400, 'images is all (the default) or none.')
+            if fmt == 'zip' and qs.get('layers') == 'only': raise UserError(400, 'format=zip is for the options; layers=only answers JSON.')
             size = int(self.headers.get('Content-Length') or 0)
             if size <= 0: raise UserError(400, 'Choose your logo file first.')
             if size > MAX_BYTES: raise UserError(413, 'The file is larger than 10 MB.')
-            now = time.time()
-            with _lock:
-                q = _hits[self.client()]
-                while q and q[0] < now - WINDOW: q.popleft()
-                if len(q) >= RATE: raise UserError(429, 'Too many uploads. Try again in a few minutes.')
-                q.append(now)
+            self.limit(_hits, RATE)
             self.connection.settimeout(20); raw = self.rfile.read(size)
             if not JOBS.acquire(timeout=20): raise UserError(503, 'The server is busy. Try again in a minute.')
             try:
@@ -396,6 +464,21 @@ class Handler(BaseHTTPRequestHandler):
             self.send(e.status, {'error': str(e)})
         except Exception as e:                               # never leak details to the visitor
             sys.stderr.write(f'error: {e!r}\n'); self.send(500, {'error': 'Something went wrong making the options.'})
+
+
+    def check(self):
+        """POST /api/avatar/check with a finished avatar as the body: FIRST's rules, the notes and the hashes."""
+        try:
+            size = int(self.headers.get('Content-Length') or 0)
+            if size <= 0: raise UserError(400, 'Send the PNG as the body.')
+            if size > CHECK_BYTES: raise UserError(413, 'The file is larger than 1 MB; an avatar is at most 20 kB.')
+            self.limit(_checks, CHECK_RATE)
+            self.connection.settimeout(20); raw = self.rfile.read(size)
+            self.send(200, check_png(raw))
+        except UserError as e:
+            self.send(e.status, {'error': str(e)})
+        except Exception as e:
+            sys.stderr.write(f'error: {e!r}\n'); self.send(500, {'error': 'Something went wrong checking the file.'})
 
 
 if __name__ == '__main__':

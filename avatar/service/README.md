@@ -55,6 +55,20 @@ layers at the working size (at most 768 px), as PNG data URIs: `{"w", "h", "kind
 {"logo", "cut", "all"?, "main", "notext"?}}`, about 1.5 MB. The page asks for it the first time
 someone opens the editor, and it counts towards `RATE` like an upload.
 
+For scripts and agents: `format=zip` answers the zip itself (`application/zip`, as a download) and
+`images=none` the JSON without `current`, the options' PNGs and the zip (a few kB; `hasCurrent` says
+whether the team has an avatar). Every PNG comes with `sha256` (of the file) and `pixelSha256` (of the
+pixels, decoded to 8-bit RGBA with fully transparent pixels as 0, so a re-saved file keeps it), and the
+current avatar with `currentSha256` and `currentPixelSha256`. FTCScout gives the current avatar as an
+address on its API's host; the service fetches it (with its own User-Agent: Cloudflare refuses
+Python's) so the answer has the image.
+
+`POST /api/avatar/check` with a finished avatar as the body (at most 1 MiB, `CHECK_RATE` checks per
+visitor in 10 minutes, default 120) answers `{format, width, height, bytes, transparent, firstRules:
+{png, size40, under20kB, noLimeOrMagenta}, followsFirstRules, notes, sha256, pixelSha256}`; the notes
+are the editor's (hidden colours under transparent pixels, half-transparent pixels, empty bands, …).
+See docs/avatar-maker.md for the public description.
+
 `GET /api/avatar/health` answers `{"ok": true}`.
 
 ## Background and gaps (`subject.py`)

@@ -42,6 +42,19 @@ def post_raw(query, body):
     except urllib.error.HTTPError as e:
         return e.code, e.headers.get('Content-Type'), '', e.read()
 
+def post_to(path, body, ip=None):
+    """POST to another path of the service; returns (status, parsed JSON)."""
+    visitor[0] += 1
+    req = urllib.request.Request(f'{base}{path}', data=body, method='POST', headers={'Content-Type': 'image/png', 'X-Client-IP': ip or f'10.0.2.{visitor[0] % 250}'})
+    try:
+        with urllib.request.urlopen(req, timeout=60) as r: return r.status, json.load(r)
+    except urllib.error.HTTPError as e:
+        return e.code, json.loads(e.read() or b'{}')
+
+def pixel_sha(data):
+    a = np.asarray(Image.open(io.BytesIO(data)).convert('RGBA')).copy(); a[a[..., 3] == 0] = 0
+    return hashlib.sha256(a.tobytes()).hexdigest()
+
 def check(cond, what):
     print(('ok   ' if cond else 'FAIL ') + what)
     if not cond: failures.append(what)
@@ -68,6 +81,7 @@ for name in logos:
             if im.format != 'PNG' or im.size != (40, 40) or getattr(im, 'is_animated', False): problems.append(f"{o['id']} {kind}: {im.format} {im.size}")
             if len(data) > 20000: problems.append(f"{o['id']} {kind}: {len(data)} bytes")
         if o['sha256'] != [hashlib.sha256(op).hexdigest(), hashlib.sha256(tr).hexdigest()]: problems.append(f"{o['id']}: sha256 doesn't match the PNGs")
+        if o['pixelSha256'] != [pixel_sha(op), pixel_sha(tr)]: problems.append(f"{o['id']}: pixelSha256 doesn't match the pixels")
         if Image.open(io.BytesIO(op)).mode not in ('RGB', 'P', 'L'): problems.append(f"{o['id']} opaque has alpha")
         al = np.asarray(Image.open(io.BytesIO(tr)).convert('RGBA'))[..., 3].astype(int); P = np.pad(al, 1)
         inside = (P[1:-1, :-2] >= 128) & (P[1:-1, 2:] >= 128) & (P[:-2, 1:-1] >= 128) & (P[2:, 1:-1] >= 128)
@@ -78,6 +92,8 @@ for name in logos:
     names = zipfile.ZipFile(io.BytesIO(decode(d['zip']))).namelist()
     listed = {f for o in d['options'] for f in o['files']}
     if not listed <= set(names) or 'HOW-TO-UPLOAD.txt' not in names: problems.append(f'zip: {names}')
+    if d['current'] and not (d['current'].startswith('data:image/') and d['currentSha256'] == hashlib.sha256(decode(d['current'])).hexdigest() and d['currentPixelSha256'] == pixel_sha(decode(d['current']))):
+        problems.append('the current avatar: not an image with its hashes')
     check(not problems and d['options'], f"{name}: {len(d['options'])} options ({', '.join(o['id'] for o in d['options'])}) in {dt:.2f} s {problems}")
 if times:
     check(max(times) < 10, f'slowest logo {max(times):.2f} s, median {sorted(times)[len(times) // 2]:.2f} s')
@@ -96,6 +112,24 @@ check(status == 200 and 'zip' not in d and 'current' not in d and d['hasCurrent'
       and all('opaque' not in o and 'transparent' not in o and len(o['sha256']) == 2 and o['files'] for o in d['options']) and len(json.dumps(d)) < 20000,
       f"images=none: no images, sha256 and file names kept ({len(json.dumps(d))} bytes)")
 check(post('?format=xml', small)[0] == 400 and post('?images=some', small)[0] == 400, 'unknown format or images: 400')
+check(post('?format=zip&layers=only', small)[0] == 400, 'format=zip with layers=only: 400')
+# --- /check: a finished avatar's rules, notes and hashes ------------------------------------------
+status, d = post('', png_bytes(dot))
+good = decode(d['options'][0]['transparent'])
+status, k = post_to('/api/avatar/check', good)
+check(status == 200 and k['followsFirstRules'] and k['width'] == 40 and k['sha256'] == hashlib.sha256(good).hexdigest() and k['pixelSha256'] == d['options'][0]['pixelSha256'][1],
+      f"check: an option follows the rules, same hashes as the options answer {k.get('notes')}")
+again = io.BytesIO(); im = Image.open(io.BytesIO(good)); info = __import__('PIL.PngImagePlugin', fromlist=['PngInfo']).PngInfo(); info.add_text('Software', 'another editor')
+im.convert('RGBA').save(again, 'PNG', pnginfo=info, compress_level=1); again = again.getvalue()
+status, k2 = post_to('/api/avatar/check', again)
+check(k2['sha256'] != k['sha256'] and k2['pixelSha256'] == k['pixelSha256'], 'check: saved again by another program, a new sha256 and the same pixelSha256')
+wide = Image.new('RGBA', (41, 40), (0, 98, 110, 255)); ImageDraw.Draw(wide).rectangle([5, 5, 35, 35], fill=(0, 255, 0, 255))
+status, k3 = post_to('/api/avatar/check', png_bytes(wide))
+check(status == 200 and not k3['firstRules']['size40'] and not k3['firstRules']['noLimeOrMagenta'] and not k3['followsFirstRules'], f"check: 41 x 40 with lime: {k3['notes']}")
+hid = Image.new('RGBA', (40, 40), (0, 0, 0, 0)); ImageDraw.Draw(hid).rectangle([0, 0, 39, 39], fill=(22, 38, 74, 255)); hid.putpixel((0, 0), (0, 255, 0, 0))
+status, k4 = post_to('/api/avatar/check', png_bytes(hid))
+check(any('1 fully transparent pixel still has a colour (1 lime or magenta)' in n for n in k4['notes']) and k4['firstRules']['noLimeOrMagenta'], f"check: a hidden lime pixel is noted {k4['notes']}")
+check(post_to('/api/avatar/check', b'not an image')[0] == 415 and post_to('/api/avatar/check', b'')[0] == 400, 'check: not an image 415, empty 400')
 check(post('?team=abc', small)[0] == 400, 'team number that is not a number: 400')
 check(post('?team=1', b'')[0] == 400, 'empty body: 400')
 def announce_big():
