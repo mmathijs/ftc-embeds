@@ -69,7 +69,9 @@ def team_info(n):
     hit = _teams.get(n)
     if hit and time.time() - hit[0] < 600: return hit[1], hit[2]
     try:
-        with urllib.request.urlopen(f'{API}/teams/{n}/card', timeout=4) as r:
+        # Our own User-Agent: Cloudflare in front of the API refuses Python's default one (403).
+        req = urllib.request.Request(f'{API}/teams/{n}/card', headers={'User-Agent': 'ftc-embeds-avatars/1 (+https://ftc-embeds.com/avatars)'})
+        with urllib.request.urlopen(req, timeout=4) as r:
             t = (json.load(r).get('data') or {}).get('teamByNumber') or {}
     except Exception:
         return None, None
