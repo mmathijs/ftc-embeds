@@ -75,7 +75,8 @@ const clean = (s) => String(s ?? "").replace(/[\t\r\n]+/g, " ").trim();
 const esc = (s) => clean(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/\{/g, "&#123;").replace(/\}/g, "&#125;");
 const list = (items) => (items.length < 2 ? items.join("") : `${items.slice(0, -1).join(", ")} and ${items.at(-1)}`);
 
-/** [name, where, facts, description] for one team: plain text, escaped when written. */
+/** [name, where, facts, description, city, state, country, rookie year] for one team: plain text, escaped when
+ *  written. The last four are for the page's schema.org data. */
 function describe(t, current) {
     let name = clean(t.team.name) || `Team ${t.n}`;
     let loc = t.team.location || {};
@@ -98,7 +99,7 @@ function describe(t, current) {
     }
     let desc = `FTC team ${t.n} ${name}${where ? ` from ${where}` : ""}: results, awards, rankings and next match as free widgets for your team's website.`;
     let whereLine = [where, t.team.rookieYear ? `rookie year ${t.team.rookieYear}` : ""].filter(Boolean).join(" · ");
-    return [name, whereLine, facts.join(" "), desc];
+    return [name, whereLine, facts.join(" "), desc, clean(loc.city), clean(loc.state), clean(loc.country), t.team.rookieYear ? String(t.team.rookieYear) : ""];
 }
 
 const lastCommit = (file) => {

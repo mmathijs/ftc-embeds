@@ -1,4 +1,6 @@
+# A guide to this site for AI agents and language models: https://ftc-embeds.com/llms.txt
 User-agent: *
 Allow: /
+Disallow: /api/
 
 Sitemap: https://ftc-embeds.com/sitemap.xml

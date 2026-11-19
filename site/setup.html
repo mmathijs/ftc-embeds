@@ -16,6 +16,30 @@
 <meta property="og:site_name" content="ftc-embeds">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%231c1b19'/%3E%3Crect x='3' y='3' width='4' height='4' fill='%23ff5a1f'/%3E%3Crect x='9' y='3' width='4' height='4' fill='%23f4f1ea'/%3E%3Crect x='3' y='9' width='4' height='4' fill='%23f4f1ea'/%3E%3Crect x='9' y='9' width='4' height='4' fill='%23f4f1ea'/%3E%3C/svg%3E">
+<link rel="help" type="text/plain" href="/llms.txt" title="Guide for AI agents">
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "WebApplication",
+ "name": "Set up an FTC widget",
+ "url": "https://ftc-embeds.com/setup",
+ "description": "Step by step: pick your FTC team or event, the widget, its look and your website builder (Wix, Google Sites, Squarespace, WordPress, HTML, React, Vue, Svelte), see it live, then copy the code with the steps for that builder.",
+ "applicationCategory": "DeveloperApplication",
+ "operatingSystem": "Any (in the browser)",
+ "isAccessibleForFree": true,
+ "offers": {
+  "@type": "Offer",
+  "price": "0",
+  "priceCurrency": "USD"
+ },
+ "isPartOf": {
+  "@type": "WebSite",
+  "@id": "https://ftc-embeds.com/#site",
+  "name": "ftc-embeds",
+  "url": "https://ftc-embeds.com/"
+ }
+}
+</script>
 <link rel="stylesheet" href="fonts/fonts.css">
 <style>
     :root {
@@ -237,7 +261,17 @@
 </div>
 
 <div class="stage" id="stage">
-    <section class="ask" id="ask"></section>
+    <section class="ask" id="ask">
+        <h1>Put FTC data on your website</h1>
+        <p class="sub">A few questions, a live preview, then the code to paste with the steps for your website builder: Wix, Google Sites, Squarespace, WordPress, your own HTML, or React, Vue and Svelte. No account, free, and the widgets update by themselves.</p>
+        <ol>
+            <li>Your team's number, or your event's code.</li>
+            <li>The widget: a team card, season results, awards, the next match, a countdown, or an event's rankings, match schedule, playoffs, awards, teams, advancement or league standings.</li>
+            <li>Its look: your colors, corners, language and what it shows.</li>
+            <li>Where your website is built, for the right code and the steps to paste it.</li>
+        </ol>
+        <p>This page needs JavaScript. Without it: every widget's code and options are in <a href="/docs/README.md">the docs</a>, and <a href="/llms.txt">/llms.txt</a> sums them up.</p>
+    </section>
     <aside class="side" id="side">
         <div class="side-inner">
             <div class="label"><span id="preview-label">Live preview</span><span id="preview-note"></span></div>

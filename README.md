@@ -29,6 +29,10 @@ Badges for READMEs, Discord and email: `![FTC 19444](https://ftc-embeds.com/badg
 
 For the TV in your pit: [ftc-embeds.com/display?team=19444](https://ftc-embeds.com/display) shows the team's next match, its matches and the event's live rankings full screen. It finds the current event by itself and keeps the screen awake; text size, spacing, which sections show, the layout and colors can be set ([docs/pit-display.md](docs/pit-display.md)).
 
+For a team's FIRST avatar: [ftc-embeds.com/avatars](https://ftc-embeds.com/avatars) turns a logo into 40 × 40 avatars that follow FIRST's rules, with an editor to finish them ([docs/avatar-maker.md](docs/avatar-maker.md); project files: [docs/avatar-format.md](docs/avatar-format.md)).
+
+For AI agents: [ftc-embeds.com/llms.txt](https://ftc-embeds.com/llms.txt) describes the site, its URL parameters and APIs (every doc is on the site as Markdown, `/docs/<name>.md`, and all of them in [/llms-full.txt](https://ftc-embeds.com/llms-full.txt)), and the avatar maker offers its steps and editor as tools (WebMCP, or `window.ftcEmbedsAgent`).
+
 Widgets load their own data from FTCScout's [ftc-embeds API](docs/api.md) by default: REST endpoints that are cached presets of GraphQL queries (`configure({ apiBase })`), or the same queries sent to a GraphQL endpoint (`configure({ graphqlUrl })`).
 
 The quickest way: pick a widget and copy its code at [ftc-embeds.com](https://ftc-embeds.com) (guided at [/setup](https://ftc-embeds.com/setup), every widget and option at [/team](https://ftc-embeds.com/team), pit maps at [/pit-map](https://ftc-embeds.com/pit-map)). By hand:
@@ -44,7 +48,7 @@ import { PitMap } from "ftc-embeds/pit-map";
 new PitMap(document.getElementById("map"), { event: "2025/FPEEUR", theme: "ftcscout", highlight: "19444" });
 ```
 
-Without a bundler: `<script src="https://ftc-embeds.com/lib/<widget>.umd.js"></script>` (globals `FtcPitMap`, `FtcTeamCard`, `FtcTeamResults`, `FtcTeamAwards`, `FtcNextMatch`, `FtcTeamSeason`, `FtcEventRankings`, `FtcEventMatches`, `FtcEventAdvancement`, `FtcLeagueStandings`, `FtcCountdown`), or `dist/<widget>.umd.js` from a build.
+Without a bundler: `<script src="https://ftc-embeds.com/lib/<widget>.umd.js"></script>` (globals `FtcPitMap`, `FtcTeamCard`, `FtcTeamResults`, `FtcTeamAwards`, `FtcNextMatch`, `FtcTeamSeason`, `FtcEventRankings`, `FtcEventMatches`, `FtcEventAdvancement`, `FtcLeagueStandings`, `FtcEventPlayoffs`, `FtcEventAwards`, `FtcEventTeams`, `FtcCountdown`), or `dist/<widget>.umd.js` from a build.
 
 ## Install
 
@@ -75,6 +79,8 @@ Open `dist/pit-map-demo.html` (self-contained) or `demo/pit-map/index.html` afte
 ## Website
 
 [ftc-embeds.com](https://ftc-embeds.com) hosts the homepage (`site/index.html`), the guided setup (`site/setup.html`: one question per page, then the code with steps for the visitor's website builder), the configuration dashboards (`site/pit-map.html`, `site/team.html`), the iframe embed pages (`site/embed/`), the libraries (`/lib/<widget>.mjs` and `.umd.js`) and example data. `npm run build` builds it into `dist/site`; `scripts/deploy.sh [ssh host]` (default `ftc-embeds-server`) uploads it to `/opt/ftc-embeds` on the server, where the `ftc-embeds-web` container (`deploy/docker-compose.yml`, `deploy/Caddyfile`) serves it. The server's edge Caddy terminates TLS and forwards ftc-embeds.com to that container (`deploy/edge.Caddyfile`, added to it once by hand). `site/config.js` sets the embeds API (`apiBase`) and the team the homepage shows (`demoTeam`, `demoSeason`).
+
+For AI agents and AI search: `site/llms.txt` is the site's guide, the build copies `docs/` to `/docs/` as Markdown (the README as `/docs/README.md`) and writes `/llms-full.txt` (the guide and every doc), the pages carry schema.org data (JSON-LD, and microdata on the team pages), and `site/agent-tools.js` offers a page's tools to agents (WebMCP where the browser has it, `window.ftcEmbedsAgent` always; the avatar maker's are in `site/avatars.html` and `site/avatar-editor.js`).
 
 The site counts how often the embeds are loaded per website, using the Referer header browsers send; it stores no IP addresses and sets no cookies. The numbers are public at [ftc-embeds.com/stats](https://ftc-embeds.com/stats). Caddy writes the log (`deploy/stats/stats.caddy`), `embed-stats.py` turns it into the `stats.json` behind the page every 10 minutes, and `scripts/stats.sh install` sets all of that up on the server. Sites that install the npm package never load anything from ftc-embeds.com, so the API server counts the embeds API calls per website as well: `api-usage.py` reads its nginx log into `embeds-usage.json` every 10 minutes (`scripts/stats.sh install-api`), and `embed-stats.py` merges that in. `scripts/stats.sh [--days N]` prints the numbers in your terminal.
 

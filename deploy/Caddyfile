@@ -45,6 +45,19 @@
 		Cache-Control "public, max-age=3600"
 	}
 	header /embed/* Cache-Control "public, max-age=300"
+	# The guide for AI agents (llms.txt, llms-full.txt) and the docs as Markdown (/docs/*.md, written by the
+	# build), readable from anywhere. Their types are set here: Caddy doesn't know .md or .ftcavatar.
+	@guide path /llms.txt /llms-full.txt
+	header @guide Content-Type "text/plain; charset=utf-8"
+	@markdown path /docs/*.md
+	header @markdown Content-Type "text/markdown; charset=utf-8"
+	@project path *.ftcavatar
+	header @project Content-Type "application/json; charset=utf-8"
+	@docs path /llms.txt /llms-full.txt /docs/*
+	header @docs {
+		Access-Control-Allow-Origin "*"
+		Cache-Control "public, max-age=3600"
+	}
 	# The site's own fonts (fonts/fonts.css itself gets a ?v= content hash from the build).
 	header /fonts/* Cache-Control "public, max-age=604800"
 	header {

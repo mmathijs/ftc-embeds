@@ -1,0 +1,70 @@
+# ftc-embeds
+
+> Free widgets that put FIRST Tech Challenge (FTC) data on any website: team cards, season results, awards, next match, countdowns, and event rankings, match schedules, playoff brackets, awards, team lists, advancement and league standings, plus interactive pit maps. They update by themselves, match the site's look and work in any website builder (Wix, Google Sites, Squarespace, WordPress, plain HTML, React, Vue, Svelte). ftc-embeds.com also has a full-screen pit display, team badges and an avatar maker for FIRST's 40 × 40 team avatars. Data from FTCScout. Open source (MIT), no account, no cookies. Not affiliated with FIRST.
+
+Every page below works without an account. Pages that take settings take them as URL parameters, so a link can open them ready to use. All docs are Markdown on this site (`/docs/<name>.md`); [/llms-full.txt](https://ftc-embeds.com/llms-full.txt) is all of them in one file.
+
+## Pages
+
+- [Home](https://ftc-embeds.com/): every widget, live, with its layouts and themes
+- [Setup](https://ftc-embeds.com/setup): step by step: the team or event, the widget, the look, the website builder; then the code to paste, with instructions for that builder
+- [Every widget and option](https://ftc-embeds.com/team): one page with all options, live preview and the code
+- [Team pages](https://ftc-embeds.com/teams/19444): `/teams/<number>` for every FTC team: its facts, its widgets with its own data, and its badges; [/teams](https://ftc-embeds.com/teams) finds a team
+- [Pit map](https://ftc-embeds.com/pit-map): an event's pit map for its website: search a team, walking routes to pits, fields and queueing
+- [Pit display](https://ftc-embeds.com/display?team=19444): `/display?team=<number>` full screen on the TV in a team's pit: next match with both alliances, rank, record, matches and the event's live rankings. Parameters: `event`, `season`, `theme` (dark, light, auto), `lang`, `size`, `spacing`, `hide`, `side`, `split`, `columns`, `highlight`, `accent`, `frame`, `hour-cycle`, `time-zone`. [Docs](https://ftc-embeds.com/docs/pit-display.md)
+- [Avatar maker](https://ftc-embeds.com/avatars): a team's logo in, FIRST avatars out (40 × 40 PNG, at most 20 kB, opaque and transparent), checked against FIRST's rules, with an editor. Links: `/avatars?team=<number>`, `?logo=<image address>`, `?open=<.ftcavatar address>`. [Docs](https://ftc-embeds.com/docs/avatar-maker.md)
+- [Stats](https://ftc-embeds.com/stats): how often the widgets load, per website (no IP addresses, no cookies)
+
+## Putting a widget on a website
+
+```html
+<script type="module" src="https://ftc-embeds.com/lib/team-card.mjs"></script>
+<ftc-team-card team="19444" stats="opr,record,awards-total"></ftc-team-card>
+```
+
+- Every widget is `<ftc-<widget>>` from `https://ftc-embeds.com/lib/<widget>.mjs` (or `<widget>.umd.js` for a plain script tag). Options are attributes: `theme` (auto, light, dark, ftcscout, ftc-events, trophy, …), `shape` (square, compact, bubbly, …), `lang` (nl, de, fr, es), `layout`, `hide`, `limit`, …
+- Where only iframes are allowed (Wix, Google Sites, Squarespace): `<iframe src="https://ftc-embeds.com/embed/<widget>?team=19444&theme=dark">`; every option is a URL parameter, and the page posts its height to the parent.
+- WordPress: paste `https://ftc-embeds.com/embed/<widget>?team=19444` or `https://ftc-embeds.com/teams/19444` on its own line; oEmbed turns it into the widget.
+- npm: `npm install ftc-embeds`, then `import { TeamCard } from "ftc-embeds/team-card"`.
+- Team widgets take `team` (and `season`); event widgets take `event` (the FTC event code, like `NLCMP`) and `season` (the year the season starts: 2025 is 2025–26).
+
+## Widgets
+
+- [Team card](https://ftc-embeds.com/docs/team-card.md) `<ftc-team-card>`: number, name, place, rookie year, the stats you pick, next events
+- [Season results](https://ftc-embeds.com/docs/team-results.md) `<ftc-team-results>`: every event of a season: rank, record, awards
+- [Awards](https://ftc-embeds.com/docs/team-awards.md) `<ftc-team-awards>`: every award a team has won, as a list, cards or FTC banners
+- [Next match](https://ftc-embeds.com/docs/next-match.md) `<ftc-next-match>`: during an event, the team's next match, live
+- [Season + next match](https://ftc-embeds.com/docs/team-season.md) `<ftc-team-season>`: both in one
+- [Countdown](https://ftc-embeds.com/docs/countdown.md) `<ftc-countdown>`: to an event, or to a team's next match
+- [Event rankings](https://ftc-embeds.com/docs/event-rankings.md) `<ftc-event-rankings>`: live rankings, with divisions
+- [Match schedule](https://ftc-embeds.com/docs/event-matches.md) `<ftc-event-matches>`: every match with its time, alliances and score
+- [Playoffs](https://ftc-embeds.com/docs/event-playoffs.md) `<ftc-event-playoffs>`: the alliances and the bracket (double elimination or best-of-3), live
+- [Event awards](https://ftc-embeds.com/docs/event-awards.md) `<ftc-event-awards>`: who won which award, in ceremony order
+- [Event teams](https://ftc-embeds.com/docs/event-teams.md) `<ftc-event-teams>`: the teams at an event, also before it starts
+- [Advancement](https://ftc-embeds.com/docs/event-advancement.md) `<ftc-event-advancement>`: the slots and each team's advancement points
+- [League standings](https://ftc-embeds.com/docs/league-standings.md) `<ftc-league-standings>`: a league's standings from any of its meets
+- [Pit map](https://ftc-embeds.com/docs/pit-map.md) `<ftc-pit-map>`: an event's pit map as interactive SVG
+- [Options every team widget shares](https://ftc-embeds.com/docs/team-widgets.md): themes, texts, languages, icons, styling, badges, bad connections
+- [Options every event widget shares](https://ftc-embeds.com/docs/event-widgets.md)
+
+## Badges and link previews
+
+- `https://ftc-embeds.com/badge/<team>.svg` (or `.png` for Discord and email): "FTC 19444" with the team's name, or `stat=opr`, `rank`, `epa`, `record`, `awards`; `label=`, `color=0066b3`, `scale=2` (PNG). Markdown: `[![FTC 19444](https://ftc-embeds.com/badge/19444.svg?stat=opr)](https://ftc-embeds.com/teams/19444)`
+- Team pages have a link preview of their own (name, place, OPR, record, awards).
+
+## APIs
+
+- [Data API](https://ftc-embeds.com/docs/api.md): `https://ftcscout-api.mmathijs.nl/rest/embeds/v1`, GET only, no key, CORS open. Teams: `/teams/<number>/card`, `/results?season=`, `/awards`, `/matches?season=`, `/badge.svg`, `/og.png`. Events: `/events/<season>/<code>/info`, `/rankings`, `/matches`, `/playoffs`, `/awards`, `/teams`, `/advancement`, `/league`, `/pit-map`. Answers are FTCScout GraphQL results, cached.
+- [Avatar API](https://ftc-embeds.com/docs/avatar-maker.md#api): `POST https://ftc-embeds.com/api/avatar/options?team=<number>` with the logo as the body: the options as JSON; `images=none` without the images, `format=zip` as a zip. 10 uploads per 10 minutes.
+- [oEmbed](https://ftc-embeds.com/oembed?url=https://ftc-embeds.com/teams/19444&format=json): `/oembed?url=<widget or team page>`.
+
+## For AI agents
+
+- On ftc-embeds.com/avatars the page and its editor are tools: WebMCP (`navigator.modelContext`) where the browser has it, and `window.ftcEmbedsAgent.list()` / `.call(name, input)` on every page. Make options from a logo address, look at them (images), edit them (background, border, wand, erase, shapes, layers), and export the PNGs. See [the avatar maker's docs](https://ftc-embeds.com/docs/avatar-maker.md#for-ai-agents).
+- [Avatar project files](https://ftc-embeds.com/docs/avatar-format.md) (`.ftcavatar`): the format, an [example](https://ftc-embeds.com/docs/example.ftcavatar) and a [JSON Schema](https://ftc-embeds.com/docs/ftcavatar.schema.json). `AvatarEditor.render(project)` gives a project's PNGs without opening it.
+
+## Optional
+
+- [Source code](https://github.com/mmathijs/ftc-embeds) (MIT) and [README](https://ftc-embeds.com/docs/README.md)
+- [npm package](https://www.npmjs.com/package/ftc-embeds)
+- [Privacy](https://ftc-embeds.com/privacy): what is counted, and that nothing else is kept

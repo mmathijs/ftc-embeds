@@ -118,6 +118,9 @@
         countdown: { lib: "countdown", global: "FtcCountdown", cls: "Countdown", opts: { event: "FTCCMP1" }, layouts: [["list", "Boxes"], ["compact", "One line"]] },
         "event-rankings": { lib: "event-rankings", global: "FtcEventRankings", cls: "EventRankings", opts: { event: "NLHAQ", season: 2025, highlight: String(TEAM) }, layouts: [["podium", "Podium"], ["cards", "Leaderboard"], ["list", "Table"], ["strip", "Tiles"]] },
         "event-matches": { lib: "event-matches", global: "FtcEventMatches", cls: "EventMatches", opts: { event: "NLHAQ", season: 2025, highlight: String(TEAM) }, layouts: [] },
+        "event-playoffs": { lib: "event-playoffs", global: "FtcEventPlayoffs", cls: "EventPlayoffs", opts: { event: "NLHAQ", season: 2025, highlight: String(TEAM) }, layouts: [] },
+        "event-awards": { lib: "event-awards", global: "FtcEventAwards", cls: "EventAwards", opts: { event: "NLCMP", season: 2025 }, layouts: [] },
+        "event-teams": { lib: "event-teams", global: "FtcEventTeams", cls: "EventTeams", opts: { event: "NLHAQ", season: 2025 }, layouts: [["grid", "Tiles"], ["list", "Table"]] },
         "event-advancement": { lib: "event-advancement", global: "FtcEventAdvancement", cls: "EventAdvancement", opts: { event: "NLCMP", season: 2025 }, layouts: [] },
         "league-standings": { lib: "league-standings", global: "FtcLeagueStandings", cls: "LeagueStandings", opts: { event: "NLBNM7", season: 2023 }, layouts: [] },
     };

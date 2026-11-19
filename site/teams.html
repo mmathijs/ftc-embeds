@@ -5,8 +5,9 @@
 {{$n := placeholder "http.regexp.team.1"}}
 {{$row := ""}}{{$file := ""}}{{if $n}}{{$file = printf "/_data/teams/%02d.tsv" (mod (atoi $n) 100)}}{{end}}
 {{if $file}}{{if fileExists $file}}{{$row = include $file | regexFind (printf "(?m)^%s\t.*$" $n)}}{{end}}{{end}}
-{{$f := splitList "\t" (print $row "\t\t\t\t\t")}}
+{{$f := splitList "\t" (print $row "\t\t\t\t\t\t\t\t\t")}}
 {{$name := index $f 1}}{{$where := index $f 2}}{{$facts := index $f 3}}{{$desc := index $f 4}}
+{{$city := index $f 5}}{{$state := index $f 6}}{{$country := index $f 7}}{{$rookie := index $f 8}}
 {{$label := printf "Team %s" $n}}{{if $name}}{{$label = printf "%s %s" $n $name}}{{end}}
 {{- /* end team data */ -}}
 <meta charset="utf-8">
@@ -30,6 +31,7 @@
 <meta property="og:site_name" content="ftc-embeds">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%231c1b19'/%3E%3Crect x='3' y='3' width='4' height='4' fill='%23ff5a1f'/%3E%3Crect x='9' y='3' width='4' height='4' fill='%23f4f1ea'/%3E%3Crect x='3' y='9' width='4' height='4' fill='%23f4f1ea'/%3E%3Crect x='9' y='9' width='4' height='4' fill='%23f4f1ea'/%3E%3C/svg%3E">
+<link rel="help" type="text/plain" href="/llms.txt" title="Guide for AI agents">
 <link rel="stylesheet" href="fonts/fonts.css">
 <style>
     :root {
@@ -181,12 +183,15 @@
 <main>
     <!-- /teams/<number> -->
     <div id="team-page"{{if $n}}{{else}} hidden{{end}}>
-        <section class="wrap hero">
+        <section class="wrap hero"{{if $name}} itemscope itemtype="https://schema.org/SportsTeam"{{end}}>
+            {{if $name}}<meta itemprop="name" content="{{$name}}"><meta itemprop="alternateName" content="FTC team {{$n}}"><meta itemprop="identifier" content="{{$n}}">
+            <meta itemprop="sport" content="FIRST Tech Challenge (robotics)"><link itemprop="url" href="https://ftc-embeds.com/teams/{{$n}}"><link itemprop="sameAs" href="https://ftcscout.org/teams/{{$n}}">
+            {{if $rookie}}<meta itemprop="foundingDate" content="{{$rookie}}">{{end}}{{if $country}}<div hidden itemprop="location" itemscope itemtype="https://schema.org/Place"><div itemprop="address" itemscope itemtype="https://schema.org/PostalAddress">{{if $city}}<meta itemprop="addressLocality" content="{{$city}}">{{end}}{{if $state}}<meta itemprop="addressRegion" content="{{$state}}">{{end}}<meta itemprop="addressCountry" content="{{$country}}"></div></div>{{end}}{{end}}
             <div>
                 <span class="eyebrow" id="eyebrow">FTC team {{$n}}</span>
                 <h1 id="name">{{$label}}</h1>
                 <p class="where" id="where">{{$where}}</p>
-                <p class="about" id="about">{{$facts}}</p>
+                <p class="about" id="about"{{if $name}} itemprop="description"{{end}}>{{$facts}}</p>
                 <p class="lede">Put your team's results, awards and next match on your website. Free widgets that update by themselves and match your site's look.</p>
                 <div class="cta">
                     <a class="go" id="setup-link" href="/setup">Set it up for your website</a>

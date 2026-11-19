@@ -15,6 +15,119 @@
 <meta property="og:image:height" content="630">
 <meta property="og:site_name" content="ftc-embeds">
 <meta name="twitter:card" content="summary_large_image">
+<link rel="help" type="text/plain" href="/llms.txt" title="Guide for AI agents">
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@graph": [
+  {
+   "@type": "WebSite",
+   "@id": "https://ftc-embeds.com/#site",
+   "url": "https://ftc-embeds.com/",
+   "name": "ftc-embeds",
+   "description": "Free widgets that put FIRST Tech Challenge data on any website, a pit display, team badges and an avatar maker.",
+   "inLanguage": "en",
+   "publisher": {
+    "@id": "https://ftc-embeds.com/#author"
+   }
+  },
+  {
+   "@type": "Person",
+   "@id": "https://ftc-embeds.com/#author",
+   "name": "mmathijs",
+   "url": "https://github.com/mmathijs"
+  },
+  {
+   "@type": "SoftwareApplication",
+   "@id": "https://ftc-embeds.com/#widgets",
+   "name": "ftc-embeds",
+   "url": "https://ftc-embeds.com/",
+   "applicationCategory": "DeveloperApplication",
+   "operatingSystem": "Any (in the browser)",
+   "isAccessibleForFree": true,
+   "license": "https://opensource.org/licenses/MIT",
+   "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+   },
+   "description": "Embeddable widgets for FIRST Tech Challenge teams and events: team cards, season results, awards, next match, countdowns, event rankings, match schedules, playoff brackets, event awards, event teams, advancement, league standings and pit maps. They update by themselves and take the site's colors.",
+   "featureList": [
+    "Team card",
+    "Season results",
+    "Awards",
+    "Next match",
+    "Season and next match",
+    "Countdown",
+    "Event rankings",
+    "Match schedule",
+    "Playoffs bracket",
+    "Event awards",
+    "Event teams",
+    "Advancement",
+    "League standings",
+    "Pit map",
+    "Pit display",
+    "Team badges",
+    "Avatar maker"
+   ],
+   "sameAs": [
+    "https://github.com/mmathijs/ftc-embeds",
+    "https://www.npmjs.com/package/ftc-embeds"
+   ],
+   "author": {
+    "@id": "https://ftc-embeds.com/#author"
+   }
+  },
+  {
+   "@type": "FAQPage",
+   "@id": "https://ftc-embeds.com/#faq",
+   "mainEntity": [
+    {
+     "@type": "Question",
+     "name": "Is ftc-embeds free?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Yes. Every widget, the pit display, the badges and the avatar maker are free and open source (MIT license). There's no account, and the widgets set no cookies."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Which websites does it work on?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Any. On Wix, Google Sites and Squarespace the widgets go in as an iframe; on WordPress you paste a widget's link on its own line; on your own HTML, React, Vue or Svelte site they are an HTML element or an npm package. The setup page gives the steps for each."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Where does the data come from, and how current is it?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "From FTCScout, which gets it from FIRST. The widgets update by themselves: while an event is on, the next match, rankings, match schedule and playoffs refresh every 30 seconds."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "What happens when the wifi at the event drops?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "The widgets keep showing the last data they had, with a note saying from when, and try again until the connection is back."
+     }
+    },
+    {
+     "@type": "Question",
+     "name": "Is ftc-embeds made by FIRST?",
+     "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "No. It's made for the FTC community by mmathijs and isn't affiliated with FIRST."
+     }
+    }
+   ]
+  }
+ ]
+}
+</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%231c1b19'/%3E%3Crect x='3' y='3' width='4' height='4' fill='%23ff5a1f'/%3E%3Crect x='9' y='3' width='4' height='4' fill='%23f4f1ea'/%3E%3Crect x='3' y='9' width='4' height='4' fill='%23f4f1ea'/%3E%3Crect x='9' y='9' width='4' height='4' fill='%23f4f1ea'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="fonts/fonts.css">
 <style>
@@ -212,6 +325,10 @@
     .d-head { border-top: 1px solid var(--rule); padding-top: 40px; margin-bottom: 30px; }
     .d-head h2 { margin: 0 0 8px; font-size: 26px; letter-spacing: -0.02em; }
     .d-head p { margin: 0; color: var(--ink-2); max-width: 62ch; }
+    .faq { margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 22px 40px; }
+    .faq dt { font-weight: 600; }
+    .faq dd { margin: 6px 0 0; color: var(--ink-2); max-width: 60ch; }
+    @media (max-width: 560px) { .faq { grid-template-columns: minmax(0, 1fr); } }
     .pv { position: relative; overflow: hidden; }
     .pv.map { pointer-events: none; }
     .pv::after { content: ""; position: absolute; inset: auto 0 0 0; height: 44px; background: linear-gradient(transparent, var(--paper-2)); }
@@ -535,6 +652,36 @@
                 <div class="sc-foot"><a class="go-link sc-go" href="/team#%7B%22widget%22%3A%22event-matches%22%2C%22event%22%3A%22NLHAQ%22%2C%22season%22%3A%222025%22%7D">Configure →</a><a class="go-link sc-try" href="#styles" data-try="event-matches">Every layout and theme ↓</a><code>&lt;ftc-event-matches&gt;</code></div>
             </div>
         </article>
+        <article class="sc-row" data-widget="event-playoffs">
+            <div class="sc-stage"><div class="pv" aria-hidden="true"></div><div class="sc-switch"></div></div>
+            <div class="sc-about">
+                <span class="eyebrow">For events</span>
+                <h3>Playoffs</h3>
+                <p>The alliances and the bracket, live.</p>
+                <ul><li>Captains and picks, numbered by rank</li><li>Double elimination, or best-of-3 before 2023</li><li>Winner and finalist marked, your teams highlighted</li></ul>
+                <div class="sc-foot"><a class="go-link sc-go" href="/team#%7B%22widget%22%3A%22event-playoffs%22%2C%22event%22%3A%22NLHAQ%22%2C%22season%22%3A%222025%22%7D">Configure →</a><a class="go-link sc-try" href="#styles" data-try="event-playoffs">Every layout and theme ↓</a><code>&lt;ftc-event-playoffs&gt;</code></div>
+            </div>
+        </article>
+        <article class="sc-row" data-widget="event-awards">
+            <div class="sc-stage"><div class="pv" aria-hidden="true"></div><div class="sc-switch"></div></div>
+            <div class="sc-about">
+                <span class="eyebrow">For events</span>
+                <h3>Event awards</h3>
+                <p>Who won what at an event, in ceremony order.</p>
+                <ul><li>The winning alliances first, Inspire last</li><li>Dean&#x27;s List names</li><li>All places, or the winners only</li></ul>
+                <div class="sc-foot"><a class="go-link sc-go" href="/team#%7B%22widget%22%3A%22event-awards%22%2C%22event%22%3A%22NLCMP%22%2C%22season%22%3A%222025%22%7D">Configure →</a><a class="go-link sc-try" href="#styles" data-try="event-awards">Every layout and theme ↓</a><code>&lt;ftc-event-awards&gt;</code></div>
+            </div>
+        </article>
+        <article class="sc-row" data-widget="event-teams">
+            <div class="sc-stage"><div class="pv" aria-hidden="true"></div><div class="sc-switch"></div></div>
+            <div class="sc-about">
+                <span class="eyebrow">For events</span>
+                <h3>Event teams</h3>
+                <p>Who&#x27;s coming, before the event starts.</p>
+                <ul><li>Avatar, number, name and place</li><li>Rookies marked</li><li>Ordered by rank once matches are played</li></ul>
+                <div class="sc-foot"><a class="go-link sc-go" href="/team#%7B%22widget%22%3A%22event-teams%22%2C%22event%22%3A%22NLHAQ%22%2C%22season%22%3A%222025%22%7D">Configure →</a><a class="go-link sc-try" href="#styles" data-try="event-teams">Every layout and theme ↓</a><code>&lt;ftc-event-teams&gt;</code></div>
+            </div>
+        </article>
         <article class="sc-row" data-widget="event-advancement">
             <div class="sc-stage"><div class="pv" aria-hidden="true"></div><div class="sc-switch"></div></div>
             <div class="sc-about">
@@ -590,6 +737,19 @@
         <p>Pick a widget and try its layouts and themes, live with real data. Configure takes your choice along.</p>
     </div>
     <div class="spot" id="spotlight"></div>
+</section>
+
+<section class="details" id="faq" aria-labelledby="faq-h">
+    <div class="d-head">
+        <h2 id="faq-h">Questions</h2>
+    </div>
+    <dl class="faq">
+        <div><dt>Is ftc-embeds free?</dt><dd>Yes. Every widget, the pit display, the badges and the avatar maker are free and open source (MIT license). There&#x27;s no account, and the widgets set no cookies.</dd></div>
+        <div><dt>Which websites does it work on?</dt><dd>Any. On Wix, Google Sites and Squarespace the widgets go in as an iframe; on WordPress you paste a widget&#x27;s link on its own line; on your own HTML, React, Vue or Svelte site they are an HTML element or an npm package. The setup page gives the steps for each.</dd></div>
+        <div><dt>Where does the data come from, and how current is it?</dt><dd>From FTCScout, which gets it from FIRST. The widgets update by themselves: while an event is on, the next match, rankings, match schedule and playoffs refresh every 30 seconds.</dd></div>
+        <div><dt>What happens when the wifi at the event drops?</dt><dd>The widgets keep showing the last data they had, with a note saying from when, and try again until the connection is back.</dd></div>
+        <div><dt>Is ftc-embeds made by FIRST?</dt><dd>No. It&#x27;s made for the FTC community by mmathijs and isn&#x27;t affiliated with FIRST.</dd></div>
+    </dl>
 </section>
 
 <footer>

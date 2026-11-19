@@ -138,6 +138,22 @@ writeFileSync(resolve(site, "examples/events.js"), readFileSync(resolve(examples
 for (const file of readdirSync(examples).filter((f) => f.endsWith("_pitmap.json"))) {
     writeFileSync(resolve(site, `examples/${file.replace("_pitmap", "")}`), readFileSync(resolve(examples, file)));
 }
+// The docs as Markdown on the site (/docs/team-card.md, …; the README as /docs/README.md), for people and
+// AI agents, and /llms-full.txt: site/llms.txt's guide with every doc after it, links made absolute.
+const ORIGIN = "https://ftc-embeds.com";
+const docsDir = resolve(root, "docs");
+mkdirSync(resolve(site, "docs"), { recursive: true });
+const docFiles = readdirSync(docsDir).filter((f) => /\.(md|json|ftcavatar)$/.test(f)).sort();
+for (const file of docFiles) writeFileSync(resolve(site, "docs", file), readFileSync(resolve(docsDir, file)));
+// The README's links point into docs/ and at the repository's own files.
+const readme = readFileSync(resolve(root, "README.md"), "utf8")
+    .replace(/\]\(docs\//g, "](")
+    .replace(/\]\((?!https?:|#|mailto:)([^)\s]+?)(\.md)?(#[^)]*)?\)/g, (all, path, md, hash) => (md || docFiles.includes(path) ? all : `](https://github.com/mmathijs/ftc-embeds/blob/main/${path}${hash || ""})`));
+writeFileSync(resolve(site, "docs/README.md"), readme);
+const absolute = (text) => text.replace(/\]\((?!https?:|#|mailto:|\/)([^)\s]+)\)/g, (all, path) => `](${ORIGIN}/docs/${path})`);
+const full = [readFileSync(resolve(root, "site/llms.txt"), "utf8").trim(), `<!-- ${ORIGIN}/docs/README.md -->\n\n${absolute(readme).trim()}`];
+for (const file of docFiles.filter((f) => f.endsWith(".md"))) full.push(`<!-- ${ORIGIN}/docs/${file} -->\n\n${absolute(readFileSync(resolve(docsDir, file), "utf8")).trim()}`);
+writeFileSync(resolve(site, "llms-full.txt"), full.join("\n\n---\n\n") + "\n");
 // Give the pages' own scripts, stylesheets and images a content hash (dashboard.js?v=1a2b3c4d), so a deploy never
 // pairs a new page with an old script or picture that the browser or Cloudflare still has cached.
 const pages = readdirSync(site, { recursive: true }).filter((f) => f.endsWith(".html"));

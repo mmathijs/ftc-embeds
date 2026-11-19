@@ -611,3 +611,54 @@ test("event teams: by number until there are ranks, then by rank", async () => {
     const { initials } = await import(resolve(root, "src/event-teams/event-teams.mjs"));
     assert.deepEqual(["Casimir Tech", "The Dukes of Brabant!", "Garfield", "", "Ø-bots 2"].map(initials), ["CT", "TD", "GA", "#", "ØB"]);
 });
+
+test("llms.txt links only to pages and docs that exist", () => {
+    const text = readFileSync(resolve(root, "site/llms.txt"), "utf8");
+    assert.match(text, /^# ftc-embeds\n\n> /, "a title and a summary first (llmstxt.org)");
+    const PAGES = ["/", "/setup", "/team", "/teams", "/pit-map", "/display", "/avatars", "/stats", "/privacy", "/oembed", "/llms-full.txt"];
+    for (const [, path] of text.matchAll(/https:\/\/ftc-embeds\.com(\/[^\s)?#`&]*)?/g)) {
+        const p = path || "/";
+        if (p.startsWith("/docs/")) assert.ok(existsSync(resolve(root, p === "/docs/README.md" ? "README.md" : p.slice(1))), `llms.txt links to ${p}, which isn't in docs/`);
+        else if (!/^\/(lib|embed|badge|api)\//.test(p) && !/^\/teams\/\d+$/.test(p)) assert.ok(PAGES.includes(p), `llms.txt links to ${p}, which isn't a page`);
+    }
+});
+
+test("every page's schema.org data is valid JSON with a type", () => {
+    for (const page of ["index", "setup", "team", "pit-map", "display", "avatars"]) {
+        const html = readFileSync(resolve(root, `site/${page}.html`), "utf8");
+        const blocks = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)];
+        assert.ok(blocks.length, `${page}.html has schema.org data`);
+        for (const [, json] of blocks) {
+            const data = JSON.parse(json);
+            assert.equal(data["@context"], "https://schema.org");
+            for (const node of data["@graph"] || [data]) assert.ok(node["@type"], `${page}.html: a node without a type`);
+        }
+    }
+    // The FAQ data says what the page says.
+    for (const page of ["index", "avatars"]) {
+        const html = readFileSync(resolve(root, `site/${page}.html`), "utf8");
+        const faq = JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1])["@graph"].find((n) => n["@type"] === "FAQPage");
+        const shown = [...html.matchAll(/<dt>(.*?)<\/dt>/g)].map((m) => m[1].replace(/&#x27;/g, "'"));
+        assert.deepEqual(faq.mainEntity.map((q) => q.name), shown, `${page}.html: the FAQ data and the questions on the page`);
+    }
+});
+
+test("the example avatar project follows its schema's required fields", () => {
+    const p = JSON.parse(readFileSync(resolve(root, "docs/example.ftcavatar"), "utf8"));
+    const schema = JSON.parse(readFileSync(resolve(root, "docs/ftcavatar.schema.json"), "utf8"));
+    for (const k of schema.required) assert.ok(k in p, `example: ${k}`);
+    for (const k of schema.$defs.doc.required) assert.ok(k in p.doc, `example doc: ${k}`);
+    assert.equal(p.format, schema.properties.format.const);
+    assert.ok(p.layers.layers.logo.startsWith("data:image/png;base64,") && p.layers.layers[p.doc.src], "the example's layers have its source");
+    assert.equal(p.doc.layers.filter((l) => l.kind === "logo").length, 1, "one logo layer");
+    for (const o of p.doc.draw) assert.ok(p.doc.layers.some((l) => l.id === o.layer && l.kind === "draw"), `drawing ${o.id} is on a drawing layer`);
+});
+
+test("the build puts the docs on the site and writes llms-full.txt", () => {
+    for (const f of ["docs/README.md", "docs/avatar-maker.md", "docs/avatar-format.md", "docs/example.ftcavatar", "docs/ftcavatar.schema.json", "llms.txt", "llms-full.txt"]) assert.ok(existsSync(resolve(root, "dist/site", f)), `dist/site/${f}`);
+    const full = readFileSync(resolve(root, "dist/site/llms-full.txt"), "utf8");
+    assert.ok(full.startsWith(readFileSync(resolve(root, "site/llms.txt"), "utf8").trim()), "llms-full.txt starts with the guide");
+    assert.ok(!/\]\((?!https?:|#|mailto:)[^)]+\)/.test(full), "every link in llms-full.txt is absolute");
+    const readme = readFileSync(resolve(root, "dist/site/docs/README.md"), "utf8");
+    for (const [, link] of readme.matchAll(/\]\((?!https?:|#)([^)#]+)/g)) assert.ok(existsSync(resolve(root, "docs", link)), `the site's README links to ${link}`);
+});

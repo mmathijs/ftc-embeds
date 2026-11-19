@@ -14,7 +14,7 @@ const root = resolve(import.meta.dirname, "..");
 const ROOTS = [resolve(root, "site"), resolve(root, "dist/site")];
 // Paths served from somewhere else in production.
 const ALIASES = { "/stats": resolve(root, "deploy/stats/stats.html") };
-const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".mjs": "text/javascript; charset=utf-8", ".json": "application/json", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".webp": "image/webp", ".ico": "image/x-icon", ".txt": "text/plain; charset=utf-8", ".xml": "application/xml" };
+const TYPES = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".mjs": "text/javascript; charset=utf-8", ".json": "application/json", ".css": "text/css", ".svg": "image/svg+xml", ".png": "image/png", ".webp": "image/webp", ".ico": "image/x-icon", ".txt": "text/plain; charset=utf-8", ".xml": "application/xml", ".md": "text/markdown; charset=utf-8", ".ftcavatar": "application/json; charset=utf-8" };
 const AVATAR_API = new URL(process.env.AVATAR_API || "http://127.0.0.1:8095");
 const PORT = +process.env.PORT || 8080;
 const HOST = process.env.HOST || "0.0.0.0";
@@ -48,8 +48,8 @@ function teamVars(team) {
         let shard = resolve(root, `dist/site/_data/teams/${String(+team % 100).padStart(2, "0")}.tsv`);
         if (isFile(shard)) row = readFileSync(shard, "utf8").split("\n").find((l) => l.startsWith(team + "\t")) || "";
     }
-    let [, name = "", where = "", facts = "", desc = ""] = row.split("\t");
-    return { n: team, name, where, facts, desc, label: name ? `${team} ${name}` : `Team ${team}` };
+    let [, name = "", where = "", facts = "", desc = "", city = "", state = "", country = "", rookie = ""] = row.split("\t");
+    return { n: team, name, where, facts, desc, city, state, country, rookie, label: name ? `${team} ${name}` : `Team ${team}` };
 }
 function renderTemplate(html, team) {
     let vars = teamVars(team);
