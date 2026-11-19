@@ -572,7 +572,12 @@
         /** Every lifted part of the logo (image objects) decoded, so a render needs no second pass. */
         async loadImages(doc = this.doc) {
             let m = (this.imgs ||= new Map());
-            await Promise.all(doc.draw.filter((o) => o.k === "image" && !(m.get(o.src) || {}).img).map(async (o) => { m.set(o.src, { img: await loadImage(o.src) }); }));
+            await Promise.all(doc.draw.filter((o) => o.k === "image").map(async (o) => {
+                let e = m.get(o.src);
+                if (e && e.done) return e.done;      // a part just lifted: its PNG is being decoded
+                if (e && e.img) return;
+                m.set(o.src, { img: await loadImage(o.src) });
+            }));
         }
 
         build() {
@@ -1163,7 +1168,11 @@
             let L = d.layers, li = L.findIndex((l) => l.kind === "logo"), id = "part" + uid++;
             let layer = { id, name: "Moved part", kind: "draw", vis: true, opacity: L[li].opacity };
             let src = cv.toDataURL("image/png");
-            (this.imgs ||= new Map()).set(src, { img: cv });
+            // Drawn from the canvas at once, then from its PNG, as a saved project has it: the two differ a little
+            // at half-transparent edges, and the editor should show what the file will open as.
+            let entry = { img: cv };
+            entry.done = loadImage(src).then((img) => { entry.img = img; this.paint(); }, () => {});
+            (this.imgs ||= new Map()).set(src, entry);
             let o = { id: uid++, k: "image", layer: id, src, iw: cv.width, ih: cv.height, s: t.s, x: t.x + x0 * t.s, y: t.y + y0 * t.s };
             this.set({ layers: [...L.slice(0, li + 1), layer, ...L.slice(li + 1)], draw: [...d.draw, o], logoOps: [...d.logoOps, { k: "area", poly: sp, invert: false }] }, true);
             return o;
@@ -2287,7 +2296,8 @@ ${b}.ftcavatar       the project: open it in the editor at ftc-embeds.com/avatar
      *  object) exactly as the editor makes them, without opening it: {opaque, transparent} as data URIs,
      *  {warnings} the editor's notes, {bytes} the PNGs' sizes. version: a saved version's id or name. */
     async function render(project, opts = {}) {
-        let p = project instanceof Blob ? await readProject(project) : checkProject(typeof project === "string" ? JSON.parse(project) : project);
+        let parse = (text) => { try { return JSON.parse(text); } catch { throw new Error("This isn't a project file from the avatar editor: it isn't JSON."); } };
+        let p = project instanceof Blob ? await readProject(project) : checkProject(typeof project === "string" ? parse(project) : project);
         let ed = new Editor({ label: p.label, preset: p.preset, fileBase: p.base });
         await ed.loadLayers(p.layers);
         let doc = p.doc;
@@ -2323,6 +2333,9 @@ ${b}.ftcavatar       the project: open it in the editor at ftc-embeds.com/avatar
         if (!ed) throw new Error("No editor is open. Make the options first (avatar_make_options), then open one with avatar_open_editor.");
         await ed.ready;
         if (!ed.doc) throw new Error("The editor couldn't load this logo. Close it (avatar_editor_close) and open it again.");
+        // The lifted parts of the logo (image objects) load after ed.ready; without them a tool called right
+        // after opening a project (export, state) renders the avatar without those parts.
+        await ed.loadImages().catch(() => {});
         return ed;
     }
     function zoomed(imgData, checker) {   // the 40 px result at 8 x, pixel for pixel, for an agent to look at
@@ -2561,11 +2574,15 @@ ${b}.ftcavatar       the project: open it in the editor at ftc-embeds.com/avatar
                 return { saved: ed.saveOut ? ed.saveOut.textContent : "", version: v ? { id: v.id, name: v.name } : null };
             } },
         { name: "avatar_editor_export",
-            description: "The avatar as a file: the 40 × 40 PNG with background (opaque) or transparent, as FIRST takes them, or the project file (.ftcavatar, with every layer and version). Returns the PNG as a data URI; download: true also saves the file in the browser's downloads (the project file is only downloaded).",
-            inputSchema: { type: "object", properties: { kind: { type: "string", enum: ["opaque", "transparent", "project"] }, download: { type: "boolean" } }, required: ["kind"] },
+            description: "The avatar as a file: the 40 × 40 PNG with background (opaque) or transparent, as FIRST takes them, returned as a data URI; or the project file (.ftcavatar, with every layer and version), downloaded, and returned as JSON text with includeJson (1 to 2.5 MB). download: true also saves the PNG in the browser's downloads.",
+            inputSchema: { type: "object", properties: { kind: { type: "string", enum: ["opaque", "transparent", "project"] }, download: { type: "boolean" }, includeJson: { type: "boolean", description: "kind project: return the file's JSON text too" } }, required: ["kind"] },
             async run(i) {
                 let ed = await editorNow();
-                if (i.kind === "project") { ed.downloadProject(); return { downloaded: (ed.o.fileBase || "avatar") + ".ftcavatar" }; }
+                if (i.kind === "project") {
+                    let file = (ed.o.fileBase || "avatar") + ".ftcavatar";
+                    if (i.download !== false) ed.downloadProject();
+                    return Object.assign({ file, downloaded: i.download !== false }, i.includeJson ? { json: serialize(ed.projectData()) } : {});
+                }
                 if (!["opaque", "transparent"].includes(i.kind)) throw new Error("kind: opaque, transparent or project");
                 let r = ed.updatePreview(), uri = i.kind === "opaque" ? r.op : r.tr, file = (ed.o.fileBase || "avatar") + (i.kind === "opaque" ? "-avatar-40.png" : "-avatar-40-transparent.png");
                 if (i.download) saveBlob(await (await fetch(uri)).blob(), file);

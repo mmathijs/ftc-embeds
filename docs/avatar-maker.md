@@ -35,12 +35,12 @@ The JSON answer:
 ```json
 {
   "team": 23452, "name": "TieWraps", "base": "23452-tiewraps",
-  "current": "data:image/png;base64,…", "currentSha256": "9f2c…",
+  "current": "data:image/png;base64,…", "currentSha256": "9f2c…", "currentPixelSha256": "5c38…",
   "kind": "flat", "flat": true, "info": { "gaps_removed": 6, "gaps_kept": 2, "text_rows": 1, "kept": ["eyes"] },
   "options": [{
     "id": "whole", "label": "Whole logo", "note": "Background removed in the transparent version, kept as a thin border",
     "bg": "#000000", "opaque": "data:image/png;base64,…", "transparent": "data:image/png;base64,…",
-    "bytes": [2741, 3466], "sha256": ["3b1a…", "c07e…"],
+    "bytes": [2741, 3466], "sha256": ["3b1a…", "c07e…"], "pixelSha256": ["a460…", "77d2…"],
     "warnings": ["There's an empty band of 7 px on the left."],
     "files": ["23452-tiewraps-whole-avatar-40.png", "23452-tiewraps-whole-avatar-40-transparent.png"],
     "edit": { "src": "cut", "s": 0.41, "x": 12.5, "y": 8, "bg": "#000000", "border": 1.1 }
@@ -49,7 +49,29 @@ The JSON answer:
 }
 ```
 
-With `images=none`, `current`, `opaque`, `transparent` and `zip` are left out and `hasCurrent` says whether the team has an avatar. `sha256` (and `currentSha256`) are of the PNG files, so comparing an avatar with the one FIRST shows needs no images. `warnings` are notes worth a look, not errors: the options all follow FIRST's file rules unless a note says otherwise. Errors are `{ "error": "<a sentence>" }` with 400, 413, 415, 429 or 503.
+`current` is the team's current FIRST avatar (from FTCScout). With `images=none`, `current`, `opaque`, `transparent` and `zip` are left out and `hasCurrent` says whether the team has an avatar. `warnings` are notes worth a look, not errors: the options all follow FIRST's file rules unless a note says otherwise. Errors are `{ "error": "<a sentence>" }` with 400, 413, 415, 429 or 503.
+
+### Hashes
+
+Every PNG comes with two SHA-256 hashes, so comparing avatars needs no images:
+
+- `sha256`, `currentSha256`: of the file.
+- `pixelSha256`, `currentPixelSha256`: of the pixels: the image decoded to 8-bit RGBA, row by row from the top left, with fully transparent pixels as 0, 0, 0, 0. A file saved again by another program (other chunks, compression or colour type) keeps it. FIRST's avatars look re-saved (they carry none of the chunks editors write), so to see whether a team uploaded one of these avatars, compare `pixelSha256`.
+
+### Checking a finished avatar
+
+`POST https://ftc-embeds.com/api/avatar/check` with any image as the body (at most 1 MB; 120 checks per visitor in 10 minutes) answers FIRST's rules, the notes the editor gives, and both hashes:
+
+```json
+{
+  "format": "PNG", "width": 40, "height": 40, "bytes": 3466, "transparent": true,
+  "firstRules": { "png": true, "size40": true, "under20kB": true, "noLimeOrMagenta": true }, "followsFirstRules": true,
+  "notes": ["3 fully transparent pixels still have a colour."],
+  "sha256": "c07e…", "pixelSha256": "77d2…"
+}
+```
+
+The notes: not a still PNG, not 40 × 40, over 20 kB, colours near lime or magenta, colours hidden under fully transparent pixels, half-transparent pixels inside the avatar, an empty avatar, a logo that uses too little of the square or leaves an empty band.
 
 ## For AI agents
 
@@ -60,10 +82,11 @@ The page offers its steps and its editor as tools: through [WebMCP](https://gith
 | `avatar_maker_status` | the team, the logo, the options shown, the edits saved in this browser |
 | `avatar_set_logo` | the logo from a web address (or a `.ftcavatar` to open) |
 | `avatar_make_options` | make the options; `ownLogoConfirmed` ticks the own-logo box, only when the user said so |
-| `avatar_get_option` | one option as images and data URIs (`current`: the team's current avatar) |
+| `avatar_get_option` | one option as images, with its hashes (`current`: the team's current avatar); `dataUris: true` adds the PNGs |
 | `avatar_download` | save an option's PNG, its transparent PNG, or the zip |
 | `avatar_open_editor` | edit an option, or a saved edit |
-| `avatar_render_project` | render a `.ftcavatar` (address or JSON) without opening it |
+| `avatar_render_project` | render a `.ftcavatar` (address or JSON) without opening it; `dataUris: true` adds the PNGs |
+| `avatar_check_png` | check any finished avatar (address or data URI) against FIRST's rules, with its hashes |
 | `avatar_editor_state` | everything about the open editor, with the result as images |
 | `avatar_editor_set` | background, border, edges, shrinking (smooth or pixel art), logo source and size, frame, brightness, contrast, saturation, colours |
 | `avatar_editor_place`, `avatar_editor_move` | fit, fill, centre or cut at the bottom; move by avatar pixels |
@@ -71,7 +94,7 @@ The page offers its steps and its editor as tools: through [WebMCP](https://gith
 | `avatar_editor_draw_shape`, `avatar_editor_draw_line`, `avatar_editor_delete_shapes` | draw and remove shapes and brush strokes |
 | `avatar_editor_layers`, `avatar_editor_history` | add, change, clear and pick layers; undo, redo, start over |
 | `avatar_editor_colour_at` | the colour of the result and of the logo at a point |
-| `avatar_editor_save`, `avatar_editor_export`, `avatar_editor_close` | save (and keep a version), get the PNGs or the project file, close (and use the edit) |
+| `avatar_editor_save`, `avatar_editor_export`, `avatar_editor_close` | save (and keep a version), get the PNGs or the project file (`includeJson: true` returns its JSON too), close (and use the edit) |
 
 Positions are in avatar pixels: 0 to 40 from the top left of the result.
 
@@ -91,4 +114,4 @@ To check a project file without a page of your own, `AvatarEditor.render(project
 1. Lead Mentor 1 or 2 logs in at [ftc-scoring.firstinspires.org](https://ftc-scoring.firstinspires.org).
 2. Choose **Team Avatar**, then **Upload New Avatar**, and pick one PNG.
 3. Upload at least 2 weeks before your event. Changes can take up to 24 hours to show.
-4. One submission at a time, and FIRST may not review more than three a season. See [FIRST's avatar rules](https://community.firstinspires.org/team-avatars).
+4. One submission at a time, and FIRST may not review more than three a season. See [FIRST's avatar rules](https://www.firstinspires.org/community-blog/team-avatars).

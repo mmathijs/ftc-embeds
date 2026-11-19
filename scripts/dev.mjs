@@ -61,16 +61,31 @@ function renderTemplate(html, team) {
 }
 
 function proxyAvatar(req, res) {
-    const up = request({ hostname: AVATAR_API.hostname, port: AVATAR_API.port, method: req.method, path: req.url, headers: req.headers }, (r) => {
-        console.log(`${r.statusCode} ${req.method} ${req.url} (avatar service)`);
-        res.writeHead(r.statusCode, r.headers);
-        r.pipe(res);
+    // The service may answer before it has read the upload (a wrong team number, a body over 10 MB) and close
+    // the connection; Node then often loses that answer to the failed write of the body (EPIPE), where Caddy
+    // passes it on. So the upload is collected first (this is the dev server), the headers go first, and the
+    // body only if the service hasn't answered 50 ms later. Expect: 100-continue isn't passed on: the
+    // service never sends it.
+    let chunks = [];
+    req.on("data", (c) => chunks.push(c));
+    req.on("end", () => {
+        let body = Buffer.concat(chunks), answered = false;
+        const headers = Object.fromEntries(Object.entries(req.headers).filter(([k]) => k !== "expect" && k !== "transfer-encoding"));
+        if (req.method !== "GET" && req.method !== "HEAD") headers["content-length"] = body.length;
+        const up = request({ hostname: AVATAR_API.hostname, port: AVATAR_API.port, method: req.method, path: req.url, headers }, (r) => {
+            answered = true;
+            console.log(`${r.statusCode} ${req.method} ${req.url} (avatar service)`);
+            res.writeHead(r.statusCode, r.headers);
+            r.pipe(res);
+        });
+        up.on("error", (e) => {
+            if (answered) return;   // the rest of an upload it didn't need
+            console.log(`502 ${req.method} ${req.url} (avatar service: ${e.code || e.message} at ${AVATAR_API.origin})`);
+            if (!res.headersSent) res.writeHead(502, { "content-type": "application/json" }).end(JSON.stringify({ error: `The avatar service isn't running at ${AVATAR_API.origin}.` }));
+        });
+        up.flushHeaders();
+        setTimeout(() => { if (!answered) up.end(body); else up.destroy(); }, body.length ? 50 : 0);
     });
-    up.on("error", () => {
-        console.log(`502 ${req.method} ${req.url} (avatar service not running at ${AVATAR_API.origin})`);
-        if (!res.headersSent) res.writeHead(502, { "content-type": "application/json" }).end(JSON.stringify({ error: `The avatar service isn't running at ${AVATAR_API.origin}.` }));
-    });
-    req.pipe(up);
 }
 
 createServer((req, res) => {

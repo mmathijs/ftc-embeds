@@ -38,7 +38,7 @@ A small complete file: [example.ftcavatar](example.ftcavatar) (open it: [ftc-emb
 | `bg` | the opaque version's background |
 | `border` | the transparent version's border around the logo, 0 to 3 avatar pixels (0: none) |
 | `borderColour` | the border's colour; `""` means `bg` |
-| `edges` | the transparent version's edges: `"smooth"` (default) or `"pixel"` (no half-transparent pixels) |
+| `edges` | the transparent version's edges: `"smooth"` (default) or `"pixel"` (no half-transparent pixels; older files may say `"crisp"`, which is the same) |
 | `filter` | how the canvas becomes 40 × 40: absent for smooth (Lanczos-3, for logos and photos), `"box"` for pixel art (each 8 × 8 block averaged, so drawings on the grid come out as drawn) |
 | `frame` | `{ "type": "none" }`; `{ "type": "circle", r, ring, ringWidth, fill }`: a circle badge of radius `r` (canvas units) filled with `fill`, in a ring of colour `ring`, `ringWidth` avatar pixels wide, the logo clipped to the circle; or `{ "type": "rounded" }`: the transparent version as a tile in `bg` with corners of 4 avatar pixels |
 | `adjust` | `{ brightness, contrast, saturate, colours }`: 1, 1, 1 and 0 change nothing; `colours` 2 to 32 limits the logo to that many flat colours |

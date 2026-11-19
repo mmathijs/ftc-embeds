@@ -323,7 +323,7 @@
                     <li>Lead Mentor 1 or 2 logs in at <a href="https://ftc-scoring.firstinspires.org">ftc-scoring.firstinspires.org</a>.</li>
                     <li>Choose <b>Team Avatar</b>, then <b>Upload New Avatar</b>, and pick one PNG.</li>
                     <li>Upload at least 2 weeks before your event. Changes can take up to 24 hours to show.</li>
-                    <li>One submission at a time, and FIRST may not review more than three a season. See <a href="https://community.firstinspires.org/team-avatars">FIRST's avatar rules</a>.</li>
+                    <li>One submission at a time, and FIRST may not review more than three a season. See <a href="https://www.firstinspires.org/community-blog/team-avatars">FIRST's avatar rules</a>.</li>
                 </ol>
             </div>
         </div>
@@ -761,7 +761,8 @@
         x.imageSmoothingEnabled = false; x.drawImage(img, 0, 0, 320, 320);
         return c.toDataURL("image/png");
     };
-    const option = (o) => ({ id: o.id, label: o.label, note: o.note || "", notes: o.warnings || [], bytes: o.bytes, files: o.files, sha256: o.sha256, editable: !!(o.onEdit || (o.edit && window.AvatarEditor)) });
+    const option = (o) => ({ id: o.id, label: o.label, note: o.note || "", notes: o.warnings || [], bytes: o.bytes, files: o.files, sha256: o.sha256, pixelSha256: o.pixelSha256, editable: !!(o.onEdit || (o.edit && window.AvatarEditor)) });
+    const DATA_URIS = { dataUris: { type: "boolean", description: "Also return the PNGs as data URIs (thousands of characters each; leave out unless you need the files)" } };
     const waitEditor = async () => { let ed = window.AvatarEditor.current; if (ed) await ed.ready; return agent.call("avatar_editor_state", { images: false }); };
     agent.register({
         name: "avatar_maker_status", readOnly: true,
@@ -806,15 +807,16 @@
     });
     agent.register({
         name: "avatar_get_option", readOnly: true,
-        description: "One option (or the team's current avatar, id “current”) as images: with background and transparent, 8× zoomed so the pixels show, and the real 40 × 40 PNGs as data URIs.",
-        inputSchema: { type: "object", properties: { id: { type: "string" } }, required: ["id"] },
+        description: "One option (or the team's current avatar, id “current”) as images: with background and transparent, 8× zoomed so the pixels show, with its hashes; dataUris: true adds the real 40 × 40 PNGs.",
+        inputSchema: { type: "object", properties: Object.assign({ id: { type: "string" } }, DATA_URIS), required: ["id"] },
         async run(i) {
             if (i.id === "current") {
                 if (!shown || !shown.current) throw new Error("There's no current avatar (no team number, or the team has none).");
-                return { id: "current", images: [{ label: "current avatar, 8× zoom", uri: await zoom(shown.current, true) }], dataUri: shown.current };
+                return Object.assign({ id: "current", sha256: shown.currentSha256 || null, pixelSha256: shown.currentPixelSha256 || null, images: [{ label: "current avatar, 8× zoom", uri: await zoom(shown.current, true) }] },
+                    i.dataUris ? { dataUri: shown.current } : {});
             }
             let o = pick(i.id);
-            return Object.assign(option(o), { opaque: o.opaque, transparent: o.transparent,
+            return Object.assign(option(o), i.dataUris ? { opaque: o.opaque, transparent: o.transparent } : {}, {
                 images: [{ label: `${o.label}, with background, 8× zoom`, uri: await zoom(o.opaque) }, { label: `${o.label}, transparent, on a grey checkerboard, 8× zoom`, uri: await zoom(o.transparent, true) }] });
         },
     });
@@ -847,13 +849,32 @@
     });
     agent.register({
         name: "avatar_render_project", readOnly: true,
-        description: "Render a .ftcavatar project file (its web address, or its JSON text) without opening it: the two 40 × 40 PNGs exactly as the editor makes them, as data URIs and 8× zoomed images, with the editor's notes. The format: ftc-embeds.com/docs/avatar-format.md.",
-        inputSchema: { type: "object", properties: { url: { type: "string" }, json: { type: "string" }, version: { type: "string", description: "A saved version's id or name instead of the current state" } } },
+        description: "Render a .ftcavatar project file (its web address, or its JSON text) without opening it: the two 40 × 40 PNGs exactly as the editor makes them, as 8× zoomed images with the editor's notes; dataUris: true adds the PNGs themselves. The format: ftc-embeds.com/docs/avatar-format.md.",
+        inputSchema: { type: "object", properties: Object.assign({ url: { type: "string" }, json: { type: "string" }, version: { type: "string", description: "A saved version's id or name instead of the current state" } }, DATA_URIS) },
         async run(i) {
             let p = i.url ? await window.AvatarEditor.readProject(await fetchFile(i.url, "project file")) : i.json;
             if (!p) throw new Error("Give the project's url or json.");
             let r = await window.AvatarEditor.render(p, { version: i.version });
-            return Object.assign(r, { images: [{ label: "with background, 8× zoom", uri: await zoom(r.opaque) }, { label: "transparent, on a grey checkerboard, 8× zoom", uri: await zoom(r.transparent, true) }] });
+            let images = [{ label: "with background, 8× zoom", uri: await zoom(r.opaque) }, { label: "transparent, on a grey checkerboard, 8× zoom", uri: await zoom(r.transparent, true) }];
+            return Object.assign({ warnings: r.warnings, bytes: r.bytes }, i.dataUris ? { opaque: r.opaque, transparent: r.transparent } : {}, { images });
+        },
+    });
+    agent.register({
+        name: "avatar_check_png", readOnly: true,
+        description: "Check a finished avatar (any PNG: made here, by hand or downloaded from FIRST) against FIRST's rules (a still PNG, 40 × 40, at most 20 kB, no colours near lime or magenta) and the editor's notes (colours hidden under transparent pixels, half-transparent pixels, empty bands), with its sha256 and pixelSha256. pixelSha256 is of the pixels, so it stays the same when a file is saved again (FIRST seems to re-save uploads): compare it with an option's to see whether a team uses that avatar.",
+        inputSchema: { type: "object", properties: { url: { type: "string", description: "The PNG's address (from sites that allow it)" }, dataUri: { type: "string", description: "Or the PNG as a data URI" } } },
+        async run(i) {
+            let blob = i.dataUri ? await (await fetch(i.dataUri)).blob() : i.url ? await fetchFile(i.url, "avatar") : null;
+            if (!blob) throw new Error("Give the PNG's url or dataUri.");
+            let r = await fetch("/api/avatar/check", { method: "POST", body: blob, headers: { "Content-Type": "image/png" }, signal: AbortSignal.timeout(30000) });
+            let d = null;
+            try { d = await r.json(); } catch { /* a proxy's error page */ }
+            if (!r.ok || !d) throw new Error((d && d.error) || `The check answered ${r.status}.`);
+            if (d.width === 40 && d.height === 40) {
+                let u = URL.createObjectURL(blob);
+                try { d.images = [{ label: "the avatar, 8× zoom, on a grey checkerboard", uri: await zoom(u, true) }]; } finally { URL.revokeObjectURL(u); }
+            }
+            return d;
         },
     });
 })();

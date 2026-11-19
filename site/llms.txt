@@ -55,7 +55,7 @@ Every page below works without an account. Pages that take settings take them as
 ## APIs
 
 - [Data API](https://ftc-embeds.com/docs/api.md): `https://ftcscout-api.mmathijs.nl/rest/embeds/v1`, GET only, no key, CORS open. Teams: `/teams/<number>/card`, `/results?season=`, `/awards`, `/matches?season=`, `/badge.svg`, `/og.png`. Events: `/events/<season>/<code>/info`, `/rankings`, `/matches`, `/playoffs`, `/awards`, `/teams`, `/advancement`, `/league`, `/pit-map`. Answers are FTCScout GraphQL results, cached.
-- [Avatar API](https://ftc-embeds.com/docs/avatar-maker.md#api): `POST https://ftc-embeds.com/api/avatar/options?team=<number>` with the logo as the body: the options as JSON; `images=none` without the images, `format=zip` as a zip. 10 uploads per 10 minutes.
+- [Avatar API](https://ftc-embeds.com/docs/avatar-maker.md#api): `POST https://ftc-embeds.com/api/avatar/options?team=<number>` with the logo as the body: the options as JSON; `images=none` without the images, `format=zip` as a zip; 10 uploads per 10 minutes. `POST /api/avatar/check` with a finished PNG: FIRST's rules, notes, `sha256` and `pixelSha256` (the same for a re-saved file).
 - [oEmbed](https://ftc-embeds.com/oembed?url=https://ftc-embeds.com/teams/19444&format=json): `/oembed?url=<widget or team page>`.
 
 ## For AI agents
