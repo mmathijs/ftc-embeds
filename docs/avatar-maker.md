@@ -58,6 +58,23 @@ Every PNG comes with two SHA-256 hashes, so comparing avatars needs no images:
 - `sha256`, `currentSha256`: of the file.
 - `pixelSha256`, `currentPixelSha256`: of the pixels: the image decoded to 8-bit RGBA, row by row from the top left, with fully transparent pixels as 0, 0, 0, 0. A file saved again by another program (other chunks, compression or colour type) keeps it. FIRST's avatars look re-saved (they carry none of the chunks editors write), so to see whether a team uploaded one of these avatars, compare `pixelSha256`.
 
+### Which teams use an avatar
+
+`GET https://ftcscout-api.mmathijs.nl/rest/embeds/v1/events/{season}/{code}/avatars` lists every team at an event with its current FIRST avatar (FTCScout's copy) and the same two hashes:
+
+```json
+{ "data": {
+  "event": { "season": 2025, "code": "NLHAQ", "name": "Qualifier Hasselt" }, "withAvatar": 8,
+  "teams": [
+    { "teamNumber": 19444, "name": "Lorentz Engineering", "versions": 1,
+      "avatar": { "url": "https://ftcscout-api.mmathijs.nl/avatars/19444_9c51….png", "season": 2025, "since": "2026-11-05T11:11:56Z",
+                  "stored": true, "deleted": false, "bytes": 3655, "sha256": "8d02…", "pixelSha256": "5f21…" } },
+    { "teamNumber": 14183, "name": "The Dukes of Brabant", "versions": 0, "avatar": null }
+  ] } }
+```
+
+A team whose `avatar.pixelSha256` equals one of the files you made uploaded that file. `since` is when FTCScout first saw that version (it checks FIRST every 12 hours; FTCScout started keeping versions on 5 November 2026, so avatars it already had show that day), `versions` how many avatars the team has had over every season, and `stored` is false (with no hashes) until FTCScout has its copy of a new avatar. An unknown event answers `"event": null`.
+
 ### Checking a finished avatar
 
 `POST https://ftc-embeds.com/api/avatar/check` with any image as the body (at most 1 MB; 120 checks per visitor in 10 minutes) answers FIRST's rules, the notes the editor gives, and both hashes:
@@ -87,6 +104,7 @@ The page offers its steps and its editor as tools: through [WebMCP](https://gith
 | `avatar_open_editor` | edit an option, or a saved edit |
 | `avatar_render_project` | render a `.ftcavatar` (address or JSON) without opening it; `dataUris: true` adds the PNGs |
 | `avatar_check_png` | check any finished avatar (address or data URI) against FIRST's rules, with its hashes |
+| `avatar_event_fingerprints` | every team at an event with its current avatar's hashes, marked where it matches an option on the page |
 | `avatar_editor_state` | everything about the open editor, with the result as images |
 | `avatar_editor_set` | background, border, edges, shrinking (smooth or pixel art), logo source and size, frame, brightness, contrast, saturation, colours |
 | `avatar_editor_place`, `avatar_editor_move` | fit, fill, centre or cut at the bottom; move by avatar pixels |

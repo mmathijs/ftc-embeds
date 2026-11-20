@@ -860,6 +860,25 @@
         },
     });
     agent.register({
+        name: "avatar_event_fingerprints", readOnly: true,
+        description: "Every team at an FTC event with its current FIRST avatar's fingerprints (sha256 and pixelSha256, as the options and avatar_check_png give them) and since when FTCScout has it. Teams whose avatar is one of the options on this page are marked (matchesOption). To see which teams uploaded avatars you made, compare pixelSha256.",
+        inputSchema: { type: "object", properties: { event: { type: "string", description: "The event code, like NLHAQ" }, season: { type: "integer", description: "The year the season starts (default: this season)" } }, required: ["event"] },
+        async run(i) {
+            let code = String(i.event || "").trim().toUpperCase(), now = new Date();
+            if (!/^[A-Z0-9]{1,32}$/.test(code)) throw new Error("event: an FTC event code, like NLHAQ");
+            let season = i.season ? +i.season : now.getMonth() >= 8 ? now.getFullYear() : now.getFullYear() - 1;
+            let r = await fetch(`${CARD_API}/events/${season}/${code}/avatars`, { signal: AbortSignal.timeout(20000) });
+            let d = null;
+            try { d = (await r.json()).data; } catch { /* not JSON */ }
+            if (!r.ok || !d) throw new Error(`FTCScout's API answered ${r.status}.`);
+            if (!d.event) throw new Error(`There's no event ${code} in the ${season} season.`);
+            let mine = new Map();
+            for (let o of sheet.items.values()) (o.pixelSha256 || []).forEach((h, k) => h && mine.set(h, { id: o.id, label: o.label, version: k ? "transparent" : "opaque" }));
+            d.teams = d.teams.map((t) => Object.assign(t, { matchesOption: (t.avatar && mine.get(t.avatar.pixelSha256)) || null }));
+            return d;
+        },
+    });
+    agent.register({
         name: "avatar_check_png", readOnly: true,
         description: "Check a finished avatar (any PNG: made here, by hand or downloaded from FIRST) against FIRST's rules (a still PNG, 40 × 40, at most 20 kB, no colours near lime or magenta) and the editor's notes (colours hidden under transparent pixels, half-transparent pixels, empty bands), with its sha256 and pixelSha256. pixelSha256 is of the pixels, so it stays the same when a file is saved again (FIRST seems to re-save uploads): compare it with an option's to see whether a team uses that avatar.",
         inputSchema: { type: "object", properties: { url: { type: "string", description: "The PNG's address (from sites that allow it)" }, dataUri: { type: "string", description: "Or the PNG as a data URI" } } },

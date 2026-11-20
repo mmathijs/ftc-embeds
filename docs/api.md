@@ -140,6 +140,7 @@ Presets of the queries in `src/core/event-api.mjs`, with variables `{ season, co
 | `GET {apiBase}/events/{season}/{code}/awards` | `EVENT_AWARDS_QUERY`: `awards { type placement divisionName personName teamNumber team { name } }` | 5 min |
 | `GET {apiBase}/events/{season}/{code}/teams` | `EVENT_TEAMS_QUERY`: `teams { teamNumber team { name rookieYear avatar location { city state country } } stats { rank wins losses ties } }`: the teams at the event, also before it starts | 5 min |
 | `GET {apiBase}/events/{season}/{code}/playoffs` | `EVENT_PLAYOFFS_QUERY`: the teams' ranks and every match with each team's `alliance`, `allianceRole` (Captain, FirstPick, SecondPick) and the scores: the widget works out the alliances and the bracket | 30 s |
+| `GET {apiBase}/events/{season}/{code}/avatars` | not a preset: every team at the event with its current FIRST avatar's `url`, `since` (when FTCScout first saw it; it checks every 12 hours, and avatars from before 5 November 2026 show that day), `bytes`, `sha256` and `pixelSha256`, and how many `versions` it has had. See [the avatar maker](avatar-maker.md#which-teams-use-an-avatar) | 5 min |
 | `GET {apiBase}/teams/{number}/badge.svg` (`.png`) | not a preset: a badge image from the team's `stats` ("FTC 19444 · OPR 69.1"). `stat` (`name`, `opr`, `rank`, `epa`, `record`, `awards`), `label`, `color` (hex), `season`, `scale` (PNG, 1–4) | 1 h |
 | `GET {apiBase}/teams/{number}/og.png` | not a preset: a 1200×630 link preview (name, place, OPR, record, awards), ftc-embeds.com's team pages' `og:image` | 1 h |
 
